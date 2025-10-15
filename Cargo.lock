@@ -1183,7 +1183,9 @@ dependencies = [
 name = "deskulpt"
 version = "0.0.1"
 dependencies = [
+ "anyhow",
  "deskulpt-core",
+ "notify",
  "tauri",
  "tauri-build",
  "tauri-plugin-clipboard-manager",

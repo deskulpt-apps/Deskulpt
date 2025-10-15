@@ -12,6 +12,8 @@ version    = { workspace = true }
 [dependencies]
 deskulpt-core = { workspace = true }
 # serde_json                     = { workspace = true }
+anyhow                         = { workspace = true }
+notify                         = { git = "https://github.com/sapphi-red/notify", rev = "refs/heads/patches" }
 tauri                          = { workspace = true, features = ["macos-private-api"] }
 tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-global-shortcut   = { workspace = true }
