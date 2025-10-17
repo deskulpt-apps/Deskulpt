@@ -4,7 +4,7 @@
 
 Deskulpt is currently available on the following desktop platforms:
 
-- Windows (7 and later)
+- Windows (10 and later)
 - MacOS (Catalina 10.15 and later, Intel and Apple Silicon)
 - Linux (X11, tested on Ubuntu)
 
