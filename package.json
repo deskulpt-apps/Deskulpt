@@ -5,6 +5,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky",
+    "tauri": "tauri",
     "format": "pnpm format:js && pnpm format:rs",
     "format:check": "pnpm format:js:check && pnpm format:rs:check",
     "format:js": "prettier --write .",
@@ -28,6 +29,7 @@
   "devDependencies": {
     "@tauri-apps/cli": "^2.8.4",
     "husky": "^9.1.6",
+    "knip": "^5.66.0",
     "lint-staged": "^16.2.4",
     "oxlint": "^1.22.0",
     "prettier": "^3.6.2",

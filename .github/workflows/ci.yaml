@@ -66,7 +66,10 @@ jobs:
       - name: Check formatting
         run: pnpm format:check
 
-      - name: Check unused cargo dependencies
+      - name: Check unused Node dependencies, exports, and files
+        run: pnpm knip
+
+      - name: Check unused Rust dependencies
         run: cargo shear
 
       - name: Check that auto-generated files are up-to-date

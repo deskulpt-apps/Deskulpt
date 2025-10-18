@@ -32,12 +32,18 @@ pub trait SettingsStateExt<R: Runtime>: Manager<R> + PathExt<R> + GlobalShortcut
     }
 
     /// Get an immutable reference to the settings.
+    ///
+    /// The returned reference is behind a lock guard, which should be dropped
+    /// as soon as possible to minimize critical section.
     fn get_settings(&self) -> RwLockReadGuard<'_, Settings> {
         let state = self.state::<SettingsState>().inner();
         state.0.read().unwrap()
     }
 
     /// Get a mutable reference to the settings.
+    ///
+    /// The returned reference is behind a lock guard, which should be dropped
+    /// as soon as possible to minimize critical section.
     fn get_settings_mut(&self) -> RwLockWriteGuard<'_, Settings> {
         let state = self.state::<SettingsState>().inner();
         state.0.write().unwrap()

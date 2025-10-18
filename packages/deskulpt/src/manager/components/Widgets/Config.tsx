@@ -28,16 +28,16 @@ const Config = memo(({ id }: ConfigProps) => {
             <Table.Body>
               <Table.Row align="center">
                 <Table.RowHeaderCell>Name</Table.RowHeaderCell>
-                <Table.Cell>{config.name}</Table.Cell>
+                <Table.Cell>{config.content.name}</Table.Cell>
               </Table.Row>
               <Table.Row align="center">
                 <Table.RowHeaderCell>Entry</Table.RowHeaderCell>
-                <Table.Cell>{config.entry}</Table.Cell>
+                <Table.Cell>{config.content.entry}</Table.Cell>
               </Table.Row>
               <Table.Row align="center">
                 <Table.RowHeaderCell>Dependencies</Table.RowHeaderCell>
                 <Table.Cell>
-                  <Dependencies dependencies={config.dependencies} />
+                  <Dependencies dependencies={config.content.dependencies} />
                 </Table.Cell>
               </Table.Row>
             </Table.Body>
@@ -46,7 +46,7 @@ const Config = memo(({ id }: ConfigProps) => {
           <Box pl="2" m="0" asChild>
             <pre>
               <Code size="2" variant="ghost">
-                {config?.error ?? "Widget not found."}
+                {config?.content ?? "Widget not found."}
               </Code>
             </pre>
           </Box>

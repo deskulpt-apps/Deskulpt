@@ -1,0 +1,19 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "project": [],
+      "ignoreBinaries": ["rustfmt", "only-allow"]
+    },
+    "packages/deskulpt": {
+      "entry": ["src/canvas/main.tsx", "src/manager/main.tsx"],
+      "ignore": ["gen/*", "src/bindings.ts"]
+    },
+    "packages/ui": {
+      "entry": ["src/index.ts", "src/jsx-runtime.ts"]
+    },
+    "docs": {
+      "entry": [".vitepress/config.ts", ".vitepress/theme/index.ts"]
+    }
+  }
+}

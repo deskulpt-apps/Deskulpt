@@ -4,7 +4,6 @@
   "description": "Capabilities of the canvas window.",
   "windows": ["canvas"],
   "permissions": [
-    "deskulpt-core:allow-bundle-widget",
     "deskulpt-core:allow-call-plugin",
     "deskulpt-core:allow-set-render-ready",
     "deskulpt-core:allow-update-settings",

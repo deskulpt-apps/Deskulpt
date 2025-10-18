@@ -23,29 +23,21 @@ export type DeskulptWindow =
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key in string]: JsonValue }
 
 /**
- * Event for removing widgets.
+ * A result-like binary outcome.
  * 
- * This event is emitted from the manager window to the canvas window when
- * widgets need to be removed.
+ * This represents the outcome of an operation that can either succeed with a
+ * value of type `T` or fail with an error message.
  */
-export type RemoveWidgetsEvent = 
-/**
- * The list of widget IDs to be removed.
- */
-string[]
+export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
 
 /**
- * Event for re-rendering widgets.
+ * Event for rendering widgets.
  * 
- * This event is mainly emitted from the manager window to the canvas window
- * when settings or code of a widget needs to be re-rendered. It may also be
- * emitted from the backend to the canvas window for the initial render.
+ * This event is emitted from the backend to the canvas window to instruct it
+ * to render the provided widgets. The event carries a mapping from widget IDs
+ * to their corresponding code strings.
  */
-export type RenderWidgetsEvent = 
-/**
- * The list of widget IDs to be re-rendered.
- */
-string[]
+export type RenderWidgetsEvent = { [key in string]: Outcome<string> }
 
 /**
  * Full settings of the Deskulpt application.
@@ -126,12 +118,21 @@ export type ShowToastEvent =
 export type Theme = "light" | "dark"
 
 /**
- * Event for updating settings of a widget.
+ * Event for updating the settings.
  * 
- * This event is emitted between the manager window and the canvas window to
- * each other when widget settings are updated on one side.
+ * This event is emitted from the backend to all frontend windows whenever
+ * there is a change in the settings. Full settings are included to ensure
+ * that all windows see the most up-to-date version eventually.
  */
 export type UpdateSettingsEvent = Settings
+
+/**
+ * Event for updating the widget catalog.
+ * 
+ * This event is emitted from the backend to all frontend windows whenever
+ * there is a change in the widget catalog.
+ */
+export type UpdateWidgetCatalogEvent = WidgetCatalog
 
 /**
  * The widget catalog.
@@ -139,20 +140,24 @@ export type UpdateSettingsEvent = Settings
  * This is a collection of all widgets discovered locally, mapped from their
  * widget IDs to their configurations.
  */
-export type WidgetCatalog = { [key in string]: WidgetConfig }
+export type WidgetCatalog = { [key in string]: Outcome<WidgetConfig> }
 
 /**
  * Full configuration of a Deskulpt widget.
  */
-export type WidgetConfig = 
+export type WidgetConfig = { 
 /**
- * Valid configuration of a widget.
+ * The name of the widget.
  */
-{ type: "ok"; name: string; entry: string; dependencies: { [key in string]: string } } | 
+name: string; 
 /**
- * Error information if a widget failed to load.
+ * The entry point of the widget.
  */
-{ type: "err"; error: string }
+entry: string; 
+/**
+ * The dependencies of the widget.
+ */
+dependencies: { [key in string]: string } }
 
 /**
  * Per-widget settings.
@@ -228,10 +233,10 @@ function makeEvent<T>(name: string) {
 }
 
 export const events = {
-  removeWidgets: makeEvent<RemoveWidgetsEvent>("remove-widgets"),
   renderWidgets: makeEvent<RenderWidgetsEvent>("render-widgets"),
   showToast: makeEvent<ShowToastEvent>("show-toast"),
   updateSettings: makeEvent<UpdateSettingsEvent>("update-settings"),
+  updateWidgetCatalog: makeEvent<UpdateWidgetCatalogEvent>("update-widget-catalog"),
 };
 
 // =============================================================================
@@ -241,19 +246,23 @@ export const events = {
 export const commands = {
   core: {
     /**
-     * Bundle a widget.
+     * Bundle widgets.
+     * 
+     * This command bundles the specified widgets that exist in the catalog. If
+     * `ids` is not provided, all widgets in the catalog are bundled. Failure to
+     * bundle an individual widget does not prevent other widgets from being
+     * bundled. Instead, the outcome of each bundling operation is collected and
+     * sent to the canvas window via the [`RenderWidgetsEvent`].
      * 
      * ### Errors
      * 
-     * - Failed to access the widgets directory.
-     * - Widget ID does not exist in the configuration map.
-     * - Widget has a configuration error.
-     * - Error bundling the widget.
+     * - Error accessing the widgets directory.
+     * - Error emitting the [`RenderWidgetsEvent`].
      */
-    bundleWidget: (
-      id: string,
-    ) => invoke<string>("plugin:deskulpt-core|bundle_widget", {
-      id,
+    bundleWidgets: (
+      ids: string[] | null,
+    ) => invoke<null>("plugin:deskulpt-core|bundle_widgets", {
+      ids,
     }),
 
     /**
@@ -283,33 +292,6 @@ export const commands = {
     }),
 
     /**
-     * Wrapper of
-     * [`emit_on_render_ready`](InitialRenderStateExt::emit_on_render_ready).
-     * 
-     * ### Errors
-     * 
-     * - Failed to emit the [`RenderWidgetsEvent`] to the canvas.
-     */
-    emitOnRenderReady: (
-      event: RenderWidgetsEvent,
-    ) => invoke<null>("plugin:deskulpt-core|emit_on_render_ready", {
-      event,
-    }),
-
-    /**
-     * Exit the application with cleanup.
-     * 
-     * This command never returns an error; in other words it will always exit the
-     * application in the end. Prior to exiting, it will try to dump the settings
-     * for persistence, but failure to do so will not prevent exiting.
-     */
-    exitApp: (
-      settings: Settings,
-    ) => invoke<void>("plugin:deskulpt-core|exit_app", {
-      settings,
-    }),
-
-    /**
      * Open the widgets directory or a specific widget directory.
      * 
      * If the widget ID is provided, a specific widget directory will be opened.
@@ -328,18 +310,23 @@ export const commands = {
     }),
 
     /**
-     * Rescan the widgets directory and update the widget configuration map.
+     * Rescan the widgets directory to discover widgets.
      * 
-     * This will update the widget configuration map state and return the updated
-     * configuration map as well.
+     * This command scans the widgets directory for available widgets and updates
+     * the widget catalog and settings accordingly. It then emits events to notify
+     * the frontend of these changes. Finally, it triggers the bundling of all
+     * widgets in the updated catalog with `bundle_widgets` to ensure they are
+     * ready for use.
      * 
      * ### Errors
      * 
-     * - Failed to access the widgets directory.
-     * - Error traversing the widgets directory.
-     * - Error inferring widget ID from the directory entry.
+     * - Error accessing the widgets directory.
+     * - Error loading the new widget catalog from the widgets directory.
+     * - Error emitting the [`UpdateSettingsEvent`].
+     * - Error emitting the [`UpdateWidgetCatalogEvent`].
+     * - Error bundling all discovered widgets.
      */
-    rescanWidgets: () => invoke<WidgetCatalog>("plugin:deskulpt-core|rescan_widgets"),
+    rescanWidgets: () => invoke<null>("plugin:deskulpt-core|rescan_widgets"),
 
     /**
      * Wrapper of [`set_render_ready`](InitialRenderStateExt::set_render_ready).

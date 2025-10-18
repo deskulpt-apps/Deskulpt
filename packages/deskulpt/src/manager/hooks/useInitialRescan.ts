@@ -1,8 +1,8 @@
 import { useEffect } from "react";
-import { rescan } from "./useWidgetsStore";
+import { commands } from "../../bindings";
 
 export function useInitialRescan() {
   useEffect(() => {
-    rescan(true).catch(console.error);
+    commands.core.rescanWidgets().catch(console.error);
   }, []);
 }

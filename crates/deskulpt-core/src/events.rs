@@ -1,30 +1,21 @@
 //! Deskulpt core events.
 
+use std::collections::HashMap;
+
 use deskulpt_common::event::Event;
+use deskulpt_common::outcome::Outcome;
 use serde::{Deserialize, Serialize};
 
+use crate::config::WidgetCatalog;
 use crate::settings::Settings;
 
-/// Event for removing widgets.
+/// Event for rendering widgets.
 ///
-/// This event is emitted from the manager window to the canvas window when
-/// widgets need to be removed.
+/// This event is emitted from the backend to the canvas window to instruct it
+/// to render the provided widgets. The event carries a mapping from widget IDs
+/// to their corresponding code strings.
 #[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
-pub struct RemoveWidgetsEvent(
-    /// The list of widget IDs to be removed.
-    Vec<String>,
-);
-
-/// Event for re-rendering widgets.
-///
-/// This event is mainly emitted from the manager window to the canvas window
-/// when settings or code of a widget needs to be re-rendered. It may also be
-/// emitted from the backend to the canvas window for the initial render.
-#[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
-pub struct RenderWidgetsEvent(
-    /// The list of widget IDs to be re-rendered.
-    Vec<String>,
-);
+pub struct RenderWidgetsEvent(pub HashMap<String, Outcome<String>>);
 
 /// Event for showing a toast notification.
 ///
@@ -39,9 +30,17 @@ pub enum ShowToastEvent {
     Error(String),
 }
 
-/// Event for updating settings of a widget.
+/// Event for updating the settings.
 ///
-/// This event is emitted between the manager window and the canvas window to
-/// each other when widget settings are updated on one side.
+/// This event is emitted from the backend to all frontend windows whenever
+/// there is a change in the settings. Full settings are included to ensure
+/// that all windows see the most up-to-date version eventually.
 #[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
 pub struct UpdateSettingsEvent(pub Settings);
+
+/// Event for updating the widget catalog.
+///
+/// This event is emitted from the backend to all frontend windows whenever
+/// there is a change in the widget catalog.
+#[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
+pub struct UpdateWidgetCatalogEvent(pub WidgetCatalog);

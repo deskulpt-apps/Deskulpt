@@ -6,6 +6,7 @@ use std::io::BufReader;
 use std::path::Path;
 
 use anyhow::{Context, Result};
+use deskulpt_common::outcome::Outcome;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
@@ -46,8 +47,8 @@ trait LoadFromFile: Sized + DeserializeOwned {
 
     /// Load the configuration file from the given directory.
     ///
-    /// This method returns `Ok(None)` if the target file does not exist and
-    /// `Err` if there is failure to read or parse the file.
+    /// Specially, this method returns `Ok(None)` if the target file does not
+    /// exist and does not treat it as an error.
     fn load(dir: &Path) -> Result<Option<Self>> {
         let path = dir.join(Self::FILE_NAME);
         if !path.exists() {
@@ -69,63 +70,39 @@ impl LoadFromFile for PackageJson {
 }
 
 /// Full configuration of a Deskulpt widget.
-#[derive(Debug, Clone, Serialize, specta::Type)]
-#[serde(tag = "type", rename_all = "camelCase")]
-pub enum WidgetConfig {
-    /// Valid configuration of a widget.
-    #[serde(rename_all = "camelCase")]
-    Ok {
-        /// The name of the widget.
-        name: String,
-        /// The entry point of the widget.
-        entry: String,
-        /// The dependencies of the widget.
-        dependencies: HashMap<String, String>,
-    },
-    /// Error information if a widget failed to load.
-    #[serde(rename_all = "camelCase")]
-    Err {
-        /// The error message.
-        error: String,
-    },
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct WidgetConfig {
+    /// The name of the widget.
+    pub name: String,
+    /// The entry point of the widget.
+    pub entry: String,
+    /// The dependencies of the widget.
+    pub dependencies: HashMap<String, String>,
 }
 
 impl WidgetConfig {
     /// Read widget configuration from a directory.
     ///
-    /// This returns `None` if the directory is not considered a widget
-    /// directory, or if the widget is explicitly marked as ignored.
-    pub fn load(dir: &Path) -> Option<Self> {
+    /// Specially, this method returns `Ok(None)` if the directory does not
+    /// contain a widget configuration file or if the widget is explicitly
+    /// marked as ignored in the configuration file.
+    pub fn load(dir: &Path) -> Result<Option<Self>> {
         let deskulpt_conf =
-            match DeskulptConf::load(dir).context("Failed to load deskulpt.conf.json") {
-                Ok(Some(deskulpt_conf)) => deskulpt_conf,
-                Ok(None) => return None,
-                Err(e) => {
-                    return Some(WidgetConfig::Err {
-                        error: format!("{e:?}"),
-                    })
-                },
+            match DeskulptConf::load(dir).context("Failed to load deskulpt.conf.json")? {
+                Some(deskulpt_conf) if !deskulpt_conf.ignore => deskulpt_conf,
+                _ => return Ok(None),
             };
 
-        // Ignore widgets that are explicitly marked as such
-        if deskulpt_conf.ignore {
-            return None;
-        }
+        let package_json = PackageJson::load(dir)
+            .context("Failed to load package.json")?
+            .unwrap_or_default();
 
-        let package_json = match PackageJson::load(dir).context("Failed to load package.json") {
-            Ok(package_json) => package_json.unwrap_or_default(),
-            Err(e) => {
-                return Some(WidgetConfig::Err {
-                    error: format!("{e:?}"),
-                })
-            },
-        };
-
-        Some(WidgetConfig::Ok {
+        Ok(Some(WidgetConfig {
             name: deskulpt_conf.name,
             entry: deskulpt_conf.entry,
             dependencies: package_json.dependencies,
-        })
+        }))
     }
 }
 
@@ -133,8 +110,8 @@ impl WidgetConfig {
 ///
 /// This is a collection of all widgets discovered locally, mapped from their
 /// widget IDs to their configurations.
-#[derive(Debug, Default, Clone, Serialize, specta::Type)]
-pub struct WidgetCatalog(pub BTreeMap<String, WidgetConfig>);
+#[derive(Debug, Default, Clone, Serialize, Deserialize, specta::Type)]
+pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetConfig>>);
 
 impl WidgetCatalog {
     /// Load the widget catalog from the given directory.
@@ -154,7 +131,10 @@ impl WidgetCatalog {
                 continue; // Non-directory entries are not widgets, skip
             }
 
-            if let Some(config) = WidgetConfig::load(&path) {
+            if let Some(config) = WidgetConfig::load(&path)
+                .map(|opt| opt.map(Outcome::Ok))
+                .unwrap_or_else(|e| Some(Outcome::Err(format!("{e:?}"))))
+            {
                 // Since each widget must be at the top level of the widgets
                 // directory, the directory names must be unique and we can use
                 // them as widget IDs

@@ -8,6 +8,7 @@ use tauri::{
     App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, Window, WindowEvent,
 };
 
+use crate::settings::Theme;
 use crate::states::SettingsStateExt;
 
 /// Extention trait for window-related operations.
@@ -19,12 +20,20 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsStateExt<R> {
     {
         let settings = self.get_settings();
         let init_js = ManagerInitJS::generate(&settings)?;
+
+        // https://www.radix-ui.com/colors: "Slate 1" colors
+        let background_color = match settings.theme {
+            Theme::Light => (252, 252, 253), // #FCFCFD
+            Theme::Dark => (17, 17, 19),     // #111113
+        };
+
         WebviewWindowBuilder::new(
             self,
             DeskulptWindow::Manager,
             WebviewUrl::App("src/manager/index.html".into()),
         )
         .title("Deskulpt Manager")
+        .background_color(background_color.into())
         .inner_size(800.0, 500.0)
         .center()
         .resizable(false)

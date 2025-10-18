@@ -1,11 +1,8 @@
-import { useEffect, useRef } from "react";
-import {
-  updateWidgetRender,
-  updateWidgetRenderError,
-  useWidgetsStore,
-} from "./useWidgetsStore";
+import { createElement, useEffect, useRef } from "react";
+import { useWidgetsStore } from "./useWidgetsStore";
 import { stringifyError } from "../../utils/stringifyError";
 import { commands, events } from "../../bindings";
+import ErrorDisplay from "../components/ErrorDisplay";
 
 const BASE_URL = new URL(import.meta.url).origin;
 const RAW_APIS_URL = new URL("/gen/raw-apis.js", BASE_URL).href;
@@ -17,7 +14,7 @@ export function useRenderWidgetsListener() {
     const unlisten = events.renderWidgets.listen(async (event) => {
       const widgets = useWidgetsStore.getState();
 
-      const promises = event.payload.map(async (id) => {
+      const promises = Object.entries(event.payload).map(async ([id, code]) => {
         let apisBlobUrl;
         if (id in widgets) {
           // APIs blob URL can be reused because the contents are dependent only
@@ -38,20 +35,26 @@ export function useRenderWidgetsListener() {
           apisBlobUrl = URL.createObjectURL(apisBlob);
         }
 
-        let code;
-        try {
-          code = await commands.core.bundleWidget(id);
-        } catch (error) {
-          updateWidgetRenderError(
-            id,
-            "Error bundling the widget",
-            stringifyError(error),
-            apisBlobUrl,
+        if (code.type === "err") {
+          useWidgetsStore.setState(
+            (state) => ({
+              ...state,
+              [id]: {
+                component: () =>
+                  createElement(ErrorDisplay, {
+                    id,
+                    error: "Error bundling the widget",
+                    message: code.content,
+                  }),
+                apisBlobUrl,
+              },
+            }),
+            true,
           );
           return;
         }
 
-        let moduleCode = code
+        let moduleCode = code.content
           .replaceAll("__DESKULPT_BASE_URL__", BASE_URL)
           .replaceAll("__DESKULPT_APIS_BLOB_URL__", apisBlobUrl);
         const moduleBlob = new Blob([moduleCode], {
@@ -62,20 +65,39 @@ export function useRenderWidgetsListener() {
         try {
           module = await import(/* @vite-ignore */ moduleBlobUrl);
           if (module.default === undefined) {
-            throw new Error("Missing default export");
+            throw new Error("Widget module has no default export");
           }
         } catch (error) {
           URL.revokeObjectURL(moduleBlobUrl);
-          updateWidgetRenderError(
-            id,
-            "Error importing the widget module",
-            stringifyError(error),
-            apisBlobUrl,
+          useWidgetsStore.setState(
+            (state) => ({
+              ...state,
+              [id]: {
+                component: () =>
+                  createElement(ErrorDisplay, {
+                    id,
+                    error: "Error importing the widget module",
+                    message: stringifyError(error),
+                  }),
+                apisBlobUrl,
+              },
+            }),
+            true,
           );
           return;
         }
 
-        updateWidgetRender(id, module.default, moduleBlobUrl, apisBlobUrl);
+        useWidgetsStore.setState(
+          (state) => ({
+            ...state,
+            [id]: {
+              component: module.default,
+              apisBlobUrl,
+              moduleBlobUrl,
+            },
+          }),
+          true,
+        );
       });
 
       await Promise.all(promises);

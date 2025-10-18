@@ -1,6 +1,6 @@
 //! State management for the widget catalog.
 
-use std::sync::RwLock;
+use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use tauri::{App, AppHandle, Manager, Runtime};
 
@@ -18,30 +18,22 @@ pub trait WidgetCatalogStateExt<R: Runtime>: Manager<R> + PathExt<R> {
         self.manage(WidgetCatalogState::default());
     }
 
-    /// Provide reference to the widget catalog within a closure.
+    /// Get an immutable reference to the widget catalog.
     ///
-    /// This will lock the widget catalog state. The return value of the closure
-    /// will be propagated.
-    fn with_widget_catalog<F, T>(&self, f: F) -> T
-    where
-        F: FnOnce(&WidgetCatalog) -> T,
-    {
-        let state = self.state::<WidgetCatalogState>();
-        let catalog = state.0.read().unwrap();
-        f(&catalog)
+    /// The returned reference is behind a lock guard, which should be dropped
+    /// as soon as possible to minimize critical section.
+    fn get_widget_catalog(&self) -> RwLockReadGuard<'_, WidgetCatalog> {
+        let state = self.state::<WidgetCatalogState>().inner();
+        state.0.read().unwrap()
     }
 
-    /// Provide mutable reference to the widget catalog within a closure.
+    /// Get a mutable reference to the widget catalog.
     ///
-    /// This will lock the widget catalog state. The return value of the closure
-    /// will be propagated.
-    fn with_widget_catalog_mut<F, T>(&self, f: F) -> T
-    where
-        F: FnOnce(&mut WidgetCatalog) -> T,
-    {
-        let state = self.state::<WidgetCatalogState>();
-        let mut catalog = state.0.write().unwrap();
-        f(&mut catalog)
+    /// The returned reference is behind a lock guard, which should be dropped
+    /// as soon as possible to minimize critical section.
+    fn get_widget_catalog_mut(&self) -> RwLockWriteGuard<'_, WidgetCatalog> {
+        let state = self.state::<WidgetCatalogState>().inner();
+        state.0.write().unwrap()
     }
 }
 

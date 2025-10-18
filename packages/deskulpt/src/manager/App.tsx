@@ -4,6 +4,7 @@ import {
   useInitialRescan,
   useSettingsStore,
   useUpdateSettingsListener,
+  useUpdateWidgetCatalogListener,
 } from "./hooks";
 import About from "./components/About";
 import Widgets from "./components/Widgets";
@@ -21,6 +22,7 @@ const App = () => {
 
   useInitialRescan();
   useUpdateSettingsListener();
+  useUpdateWidgetCatalogListener();
 
   return (
     <RadixTheme appearance={theme} accentColor="indigo" grayColor="slate">

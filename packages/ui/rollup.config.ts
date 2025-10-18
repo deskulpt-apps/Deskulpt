@@ -12,7 +12,7 @@ cleanDir(join(__dirname, "./dist"));
 export default defineConfig([
   // ESM build of the emotion JSX runtime to be used internally
   {
-    input: "src/jsx-runtime.js",
+    input: "src/jsx-runtime.ts",
     output: {
       format: "esm",
       file: "../deskulpt/gen/jsx-runtime.js",
