@@ -11,39 +11,21 @@
 
 <br />
 
-[![release](https://img.shields.io/github/v/release/deskulpt-apps/Deskulpt)](https://github.com/deskulpt-apps/Deskulpt/releases/latest) [![ci](https://img.shields.io/github/actions/workflow/status/deskulpt-apps/Deskulpt/ci.yaml?label=ci&logo=github)](https://github.com/deskulpt-apps/Deskulpt/actions/workflows/ci.yaml) [![hompage](https://img.shields.io/badge/homepage-Deskulpt-blue.svg)](https://deskulpt-apps.github.io/)
+[![release](https://img.shields.io/github/v/release/deskulpt-apps/Deskulpt)](https://github.com/deskulpt-apps/Deskulpt/releases/latest) [![ci](https://img.shields.io/github/actions/workflow/status/deskulpt-apps/Deskulpt/ci.yaml?label=ci&logo=github)](https://github.com/deskulpt-apps/Deskulpt/actions/workflows/ci.yaml) [![hompage](https://img.shields.io/badge/homepage-Deskulpt-blue.svg)](https://deskulpt-apps.github.io/) [![cs1060 team folder](https://img.shields.io/badge/cs1060%20team%20folder-4285F4?logo=googledrive&logoColor=white)](https://drive.google.com/drive/folders/1EmadY8rYWEcFHqrn6d1MQ6fx0wTt1TqN?usp=drive_link)
 
 </div>
 
 ## Introduction
 
-**Deskulpt** is a cross-platform desktop customization tool that allows you to write
-React code to define widgets on your desktop. It is powered by [Tauri v2](https://v2.tauri.app/),
-and written in Rust and TypeScript.
-
-The project was started in 2024 as a final project for the Software Engineering course
-at [NYU Shanghai](https://shanghai.nyu.edu/). It is currently maintained by the original
-authors.
-
-Similar softwares exist ([Rainmeter](https://www.rainmeter.net/) for Windows,
-[Ubersicht](https://tracesof.net/uebersicht/) for MacOS), but what makes Deskulpt
-different is that:
-
-- **Deskulpt is cross-platform.** To the best of our knowledge, Deskulpt is the first
-  desktop customization tool that supports all major desktop platforms (Windows, MacOS,
-  Linux).
-
-- **Deskulpt is light-weight and memory-safe.** Deskulpt is powered by Tauri, which uses
-  Rust as its backend. Tauri provides a more light-weight solution than other existing
-  frameworks (e.g. Electron), and Rust guarantees the memory safety of Deskulpt.
+**Deskulpt** is a modern cross-platform desktop customization tool that allows you to define widgets with React components and render them directly on your desktop. It leverages web capabilities for infinite widget UI customizations and a plugin system for high extensibility and deep integration with your system. Deskulpt aims to provide a curated widget gallery for end-users and also first-class web-like development experience for widget authors.
 
 Currently, Deskulpt supports the following platforms:
 
-- Windows (10, 11)
-- MacOS
-- Linux (X11, tested on Ubuntu)
+- Windows (10 and later)
+- MacOS (Catalina 10.15 and later, Intel and Apple Silicon)
+- Linux (X11, tested on Ubuntu 24.04 Desktop)
 
-Website: [https://deskulpt-apps.github.io/](https://deskulpt-apps.github.io/)
+Website: [https://deskulpt-apps.github.io/](https://deskulpt-apps.github.io/) (under construction)
 
 ## Download
 
