@@ -1,7 +1,7 @@
 import { createElement, useEffect, useRef } from "react";
 import { useWidgetsStore } from "./useWidgetsStore";
 import { stringifyError } from "../../utils/stringifyError";
-import { commands, events } from "../../bindings";
+import { commands, events } from "@deskulpt/bindings";
 import ErrorDisplay from "../components/ErrorDisplay";
 
 const BASE_URL = new URL(import.meta.url).origin;

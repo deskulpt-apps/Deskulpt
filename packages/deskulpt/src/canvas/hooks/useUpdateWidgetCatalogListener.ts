@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { events } from "../../bindings";
+import { events } from "@deskulpt/bindings";
 import { useWidgetsStore } from "./useWidgetsStore";
 
 export function useUpdateWidgetCatalogListener() {

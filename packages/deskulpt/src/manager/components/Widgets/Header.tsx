@@ -2,7 +2,7 @@ import { Badge, Button, Flex } from "@radix-ui/themes";
 import { memo, useCallback } from "react";
 import { LuFolderOpen, LuRepeat } from "react-icons/lu";
 import { useWidgetsStore } from "../../hooks";
-import { commands } from "../../../bindings";
+import { commands } from "@deskulpt/bindings";
 
 interface HeaderProps {
   id: string;

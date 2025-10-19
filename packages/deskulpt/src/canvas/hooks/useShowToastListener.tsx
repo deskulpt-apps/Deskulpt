@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { events } from "../../bindings";
+import { events } from "@deskulpt/bindings";
 
 export function useShowToastListener() {
   useEffect(() => {

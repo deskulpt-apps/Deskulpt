@@ -9,6 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@deskulpt/bindings": "workspace:*",
     "@emotion/react": "catalog:",
     "@radix-ui/themes": "catalog:",
     "@tauri-apps/api": "catalog:",

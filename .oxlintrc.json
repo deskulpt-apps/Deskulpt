@@ -4,7 +4,7 @@
     "**/dist/**",
     "crates/deskulpt-core/gen/**",
     "packages/deskulpt/gen/**",
-    "packages/deskulpt/src/bindings.ts",
+    "packages/deskulpt-bindings/src/index.ts",
     "**/docs/**"
   ],
   "plugins": ["import", "oxc", "react", "typescript", "unicorn"],

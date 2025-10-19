@@ -8,7 +8,7 @@ import { LuGripVertical } from "react-icons/lu";
 import { Box } from "@radix-ui/themes";
 import { useSettingsStore, useWidgetsStore } from "../hooks";
 import { css } from "@emotion/react";
-import { commands } from "../../bindings";
+import { commands } from "@deskulpt/bindings";
 
 const styles = {
   wrapper: css({

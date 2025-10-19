@@ -1,7 +1,7 @@
 import { Flex, IconButton } from "@radix-ui/themes";
 import { memo, useCallback } from "react";
 import { LuFileScan, LuFolderOpen, LuRepeat } from "react-icons/lu";
-import { commands } from "../../../bindings";
+import { commands } from "@deskulpt/bindings";
 
 interface GlobalActionsProps {
   length: number;

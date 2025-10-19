@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { commands } from "../../bindings";
+import { commands } from "@deskulpt/bindings";
 
 export function useInitialRescan() {
   useEffect(() => {

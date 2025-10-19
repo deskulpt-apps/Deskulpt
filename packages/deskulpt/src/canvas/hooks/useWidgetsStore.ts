@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { WidgetSettings } from "../../bindings";
+import { WidgetSettings } from "@deskulpt/bindings";
 import { FC } from "react";
 
 interface WidgetProps extends WidgetSettings {
