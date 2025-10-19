@@ -7,7 +7,7 @@
     },
     "packages/deskulpt": {
       "entry": ["src/canvas/main.tsx", "src/manager/main.tsx"],
-      "ignore": ["gen/*", "src/bindings.ts"]
+      "ignore": ["gen/*"]
     },
     "packages/ui": {
       "entry": ["src/index.ts", "src/jsx-runtime.ts"]

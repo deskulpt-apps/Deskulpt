@@ -4,7 +4,7 @@ import { useSettingsStore } from "../../hooks";
 import { memo, useCallback } from "react";
 import IntegerInput from "../IntegerInput";
 import { css } from "@emotion/react";
-import { commands } from "../../../bindings";
+import { commands } from "@deskulpt/bindings";
 
 const styles = {
   table: css({

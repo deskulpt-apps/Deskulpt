@@ -190,7 +190,7 @@ pub fn run() -> Result<()> {
     let re = Regex::new(r"Partial\s*<\s*(\{\s*\[\s*key\s+in\s+string\s*\][^}]*\})\s*>").unwrap();
     let output = re.replace_all(&output, "$1").to_string();
 
-    let path = deskulpt_workspace::package_dir("deskulpt").join("src/bindings.ts");
+    let path = deskulpt_workspace::package_dir("deskulpt-bindings").join("src/index.ts");
     std::fs::write(&path, output)?;
     println!("✅ Generated: {}", path.display());
 

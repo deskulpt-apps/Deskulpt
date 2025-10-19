@@ -218,6 +218,8 @@ opacity?: number }
 
 function makeEvent<T>(name: string) {
   return {
+    /** The name of the event. */
+    name,
     /** Listen for the event. */
     listen: (cb: tauriEvent.EventCallback<T>, options?: tauriEvent.Options) =>
       tauriEvent.listen(name, cb, options),

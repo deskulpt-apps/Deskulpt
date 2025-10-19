@@ -1,5 +1,5 @@
 import { Box, IconButton } from "@radix-ui/themes";
-import { Theme, commands } from "../../bindings";
+import { Theme, commands } from "@deskulpt/bindings";
 import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 import { useCallback } from "react";
 
