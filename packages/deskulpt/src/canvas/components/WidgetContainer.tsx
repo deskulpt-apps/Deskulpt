@@ -3,7 +3,7 @@ import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import { Resizable, ResizeCallback } from "re-resizable";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorDisplay from "./ErrorDisplay";
-import { stringifyError } from "../../utils/stringifyError";
+import { stringifyError } from "@deskulpt/utils";
 import { LuGripVertical } from "react-icons/lu";
 import { Box } from "@radix-ui/themes";
 import { useSettingsStore, useWidgetsStore } from "../hooks";

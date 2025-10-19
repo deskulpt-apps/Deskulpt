@@ -1,6 +1,6 @@
 import { createElement, useEffect, useRef } from "react";
 import { useWidgetsStore } from "./useWidgetsStore";
-import { stringifyError } from "../../utils/stringifyError";
+import { stringifyError } from "@deskulpt/utils";
 import { commands, events } from "@deskulpt/bindings";
 import ErrorDisplay from "../components/ErrorDisplay";
 
