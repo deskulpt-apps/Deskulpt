@@ -268,7 +268,14 @@ export const commands = {
     }),
 
     /**
-     * TODO
+     * Mark the window to have completed its setup.
+     * 
+     * **For the first time** all setup are completed, this command will trigger
+     * an initial scan of the widgets.
+     * 
+     * ### Errors
+     * 
+     * - Error scanning the widgets (if applicable).
      */
     completeSetup: () => invoke<null>("plugin:deskulpt-core|complete_setup"),
 

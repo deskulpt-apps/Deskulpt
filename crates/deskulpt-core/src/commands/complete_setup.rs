@@ -4,7 +4,14 @@ use super::error::CmdResult;
 use crate::commands::rescan_widgets;
 use crate::states::SetupStateExt;
 
-/// TODO
+/// Mark the window to have completed its setup.
+///
+/// **For the first time** all setup are completed, this command will trigger
+/// an initial scan of the widgets.
+///
+/// ### Errors
+///
+/// - Error scanning the widgets (if applicable).
 #[command]
 #[specta::specta]
 pub async fn complete_setup<R: Runtime>(
