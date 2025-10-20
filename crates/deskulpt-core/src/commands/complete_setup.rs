@@ -6,12 +6,12 @@ use crate::states::SetupStateExt;
 
 /// Mark the window to have completed its setup.
 ///
-/// **For the first time** all setup are completed, this command will trigger
-/// an initial scan of the widgets.
+/// If all setup has been completed after marking this window as completed, this
+/// command will automatically trigger an initial rescan of the widgets.
 ///
 /// ### Errors
 ///
-/// - Error scanning the widgets (if applicable).
+/// - Error rescanning the widgets (if applicable).
 #[command]
 #[specta::specta]
 pub async fn complete_setup<R: Runtime>(

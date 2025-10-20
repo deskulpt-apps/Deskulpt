@@ -1,36 +1,50 @@
 //! State management for application setup.
 
-use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::atomic::{AtomicU8, Ordering};
 
+use bitflags::bitflags;
 use deskulpt_common::window::DeskulptWindow;
-use tauri::{App, AppHandle, Emitter, Manager, Runtime};
+use tauri::{App, AppHandle, Manager, Runtime};
+
+bitflags! {
+  /// Flags representing the setup completion state of different windows.
+  struct Flags: u8 {
+    const CANVAS = 1 << 0;
+    const MANAGER = 1 << 1;
+  }
+}
 
 /// Managed state for application setup.
 #[derive(Default)]
-struct SetupState {
-    canvas: AtomicBool,
-    manager: AtomicBool,
-}
+struct SetupState(
+    /// Bitmask corresponding to [`Flags`].
+    ///
+    /// Each set bit means that the corresponding window has completed setup.
+    AtomicU8,
+);
 
-/// Extension trait for operations related to the initial render.
-pub trait SetupStateExt<R: Runtime>: Manager<R> + Emitter<R> {
-    /// Initialize state management for the initial render.
+/// Extension trait for operations related to application setup.
+pub trait SetupStateExt<R: Runtime>: Manager<R> {
+    /// Initialize state management for application setup.
     fn manage_setup(&self) {
         self.manage(SetupState::default());
     }
 
     /// Mark a window as having completed setup.
     ///
-    /// This method returns `true` if both windows have now completed setup
-    /// **for the first time**.
+    /// Returns `true` if all windows have completed setup after this call.
     fn complete_setup(&self, window: DeskulptWindow) -> bool {
         let state = self.state::<SetupState>();
-        let (flag, other_complete) = match window {
-            DeskulptWindow::Canvas => (&state.canvas, state.manager.load(Ordering::SeqCst)),
-            DeskulptWindow::Manager => (&state.manager, state.canvas.load(Ordering::SeqCst)),
+        let bit = match window {
+            DeskulptWindow::Canvas => Flags::CANVAS,
+            DeskulptWindow::Manager => Flags::MANAGER,
         };
-        let prev_complete = flag.swap(true, Ordering::SeqCst);
-        !prev_complete && other_complete
+
+        // Set the corresponding bit and retrieve the previous state; we only
+        // need AcqRel not SeqCst because we don't care about total ordering
+        let prev = state.0.fetch_or(bit.bits(), Ordering::AcqRel);
+        let current = Flags::from_bits_truncate(prev) | bit;
+        current.is_all()
     }
 }
 
