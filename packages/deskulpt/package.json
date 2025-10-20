@@ -10,11 +10,11 @@
   },
   "dependencies": {
     "@deskulpt/bindings": "workspace:*",
+    "@deskulpt/utils": "workspace:*",
     "@emotion/react": "catalog:",
     "@radix-ui/themes": "catalog:",
     "@tauri-apps/api": "catalog:",
     "@tauri-apps/plugin-clipboard-manager": "catalog:",
-    "@tauri-apps/plugin-opener": "catalog:",
     "re-resizable": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",

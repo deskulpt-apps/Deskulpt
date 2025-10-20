@@ -147,6 +147,9 @@ importers:
       '@deskulpt/bindings':
         specifier: workspace:*
         version: link:../deskulpt-bindings
+      '@deskulpt/utils':
+        specifier: workspace:*
+        version: link:../deskulpt-utils
       '@emotion/react':
         specifier: 'catalog:'
         version: 11.14.0(@types/react@19.2.2)(react@19.2.0)
@@ -159,9 +162,6 @@ importers:
       '@tauri-apps/plugin-clipboard-manager':
         specifier: 'catalog:'
         version: 2.3.0
-      '@tauri-apps/plugin-opener':
-        specifier: 'catalog:'
-        version: 2.5.0
       re-resizable:
         specifier: 'catalog:'
         version: 6.11.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
@@ -214,6 +214,12 @@ importers:
       '@tauri-apps/api':
         specifier: 'catalog:'
         version: 2.8.0
+
+  packages/deskulpt-utils:
+    dependencies:
+      '@tauri-apps/plugin-opener':
+        specifier: 'catalog:'
+        version: 2.5.0
 
   packages/react:
     dependencies:

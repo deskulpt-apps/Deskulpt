@@ -1,8 +1,7 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { DeepReadonly } from "../types";
+import { DeepReadonly, enforceOpenNewTab } from "@deskulpt/utils";
 import { Settings } from "@deskulpt/bindings";
-import { enforceOpenNewTab } from "../utils/enforceOpenNewTab";
 import App from "./App";
 import "@radix-ui/themes/styles.css";
 import "../styles/custom.css";
