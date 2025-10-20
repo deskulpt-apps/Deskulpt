@@ -5,7 +5,7 @@
   "windows": ["canvas"],
   "permissions": [
     "deskulpt-core:allow-call-plugin",
-    "deskulpt-core:allow-set-render-ready",
+    "deskulpt-core:allow-complete-setup",
     "deskulpt-core:allow-update-settings",
     "core:event:default",
     "opener:allow-open-url",

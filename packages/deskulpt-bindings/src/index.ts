@@ -268,6 +268,11 @@ export const commands = {
     }),
 
     /**
+     * TODO
+     */
+    completeSetup: () => invoke<null>("plugin:deskulpt-core|complete_setup"),
+
+    /**
      * Call a plugin command (🚧 TODO 🚧).
      * 
      * ### 🚧 TODO 🚧
@@ -329,16 +334,6 @@ export const commands = {
      * - Error bundling all discovered widgets.
      */
     rescanWidgets: () => invoke<null>("plugin:deskulpt-core|rescan_widgets"),
-
-    /**
-     * Wrapper of [`set_render_ready`](InitialRenderStateExt::set_render_ready).
-     * 
-     * ### Errors
-     * 
-     * - Failed to emit the
-     * [`RenderWidgetsEvent`](crate::events::RenderWidgetsEvent) to the canvas.
-     */
-    setRenderReady: () => invoke<null>("plugin:deskulpt-core|set_render_ready"),
 
     /**
      * Update the settings.

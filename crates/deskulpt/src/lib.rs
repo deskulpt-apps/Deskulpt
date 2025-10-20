@@ -6,7 +6,7 @@
 
 use deskulpt_core::path::PathExt;
 use deskulpt_core::states::{
-    CanvasImodeStateExt, InitialRenderStateExt, SettingsStateExt, WidgetCatalogStateExt,
+    CanvasImodeStateExt, SettingsStateExt, SetupStateExt, WidgetCatalogStateExt,
 };
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
@@ -24,7 +24,7 @@ pub fn run() {
             app.init_persist_dir()?;
 
             app.manage_settings();
-            app.manage_initial_render();
+            app.manage_setup();
             app.manage_widget_catalog();
             app.manage_canvas_imode();
 

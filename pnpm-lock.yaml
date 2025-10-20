@@ -217,9 +217,18 @@ importers:
 
   packages/deskulpt-utils:
     dependencies:
+      '@deskulpt/bindings':
+        specifier: workspace:*
+        version: link:../deskulpt-bindings
       '@tauri-apps/plugin-opener':
         specifier: 'catalog:'
         version: 2.5.0
+      '@types/react':
+        specifier: 'catalog:'
+        version: 19.2.2
+      react:
+        specifier: 'catalog:'
+        version: 19.2.0
 
   packages/react:
     dependencies:

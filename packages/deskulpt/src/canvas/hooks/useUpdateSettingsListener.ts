@@ -1,15 +1,12 @@
-import { useEffect } from "react";
 import { events } from "@deskulpt/bindings";
 import { useSettingsStore } from "./useSettingsStore";
+import { createSetupTaskHook } from "@deskulpt/utils";
 
-export function useUpdateSettingsListener() {
-  useEffect(() => {
-    const unlisten = events.updateSettings.listen((event) => {
+export const useUpdateSettingsListener = createSetupTaskHook({
+  task: `event:${events.updateSettings.name}`,
+  onMount: () =>
+    events.updateSettings.listen((event) => {
       useSettingsStore.setState(() => event.payload, true);
-    });
-
-    return () => {
-      unlisten.then((f) => f()).catch(console.error);
-    };
-  }, []);
-}
+    }),
+  onUnmount: (unlisten) => unlisten.then((f) => f()).catch(console.error),
+});

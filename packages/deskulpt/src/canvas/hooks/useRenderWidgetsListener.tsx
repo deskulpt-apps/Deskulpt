@@ -1,17 +1,16 @@
-import { createElement, useEffect, useRef } from "react";
+import { createElement } from "react";
 import { useWidgetsStore } from "./useWidgetsStore";
-import { stringifyError } from "@deskulpt/utils";
-import { commands, events } from "@deskulpt/bindings";
+import { createSetupTaskHook, stringifyError } from "@deskulpt/utils";
+import { events } from "@deskulpt/bindings";
 import ErrorDisplay from "../components/ErrorDisplay";
 
 const BASE_URL = new URL(import.meta.url).origin;
 const RAW_APIS_URL = new URL("/gen/raw-apis.js", BASE_URL).href;
 
-export function useRenderWidgetsListener() {
-  const hasInited = useRef(false);
-
-  useEffect(() => {
-    const unlisten = events.renderWidgets.listen(async (event) => {
+export const useRenderWidgetsListener = createSetupTaskHook({
+  task: `event:${events.renderWidgets.name}`,
+  onMount: () =>
+    events.renderWidgets.listen(async (event) => {
       const widgets = useWidgetsStore.getState();
 
       const promises = Object.entries(event.payload).map(async ([id, code]) => {
@@ -101,20 +100,6 @@ export function useRenderWidgetsListener() {
       });
 
       await Promise.all(promises);
-    });
-
-    if (!hasInited.current) {
-      // Set the canvas as ready to render only once
-      commands.core
-        .setRenderReady()
-        .then(() => {
-          hasInited.current = true;
-        })
-        .catch(console.error);
-    }
-
-    return () => {
-      unlisten.then((f) => f()).catch(console.error);
-    };
-  }, []);
-}
+    }),
+  onUnmount: (unlisten) => unlisten.then((f) => f()).catch(console.error),
+});

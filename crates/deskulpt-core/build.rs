@@ -2,10 +2,10 @@ fn main() {
     deskulpt_build::Builder::default()
         .commands(&[
             "bundle_widgets",
+            "complete_setup",
             "call_plugin",
             "open_widget",
             "rescan_widgets",
-            "set_render_ready",
             "update_settings",
         ])
         .events(&[
