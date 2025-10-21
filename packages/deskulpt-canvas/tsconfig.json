@@ -1,6 +1,6 @@
 {
   "extends": ["../../tsconfig.base.json"],
-  "include": ["../../vite-env.d.ts"],
+  "include": ["src/", "../../vite-env.d.ts"],
   "compilerOptions": {
     "composite": true,
     "incremental": true,
