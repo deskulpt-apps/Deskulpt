@@ -15,7 +15,7 @@ export function useRenderWidgetsListener() {
       const widgets = useWidgetsStore.getState();
 
       const promises = Object.entries(event.payload).map(async ([id, code]) => {
-        let apisBlobUrl;
+        let apisBlobUrl: string;
         if (id in widgets) {
           // APIs blob URL can be reused because the contents are dependent only
           // on widget ID; the code blob URL will definitely change on re-render
@@ -26,7 +26,7 @@ export function useRenderWidgetsListener() {
             URL.revokeObjectURL(widget.moduleBlobUrl);
           }
         } else {
-          const apisCode = window.__DESKULPT_CANVAS_INTERNALS__.apisWrapper
+          const apisCode = window.__DESKULPT_INTERNALS__.apisWrapper
             .replaceAll("__DESKULPT_WIDGET_ID__", id)
             .replaceAll("__RAW_APIS_URL__", RAW_APIS_URL);
           const apisBlob = new Blob([apisCode], {
@@ -61,7 +61,7 @@ export function useRenderWidgetsListener() {
           type: "application/javascript",
         });
         const moduleBlobUrl = URL.createObjectURL(moduleBlob);
-        let module;
+        let module: any;
         try {
           module = await import(/* @vite-ignore */ moduleBlobUrl);
           if (module.default === undefined) {

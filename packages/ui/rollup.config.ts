@@ -15,7 +15,7 @@ export default defineConfig([
     input: "src/jsx-runtime.ts",
     output: {
       format: "esm",
-      file: "../deskulpt/gen/jsx-runtime.js",
+      file: "../../gen/jsx-runtime.js",
       banner: "/*! Auto-generated from packages/ui. DO NOT EDIT! */",
     },
     external: ["@emotion/react/jsx-runtime"],
@@ -27,7 +27,7 @@ export default defineConfig([
     input: "src/index.ts",
     output: {
       format: "esm",
-      file: "../deskulpt/gen/ui.js",
+      file: "../../gen/ui.js",
       banner: "/*! Auto-generated from packages/ui. DO NOT EDIT! */",
     },
     external: ["@emotion/react", "@radix-ui/themes"],

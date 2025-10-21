@@ -3,7 +3,7 @@
 <a href="https://deskulpt-apps.github.io/">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="https://github.com/deskulpt-apps/Deskulpt/raw/main/packages/deskulpt/public/deskulpt-wide-dark.svg" />
-    <img alt="Deskulpt" src="https://github.com/deskulpt-apps/Deskulpt/raw/main/packages/deskulpt/public/deskulpt-wide.svg" width="300px" />
+    <img alt="Deskulpt" src="https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt-wide.svg" width="300px" />
   </picture>
 </a>
 

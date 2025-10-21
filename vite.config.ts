@@ -1,7 +1,7 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
 import react from "@vitejs/plugin-react";
-import tauriConf from "../../crates/deskulpt/tauri.conf.json";
+import tauriConf from "./crates/deskulpt/tauri.conf.json";
 
 export default defineConfig({
   define: {
@@ -23,8 +23,8 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        manager: resolve(__dirname, "src/manager/index.html"),
-        canvas: resolve(__dirname, "src/canvas/index.html"),
+        manager: resolve(__dirname, "packages/deskulpt-manager/index.html"),
+        canvas: resolve(__dirname, "packages/deskulpt-canvas/index.html"),
         // Make the scripts entrypoints so that they are preserved even if not imported
         "gen/jsx-runtime": resolve(__dirname, "gen/jsx-runtime.js"),
         "gen/raw-apis": resolve(__dirname, "gen/raw-apis.js"),
@@ -32,8 +32,8 @@ export default defineConfig({
         "gen/ui": resolve(__dirname, "gen/ui.js"),
       },
       output: {
-        // Make sure scripts are at the root of the build output so that their import
-        // paths are consistent with in the dev server
+        // Make sure scripts are at the root of the build output so that their
+        // import paths are consistent with in the dev server
         entryFileNames: ({ name }) =>
           name.startsWith("gen/") ? "[name].js" : "assets/[name].js",
       },

@@ -1,6 +1,5 @@
 import { Avatar, Box, Flex, Heading, Table } from "@radix-ui/themes";
 import CopyLink from "../CopyLink";
-import Logo from "/deskulpt.svg";
 import { memo } from "react";
 import { FaGithub } from "react-icons/fa";
 import { css } from "@emotion/react";
@@ -24,7 +23,7 @@ const AboutTab = memo(() => {
   return (
     <Flex height="100%" pb="8" justify="center" align="center">
       <Flex align="center" justify="center" flexGrow="1">
-        <Avatar src={Logo} fallback="D" size="8" css={styles.logo} />
+        <Avatar src="/deskulpt.svg" fallback="D" size="8" css={styles.logo} />
       </Flex>
       <Box flexGrow="1">
         <Heading size="6" mb="1">
