@@ -15,7 +15,7 @@ export default defineConfig([
     input: "src/index.ts",
     output: {
       format: "esm",
-      file: "../deskulpt/gen/react.js",
+      file: "../../gen/react.js",
       banner: "/*! Auto-generated from packages/react. DO NOT EDIT! */",
     },
     external: ["react"],

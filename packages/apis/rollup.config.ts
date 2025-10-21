@@ -16,7 +16,7 @@ export default defineConfig([
     input: "src/raw.ts",
     output: {
       format: "esm",
-      file: "../deskulpt/gen/raw-apis.js",
+      file: "../../gen/raw-apis.js",
       banner: "/*! Auto-generated from packages/apis. DO NOT EDIT! */",
     },
     external: ["@tauri-apps/api/core"],

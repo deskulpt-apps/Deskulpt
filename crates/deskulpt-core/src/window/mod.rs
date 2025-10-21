@@ -31,7 +31,7 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsStateExt<R> {
         WebviewWindowBuilder::new(
             self,
             DeskulptWindow::Manager,
-            WebviewUrl::App("src/manager/index.html".into()),
+            WebviewUrl::App("packages/deskulpt-manager/index.html".into()),
         )
         .title("Deskulpt Manager")
         .background_color(background_color.into())
@@ -57,7 +57,7 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsStateExt<R> {
         let canvas = WebviewWindowBuilder::new(
             self,
             DeskulptWindow::Canvas,
-            WebviewUrl::App("src/canvas/index.html".into()),
+            WebviewUrl::App("packages/deskulpt-canvas/index.html".into()),
         )
         .title("Deskulpt Canvas")
         .maximized(true)

@@ -4,6 +4,6 @@ Cargo.lock
 
 # Auto-generated files
 crates/deskulpt-core/gen/
-packages/deskulpt/gen/
+gen/
 packages/deskulpt-bindings/src/index.ts
 docs/src/public/settings-schema.json
