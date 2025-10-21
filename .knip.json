@@ -3,10 +3,9 @@
   "workspaces": {
     ".": {
       "project": [],
-      "ignoreBinaries": ["rustfmt", "only-allow"]
-    },
-    "packages/deskulpt": {
-      "entry": ["gen/*"]
+      "entry": ["gen/*"],
+      "ignoreBinaries": ["rustfmt", "only-allow"],
+      "ignoreDependencies": ["@emotion/babel-plugin"]
     },
     "packages/ui": {
       "entry": ["src/index.ts", "src/jsx-runtime.ts"]

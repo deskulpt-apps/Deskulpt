@@ -202,9 +202,6 @@ importers:
       '@radix-ui/themes':
         specifier: 'catalog:'
         version: 3.2.1(@types/react-dom@19.2.1(@types/react@19.2.2))(@types/react@19.2.2)(react-dom@19.2.0(react@19.2.0))(react@19.2.0)
-      '@tauri-apps/api':
-        specifier: 'catalog:'
-        version: 2.8.0
       re-resizable:
         specifier: 'catalog:'
         version: 6.11.2(react-dom@19.2.0(react@19.2.0))(react@19.2.0)

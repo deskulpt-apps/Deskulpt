@@ -10,7 +10,6 @@
     "@deskulpt/utils": "workspace:*",
     "@emotion/react": "catalog:",
     "@radix-ui/themes": "catalog:",
-    "@tauri-apps/api": "catalog:",
     "re-resizable": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
