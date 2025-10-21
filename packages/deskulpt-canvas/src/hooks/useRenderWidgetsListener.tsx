@@ -15,7 +15,7 @@ export function useRenderWidgetsListener() {
       const widgets = useWidgetsStore.getState();
 
       const promises = Object.entries(event.payload).map(async ([id, code]) => {
-        let apisBlobUrl;
+        let apisBlobUrl: string;
         if (id in widgets) {
           // APIs blob URL can be reused because the contents are dependent only
           // on widget ID; the code blob URL will definitely change on re-render
