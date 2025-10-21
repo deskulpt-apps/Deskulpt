@@ -6,7 +6,7 @@
     "beforeDevCommand": "pnpm --filter deskulpt dev",
     "beforeBuildCommand": "pnpm --filter deskulpt build",
     "devUrl": "http://localhost:1420",
-    "frontendDist": "../../packages/deskulpt/dist"
+    "frontendDist": "../../dist"
   },
   "app": {
     "macOSPrivateApi": true,

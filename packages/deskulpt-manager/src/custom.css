@@ -1,0 +1,9 @@
+.radix-themes {
+  --em-font-family: var(--default-font-family);
+  --em-font-size-adjust: 1;
+
+  &[data-is-root-theme="true"] {
+    height: 100%;
+    width: 100%;
+  }
+}

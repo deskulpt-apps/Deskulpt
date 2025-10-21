@@ -1,12 +1,9 @@
 {
-  "name": "deskulpt",
+  "name": "@deskulpt/canvas",
   "private": true,
   "type": "module",
   "scripts": {
-    "preinstall": "npx only-allow pnpm",
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview"
+    "preinstall": "npx only-allow pnpm"
   },
   "dependencies": {
     "@deskulpt/bindings": "workspace:*",
@@ -14,7 +11,6 @@
     "@emotion/react": "catalog:",
     "@radix-ui/themes": "catalog:",
     "@tauri-apps/api": "catalog:",
-    "@tauri-apps/plugin-clipboard-manager": "catalog:",
     "re-resizable": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
@@ -25,12 +21,7 @@
     "zustand": "catalog:"
   },
   "devDependencies": {
-    "@emotion/babel-plugin": "catalog:",
-    "@types/node": "catalog:",
     "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "@vitejs/plugin-react": "catalog:",
-    "typescript": "catalog:",
-    "vite": "catalog:"
+    "@types/react-dom": "catalog:"
   }
 }
