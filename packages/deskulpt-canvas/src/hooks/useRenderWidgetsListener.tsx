@@ -61,7 +61,7 @@ export function useRenderWidgetsListener() {
           type: "application/javascript",
         });
         const moduleBlobUrl = URL.createObjectURL(moduleBlob);
-        let module;
+        let module: any;
         try {
           module = await import(/* @vite-ignore */ moduleBlobUrl);
           if (module.default === undefined) {
