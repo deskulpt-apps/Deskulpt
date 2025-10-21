@@ -10,6 +10,8 @@ import {
   useUpdateWidgetCatalogListener,
   useWidgetsStore,
 } from "./hooks";
+import { useCallback, useEffect, useRef } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 const App = () => {
   const theme = useSettingsStore((state) => state.theme);
@@ -19,6 +21,50 @@ const App = () => {
   useShowToastListener();
   useUpdateSettingsListener();
   useUpdateWidgetCatalogListener();
+
+  // Tracks current click-through state so we only log on changes
+  const isClickThroughRef = useRef<boolean | null>(null);
+
+  const setCanvasClickThrough = useCallback((isClickThrough: boolean) => {
+    if (isClickThroughRef.current !== isClickThrough) {
+      isClickThroughRef.current = isClickThrough;
+      console.debug(
+        isClickThrough
+          ? "[canvas] click-through: ON"
+          : "[canvas] click-through: OFF",
+      );
+      getCurrentWindow()
+        .setIgnoreCursorEvents(isClickThrough)
+        .catch(console.error);
+    }
+  }, []);
+
+  useEffect(() => {
+    const onMouseMove = (ev: MouseEvent) => {
+      const target = ev.target as HTMLElement | null;
+      const insideAWidget = !!target?.closest('[data-widget-container="true"]');
+      // Non-click-through when hovering any widget; click-through otherwise
+      setCanvasClickThrough(!insideAWidget);
+    };
+
+    // When the cursor leaves the window entirely, revert to click-through
+    const onMouseOut = (ev: MouseEvent) => {
+      if ((ev.relatedTarget as Node | null) === null) {
+        setCanvasClickThrough(true);
+      }
+    };
+
+    // Initialize to click-through until we hover a widget
+    setCanvasClickThrough(true);
+
+    window.addEventListener("mousemove", onMouseMove, { passive: true });
+    window.addEventListener("mouseout", onMouseOut, { passive: true });
+
+    return () => {
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseout", onMouseOut);
+    };
+  }, [setCanvasClickThrough]);
 
   return (
     <RadixTheme
@@ -40,7 +86,9 @@ const App = () => {
         }}
       />
       {ids.map((id) => (
-        <WidgetContainer key={id} id={id} />
+        <div key={id} data-widget-container="true">
+          <WidgetContainer id={id} />
+        </div>
       ))}
     </RadixTheme>
   );

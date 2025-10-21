@@ -8,6 +8,7 @@
     "deskulpt-core:allow-set-render-ready",
     "deskulpt-core:allow-update-settings",
     "core:event:default",
+    "core:window:allow-set-ignore-cursor-events",
     "opener:allow-open-url",
     "opener:allow-default-urls"
   ]
