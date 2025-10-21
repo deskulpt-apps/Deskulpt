@@ -8,7 +8,7 @@ import "./custom.css";
 
 declare global {
   interface Window {
-    readonly __DESKULPT_MANAGER_INTERNALS__: {
+    readonly __DESKULPT_INTERNALS__: {
       readonly initialSettings: DeepReadonly<Settings>;
     };
   }

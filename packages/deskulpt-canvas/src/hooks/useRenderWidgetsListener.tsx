@@ -26,7 +26,7 @@ export function useRenderWidgetsListener() {
             URL.revokeObjectURL(widget.moduleBlobUrl);
           }
         } else {
-          const apisCode = window.__DESKULPT_CANVAS_INTERNALS__.apisWrapper
+          const apisCode = window.__DESKULPT_INTERNALS__.apisWrapper
             .replaceAll("__DESKULPT_WIDGET_ID__", id)
             .replaceAll("__RAW_APIS_URL__", RAW_APIS_URL);
           const apisBlob = new Blob([apisCode], {

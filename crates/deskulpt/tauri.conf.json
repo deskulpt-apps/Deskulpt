@@ -3,8 +3,8 @@
   "version": "0.0.1",
   "identifier": "com.tauri.deskulpt",
   "build": {
-    "beforeDevCommand": "pnpm --filter deskulpt dev",
-    "beforeBuildCommand": "pnpm --filter deskulpt build",
+    "beforeDevCommand": "pnpm vite dev",
+    "beforeBuildCommand": "pnpm build",
     "devUrl": "http://localhost:1420",
     "frontendDist": "../../dist"
   },
