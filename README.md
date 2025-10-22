@@ -11,7 +11,7 @@
 
 <br />
 
-[![release](https://img.shields.io/github/v/release/deskulpt-apps/Deskulpt)](https://github.com/deskulpt-apps/Deskulpt/releases/latest) [![ci](https://img.shields.io/github/actions/workflow/status/deskulpt-apps/Deskulpt/ci.yaml?label=ci&logo=github)](https://github.com/deskulpt-apps/Deskulpt/actions/workflows/ci.yaml) [![hompage](https://img.shields.io/badge/homepage-Deskulpt-blue.svg)](https://deskulpt-apps.github.io/) [![cs1060 team folder](https://img.shields.io/badge/cs1060%20team%20folder-4285F4?logo=googledrive&logoColor=white)](https://drive.google.com/drive/folders/1EmadY8rYWEcFHqrn6d1MQ6fx0wTt1TqN?usp=drive_link)
+[![release](https://img.shields.io/github/v/release/deskulpt-apps/Deskulpt)](https://github.com/deskulpt-apps/Deskulpt/releases/latest) [![ci](https://img.shields.io/github/actions/workflow/status/deskulpt-apps/Deskulpt/ci.yaml?label=ci&logo=github)](https://github.com/deskulpt-apps/Deskulpt/actions/workflows/ci.yaml) [![hompage](https://img.shields.io/badge/homepage-Deskulpt-blue.svg)](https://deskulpt-apps.github.io/) [![cs1060 team folder](https://img.shields.io/badge/cs1060%20team%20folder-4285F4?logo=googledrive&logoColor=white)](https://drive.google.com/drive/folders/1EmadY8rYWEcFHqrn6d1MQ6fx0wTt1TqN?usp=drive_link) ![cs1060 linear](https://img.shields.io/badge/cs1060%20linear-5E6AD2?logo=linear&logoColor=white)
 
 </div>
 
