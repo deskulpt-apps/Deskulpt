@@ -1,7 +1,6 @@
 import { Box, Flex, Theme as RadixTheme, Tabs } from "@radix-ui/themes";
 import { Toaster } from "sonner";
 import {
-  useInitialRescan,
   useSettingsStore,
   useUpdateSettingsListener,
   useUpdateWidgetCatalogListener,
@@ -20,7 +19,6 @@ const tabs = [
 const App = () => {
   const theme = useSettingsStore((state) => state.theme);
 
-  useInitialRescan();
   useUpdateSettingsListener();
   useUpdateWidgetCatalogListener();
 

@@ -1193,6 +1193,7 @@ name = "deskulpt-core"
 version = "0.0.1"
 dependencies = [
  "anyhow",
+ "bitflags 2.9.4",
  "deskulpt-build",
  "deskulpt-common",
  "deskulpt-plugin",

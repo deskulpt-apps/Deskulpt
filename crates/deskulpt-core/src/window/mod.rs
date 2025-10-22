@@ -1,4 +1,5 @@
 //! Deskulpt windows.
+
 mod script;
 
 use anyhow::Result;

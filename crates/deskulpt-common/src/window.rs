@@ -46,3 +46,15 @@ impl std::fmt::Display for DeskulptWindow {
         write!(f, "{}", self.as_ref())
     }
 }
+
+impl TryFrom<&str> for DeskulptWindow {
+    type Error = anyhow::Error;
+
+    fn try_from(value: &str) -> Result<Self> {
+        match value {
+            "manager" => Ok(DeskulptWindow::Manager),
+            "canvas" => Ok(DeskulptWindow::Canvas),
+            _ => Err(anyhow!("Invalid window label: {}", value)),
+        }
+    }
+}

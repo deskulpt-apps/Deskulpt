@@ -1,10 +1,11 @@
-import { useEffect } from "react";
 import { events } from "@deskulpt/bindings";
 import { useWidgetsStore } from "./useWidgetsStore";
+import { createSetupTaskHook } from "@deskulpt/utils";
 
-export function useUpdateWidgetCatalogListener() {
-  useEffect(() => {
-    const unlisten = events.updateWidgetCatalog.listen((event) => {
+export const useUpdateWidgetCatalogListener = createSetupTaskHook({
+  task: `event:${events.updateWidgetCatalog.name}`,
+  onMount: () =>
+    events.updateWidgetCatalog.listen((event) => {
       const widgets = Object.entries(useWidgetsStore.getState());
 
       // Clean up widgets that are no longer in the catalog
@@ -29,10 +30,6 @@ export function useUpdateWidgetCatalogListener() {
           true,
         );
       }
-    });
-
-    return () => {
-      unlisten.then((f) => f()).catch(console.error);
-    };
-  }, []);
-}
+    }),
+  onUnmount: (unlisten) => unlisten.then((f) => f()).catch(console.error),
+});
