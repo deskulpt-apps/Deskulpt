@@ -9,7 +9,7 @@ use tauri::{
     App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, Window, WindowEvent,
 };
 
-use crate::settings::Theme;
+use crate::settings::{CanvasImode, Theme};
 use crate::states::SettingsStateExt;
 
 /// Extention trait for window-related operations.
@@ -90,8 +90,10 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsStateExt<R> {
         // https://github.com/tauri-apps/tauri/issues/9597
         canvas.show()?;
 
-        // Canvas is by default click-through
-        canvas.set_ignore_cursor_events(true)?;
+        // Set click through if the canvas interaction mode says so
+        if matches!(settings.canvas_imode, CanvasImode::Sink) {
+            canvas.set_ignore_cursor_events(true)?;
+        }
 
         Ok(())
     }

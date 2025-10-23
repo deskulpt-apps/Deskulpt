@@ -3,17 +3,22 @@
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use anyhow::{bail, Result};
+use deskulpt_common::event::Event;
 use tauri::{App, AppHandle, Manager, Runtime};
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
+use crate::events::UpdateSettingsEvent;
 use crate::path::PathExt;
 use crate::settings::{Settings, SettingsPatch};
+use crate::states::CanvasImodeStateExt;
 
 /// Managed state for the settings.
 struct SettingsState(RwLock<Settings>);
 
 /// Extension trait for operations on the settings state.
-pub trait SettingsStateExt<R: Runtime>: Manager<R> + PathExt<R> + GlobalShortcutExt<R> {
+pub trait SettingsStateExt<R: Runtime>:
+    Manager<R> + PathExt<R> + GlobalShortcutExt<R> + CanvasImodeStateExt<R>
+{
     /// Initialize state management for the settings.
     ///
     /// This will load the settings from the persistence directory and
@@ -56,12 +61,24 @@ pub trait SettingsStateExt<R: Runtime>: Manager<R> + PathExt<R> + GlobalShortcut
     /// to be applied will be skipped, and the rest will be applied as normal.
     /// Errors will be accumulated and returned as a single error at the end if
     /// any occurred.
-    fn apply_settings_patch(&self, patch: SettingsPatch) -> Result<()> {
+    fn update_settings(&self, patch: SettingsPatch) -> Result<()>
+    where
+        Self: Sized,
+    {
         let mut errors = vec![];
         let mut settings = self.get_settings_mut();
 
         if let Some(theme) = patch.theme {
             settings.theme = theme;
+        }
+
+        if let Some(canvas_imode) = patch.canvas_imode {
+            if let Err(e) = self.toggle_canvas_imode(&canvas_imode) {
+                errors.push(e.context(format!(
+                    "Failed to toggle canvas interaction mode to: {canvas_imode:?}"
+                )));
+            }
+            settings.canvas_imode = canvas_imode;
         }
 
         if let Some(shortcuts) = patch.shortcuts {
@@ -99,6 +116,8 @@ pub trait SettingsStateExt<R: Runtime>: Manager<R> + PathExt<R> + GlobalShortcut
                 }
             }
         }
+
+        UpdateSettingsEvent(settings.clone()).emit(self)?;
 
         if errors.is_empty() {
             return Ok(());

@@ -1,8 +1,6 @@
-use deskulpt_common::event::Event;
 use tauri::{command, AppHandle, Runtime};
 
 use super::error::CmdResult;
-use crate::events::UpdateSettingsEvent;
 use crate::settings::SettingsPatch;
 use crate::states::SettingsStateExt;
 
@@ -21,10 +19,6 @@ pub async fn update_settings<R: Runtime>(
     app_handle: AppHandle<R>,
     patch: SettingsPatch,
 ) -> CmdResult<()> {
-    app_handle.apply_settings_patch(patch)?;
-
-    let settings = app_handle.get_settings().clone();
-    UpdateSettingsEvent(settings).emit(&app_handle)?;
-
+    app_handle.update_settings(patch)?;
     Ok(())
 }

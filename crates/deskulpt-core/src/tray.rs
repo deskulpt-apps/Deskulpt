@@ -7,18 +7,23 @@ use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, Tray
 use tauri::{App, AppHandle, Runtime};
 
 use crate::path::PathExt;
+use crate::settings::{CanvasImode, SettingsPatch};
 use crate::states::{CanvasImodeStateExt, SettingsStateExt};
 use crate::window::WindowExt;
 
 /// Extention trait for system tray-related operations.
-pub trait TrayExt<R: Runtime>: CanvasImodeStateExt<R> {
+pub trait TrayExt<R: Runtime>: CanvasImodeStateExt<R> + SettingsStateExt<R> {
     /// Create the system tray.
     fn create_tray(&self, icon: Image) -> Result<()>
     where
         Self: Sized,
     {
         // Store the menu item for toggling canvas interaction mode
-        let menu_item_toggle = MenuItemBuilder::with_id("tray-toggle", "Float").build(self)?;
+        let text = match self.get_settings().canvas_imode {
+            crate::settings::CanvasImode::Sink => "Float",
+            crate::settings::CanvasImode::Float => "Sink",
+        };
+        let menu_item_toggle = MenuItemBuilder::with_id("tray-toggle", text).build(self)?;
         self.set_canvas_imode_menu_item(&menu_item_toggle);
 
         // Build the system tray menu
@@ -55,13 +60,22 @@ impl<R: Runtime> TrayExt<R> for AppHandle<R> {}
 fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
     match event.id().as_ref() {
         "tray-toggle" => {
-            if let Err(e) = app_handle.toggle_canvas_imode() {
-                eprintln!("Error toggling canvas interaction mode: {e}");
-            }
+            let new_mode = match app_handle.get_settings().canvas_imode {
+                CanvasImode::Sink => CanvasImode::Float,
+                CanvasImode::Float => CanvasImode::Sink,
+            };
+            app_handle
+                .update_settings(SettingsPatch {
+                    canvas_imode: Some(new_mode),
+                    ..Default::default()
+                })
+                .unwrap_or_else(|e| {
+                    eprintln!("Failed to toggle canvas interaction mode: {e}");
+                });
         },
         "tray-manage" => {
             if let Err(e) = app_handle.open_manager() {
-                eprintln!("Error opening manager window: {e}");
+                eprintln!("Failed to open manager window: {e}");
             }
         },
         "tray-exit" => {
@@ -89,9 +103,19 @@ fn on_tray_icon_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
     {
         if button == MouseButton::Left && button_state == MouseButtonState::Down {
             // Toggle canvas interaction mode on left-click
-            if let Err(e) = tray.app_handle().toggle_canvas_imode() {
-                eprintln!("Error toggling canvas interaction mode: {e}");
-            }
+            let app_handle = tray.app_handle().clone();
+            let new_mode = match app_handle.get_settings().canvas_imode {
+                CanvasImode::Sink => CanvasImode::Float,
+                CanvasImode::Float => CanvasImode::Sink,
+            };
+            app_handle
+                .update_settings(SettingsPatch {
+                    canvas_imode: Some(new_mode),
+                    ..Default::default()
+                })
+                .unwrap_or_else(|e| {
+                    eprintln!("Failed to toggle canvas interaction mode: {e}");
+                });
         }
     }
 }

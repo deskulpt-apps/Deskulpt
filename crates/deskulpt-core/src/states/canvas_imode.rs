@@ -9,26 +9,10 @@ use tauri::menu::MenuItem;
 use tauri::{App, AppHandle, Emitter, Manager, Runtime, WebviewWindow};
 
 use crate::events::ShowToastEvent;
-
-/// Canvas interaction mode.
-#[derive(Clone)]
-enum CanvasImode {
-    /// Sink mode.
-    ///
-    /// The canvas is click-through. Widgets are not interactable. The desktop
-    /// is interactable.
-    Sink,
-    /// Float mode.
-    ///
-    /// The canvas is not click-through. Widgets are interactable. The desktop
-    /// is not interactable.
-    Float,
-}
+use crate::settings::CanvasImode;
 
 /// The internal of the managed state for canvas interaction mode.
 struct CanvasImodeStateInner<R: Runtime> {
-    /// The interaction mode of the canvas.
-    mode: CanvasImode,
     /// The menu item for toggling the canvas interaction mode.
     menu_item: Option<MenuItem<R>>,
 }
@@ -37,21 +21,20 @@ impl<R: Runtime> CanvasImodeStateInner<R> {
     /// Toggle the interaction mode.
     ///
     /// This will change the mode and update the menu item text if it exists.
-    fn toggle(&mut self, canvas: &WebviewWindow<R>) -> Result<()> {
+    fn toggle(&mut self, canvas: &WebviewWindow<R>, mode: &CanvasImode) -> Result<()> {
         // The menu item shows the action that will be performed on click, so it
         // should be the opposite of the mode
-        let (new_mode, new_text) = match self.mode {
+        let new_text = match mode {
             CanvasImode::Sink => {
-                canvas.set_ignore_cursor_events(false)?;
-                (CanvasImode::Float, "Sink")
+                canvas.set_ignore_cursor_events(true)?;
+                "Float"
             },
             CanvasImode::Float => {
-                canvas.set_ignore_cursor_events(true)?;
-                (CanvasImode::Sink, "Float")
+                canvas.set_ignore_cursor_events(false)?;
+                "Sink"
             },
         };
 
-        self.mode = new_mode;
         if let Some(menu_item) = &self.menu_item {
             menu_item.set_text(new_text)?;
         }
@@ -69,7 +52,6 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + Emitter<R> {
     /// The canvas is in sink mode by default.
     fn manage_canvas_imode(&self) {
         let inner = CanvasImodeStateInner {
-            mode: CanvasImode::Sink,
             menu_item: None::<MenuItem<R>>,
         };
         self.manage(CanvasImodeState(Mutex::new(inner)));
@@ -88,7 +70,7 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + Emitter<R> {
     ///
     /// This will show a toast message on the canvas window indicating the new
     /// interaction mode.
-    fn toggle_canvas_imode(&self) -> Result<()>
+    fn toggle_canvas_imode(&self, mode: &CanvasImode) -> Result<()>
     where
         Self: Sized,
     {
@@ -96,9 +78,10 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + Emitter<R> {
 
         let state = self.state::<CanvasImodeState<R>>();
         let mut state = state.0.lock().unwrap();
-        state.toggle(&canvas)?;
 
-        let toast_message = match state.mode {
+        state.toggle(&canvas, mode)?;
+
+        let toast_message = match mode {
             CanvasImode::Float => "Canvas floated.",
             CanvasImode::Sink => {
                 // Toggled from float to sink, so we try to regain focus to

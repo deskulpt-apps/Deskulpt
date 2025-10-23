@@ -5,7 +5,8 @@ use tauri::{AppHandle, Runtime};
 use tauri_plugin_global_shortcut::{GlobalShortcut, ShortcutState};
 
 use super::{Settings, ShortcutKey};
-use crate::states::CanvasImodeStateExt;
+use crate::settings::{CanvasImode, SettingsPatch};
+use crate::states::SettingsStateExt;
 use crate::window::WindowExt;
 
 /// Helper function for re-registering a keyboard shortcut.
@@ -29,9 +30,18 @@ fn reregister_shortcut<R: Runtime>(
 
     let handler: fn(&AppHandle<R>) = match key {
         ShortcutKey::ToggleCanvasImode => |app_handle| {
-            if let Err(e) = app_handle.toggle_canvas_imode() {
-                eprintln!("Failed to toggle canvas interaction mode: {e}");
-            }
+            let new_mode = match app_handle.get_settings().canvas_imode {
+                CanvasImode::Sink => CanvasImode::Float,
+                CanvasImode::Float => CanvasImode::Sink,
+            };
+            app_handle
+                .update_settings(SettingsPatch {
+                    canvas_imode: Some(new_mode),
+                    ..Default::default()
+                })
+                .unwrap_or_else(|e| {
+                    eprintln!("Failed to toggle canvas interaction mode: {e}");
+                });
         },
         ShortcutKey::OpenManager => |app_handle| {
             if let Err(e) = app_handle.open_manager() {
