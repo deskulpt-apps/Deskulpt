@@ -1,7 +1,7 @@
 {
   "productName": "Deskulpt",
   "version": "../../package.json",
-  "identifier": "com.deskulpt.app",
+  "identifier": "com.deskulpt",
   "build": {
     "beforeDevCommand": "pnpm vite dev",
     "beforeBuildCommand": "pnpm build",
