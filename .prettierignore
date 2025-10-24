@@ -1,6 +1,6 @@
 pnpm-lock.yaml
 Cargo.lock
-*.ts.hbs
+*.hbs
 
 # Auto-generated files
 crates/deskulpt-core/gen/
