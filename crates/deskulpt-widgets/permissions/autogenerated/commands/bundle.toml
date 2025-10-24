@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+commands.allow = ["bundle"]
+description    = "Enables the bundle command without any pre-configured scope."
+identifier     = "allow-bundle"
+
+[[permission]]
+commands.deny = ["bundle"]
+description   = "Denies the bundle command without any pre-configured scope."
+identifier    = "deny-bundle"

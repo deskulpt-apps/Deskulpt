@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+commands.allow = ["rescan"]
+description    = "Enables the rescan command without any pre-configured scope."
+identifier     = "allow-rescan"
+
+[[permission]]
+commands.deny = ["rescan"]
+description   = "Denies the rescan command without any pre-configured scope."
+identifier    = "deny-rescan"

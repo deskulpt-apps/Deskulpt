@@ -248,26 +248,6 @@ export const events = {
 export const commands = {
   core: {
     /**
-     * Bundle widgets.
-     * 
-     * This command bundles the specified widgets that exist in the catalog. If
-     * `ids` is not provided, all widgets in the catalog are bundled. Failure to
-     * bundle an individual widget does not prevent other widgets from being
-     * bundled. Instead, the outcome of each bundling operation is collected and
-     * sent to the canvas window via the [`RenderWidgetsEvent`].
-     * 
-     * ### Errors
-     * 
-     * - Error accessing the widgets directory.
-     * - Error emitting the [`RenderWidgetsEvent`].
-     */
-    bundleWidgets: (
-      ids: string[] | null,
-    ) => invoke<null>("plugin:deskulpt-core|bundle_widgets", {
-      ids,
-    }),
-
-    /**
      * Mark the window to have completed its setup.
      * 
      * If all setup has been completed after marking this window as completed, this
@@ -324,25 +304,6 @@ export const commands = {
     }),
 
     /**
-     * Rescan the widgets directory to discover widgets.
-     * 
-     * This command scans the widgets directory for available widgets and updates
-     * the widget catalog and settings accordingly. It then emits events to notify
-     * the frontend of these changes. Finally, it triggers the bundling of all
-     * widgets in the updated catalog with `bundle_widgets` to ensure they are
-     * ready for use.
-     * 
-     * ### Errors
-     * 
-     * - Error accessing the widgets directory.
-     * - Error loading the new widget catalog from the widgets directory.
-     * - Error emitting the [`UpdateSettingsEvent`].
-     * - Error emitting the [`UpdateWidgetCatalogEvent`].
-     * - Error bundling all discovered widgets.
-     */
-    rescanWidgets: () => invoke<null>("plugin:deskulpt-core|rescan_widgets"),
-
-    /**
      * Update the settings.
      * 
      * This command updates the settings state in the backend. If an update has
@@ -358,5 +319,16 @@ export const commands = {
     ) => invoke<null>("plugin:deskulpt-core|update_settings", {
       patch,
     }),
+  },
+  widgets: {
+
+    bundle: (
+      ids: string[] | null,
+    ) => invoke<null>("plugin:deskulpt-widgets|bundle", {
+      ids,
+    }),
+
+
+    rescan: () => invoke<null>("plugin:deskulpt-widgets|rescan"),
   },
 };

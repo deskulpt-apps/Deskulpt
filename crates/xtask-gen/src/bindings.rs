@@ -175,6 +175,7 @@ fn handlebars_indent_helper(
 pub fn run() -> Result<()> {
     let mut builder = BindingsBuilder::default();
     deskulpt_core::configure_bindings_builder(&mut builder);
+    deskulpt_widgets::configure_bindings_builder(&mut builder);
     builder.typ::<deskulpt_common::window::DeskulptWindow>();
     let bindings = builder.build();
 

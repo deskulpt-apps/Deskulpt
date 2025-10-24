@@ -12,7 +12,7 @@ const Header = memo(({ id }: HeaderProps) => {
   const type = useWidgetsStore((state) => state[id]?.type);
 
   const refreshAction = useCallback(() => {
-    commands.core.bundleWidgets([id]).catch(console.error);
+    commands.widgets.bundle([id]).catch(console.error);
   }, [id]);
 
   const openAction = useCallback(() => {

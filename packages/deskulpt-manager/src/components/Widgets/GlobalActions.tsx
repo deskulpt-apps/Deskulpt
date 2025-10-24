@@ -9,11 +9,11 @@ interface GlobalActionsProps {
 
 const GlobalActions = memo(({ length }: GlobalActionsProps) => {
   const refreshAction = useCallback(() => {
-    commands.core.bundleWidgets(null).catch(console.error);
+    commands.widgets.bundle(null).catch(console.error);
   }, []);
 
   const rescanAction = useCallback(() => {
-    commands.core.rescanWidgets().catch(console.error);
+    commands.widgets.rescan().catch(console.error);
   }, []);
 
   const openAction = useCallback(() => {
