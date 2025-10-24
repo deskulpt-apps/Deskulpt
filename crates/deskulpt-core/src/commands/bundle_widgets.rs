@@ -1,16 +1,14 @@
 use std::collections::HashMap;
 
 use anyhow::Context;
-use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
-use deskulpt_common::window::DeskulptWindow;
 use tauri::{command, AppHandle, Runtime};
 
 use super::error::CmdResult;
 use crate::bundler::WidgetBundlerBuilder;
 use crate::events::RenderWidgetsEvent;
 use crate::path::PathExt;
-use crate::states::WidgetCatalogStateExt;
+use crate::states::{InitialRenderStateExt, WidgetCatalogStateExt};
 
 /// Bundle widgets.
 ///
@@ -77,6 +75,6 @@ pub async fn bundle_widgets<R: Runtime>(
         .into_iter()
         .collect::<HashMap<_, _>>();
 
-    RenderWidgetsEvent(reports).emit_to(&app_handle, DeskulptWindow::Canvas)?;
+    app_handle.emit_on_render_ready(RenderWidgetsEvent(reports))?;
     Ok(())
 }

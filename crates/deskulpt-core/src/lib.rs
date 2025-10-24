@@ -17,6 +17,8 @@ pub mod states;
 pub mod tray;
 pub mod window;
 
+pub use commands::bundle_widgets;
+
 deskulpt_common::bindings::configure_bindings_builder!();
 
 /// Initialize the plugin.
