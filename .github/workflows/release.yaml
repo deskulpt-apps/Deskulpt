@@ -40,6 +40,8 @@ jobs:
         shell: bash
         run: |
           echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
+          cat "docs/whatsnew/${{ github.ref_name }}.md" >> $GITHUB_OUTPUT
+          echo >> $GITHUB_OUTPUT
           git-cliff --unreleased --tag ${{ github.ref_name }} >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
