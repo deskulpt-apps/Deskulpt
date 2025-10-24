@@ -10,10 +10,10 @@ use deskulpt_common::outcome::Outcome;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
-/// Deserialized `deskulpt.conf.json`.
+/// The Deskulpt widget manifest.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DeskulptConf {
+pub struct WidgetManifest {
     /// The name of the widget.
     ///
     /// This is purely used for display purposes. It does not need to be related
@@ -32,20 +32,20 @@ pub struct DeskulptConf {
     ignore: bool,
 }
 
-/// Deserialized `package.json`.
+/// The Node.js package manifest.
 #[derive(Debug, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PackageJson {
+pub struct PackageManifest {
     #[serde(default)]
     pub dependencies: HashMap<String, String>,
 }
 
-/// Helper trait for loading configuration files from a directory.
-trait LoadFromFile: Sized + DeserializeOwned {
-    /// The name of the configuration file.
+/// Helper trait for loading manifest files from a directory.
+trait LoadManifest: Sized + DeserializeOwned {
+    /// The name of the manifest file.
     const FILE_NAME: &'static str;
 
-    /// Load the configuration file from the given directory.
+    /// Load the manifest file from the given directory.
     ///
     /// Specially, this method returns `Ok(None)` if the target file does not
     /// exist and does not treat it as an error.
@@ -61,11 +61,11 @@ trait LoadFromFile: Sized + DeserializeOwned {
     }
 }
 
-impl LoadFromFile for DeskulptConf {
-    const FILE_NAME: &'static str = "deskulpt.conf.json";
+impl LoadManifest for WidgetManifest {
+    const FILE_NAME: &'static str = "deskulpt.widget.json";
 }
 
-impl LoadFromFile for PackageJson {
+impl LoadManifest for PackageManifest {
     const FILE_NAME: &'static str = "package.json";
 }
 
@@ -82,26 +82,27 @@ pub struct WidgetConfig {
 }
 
 impl WidgetConfig {
-    /// Read widget configuration from a directory.
+    /// Read full widget configuration from a directory.
     ///
     /// Specially, this method returns `Ok(None)` if the directory does not
     /// contain a widget configuration file or if the widget is explicitly
     /// marked as ignored in the configuration file.
     pub fn load(dir: &Path) -> Result<Option<Self>> {
-        let deskulpt_conf =
-            match DeskulptConf::load(dir).context("Failed to load deskulpt.conf.json")? {
-                Some(deskulpt_conf) if !deskulpt_conf.ignore => deskulpt_conf,
-                _ => return Ok(None),
-            };
+        let widget_manifest = match WidgetManifest::load(dir)
+            .with_context(|| format!("Failed to load {}", WidgetManifest::FILE_NAME))?
+        {
+            Some(widget_manifest) if !widget_manifest.ignore => widget_manifest,
+            _ => return Ok(None),
+        };
 
-        let package_json = PackageJson::load(dir)
-            .context("Failed to load package.json")?
+        let package_manifest = PackageManifest::load(dir)
+            .with_context(|| format!("Failed to load {}", PackageManifest::FILE_NAME))?
             .unwrap_or_default();
 
         Ok(Some(WidgetConfig {
-            name: deskulpt_conf.name,
-            entry: deskulpt_conf.entry,
-            dependencies: package_json.dependencies,
+            name: widget_manifest.name,
+            entry: widget_manifest.entry,
+            dependencies: package_manifest.dependencies,
         }))
     }
 }
@@ -109,7 +110,8 @@ impl WidgetConfig {
 /// The widget catalog.
 ///
 /// This is a collection of all widgets discovered locally, mapped from their
-/// widget IDs to their configurations.
+/// widget IDs to their configurations. Invalid widgets are also included with
+/// their error messages.
 #[derive(Debug, Default, Clone, Serialize, Deserialize, specta::Type)]
 pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetConfig>>);
 
