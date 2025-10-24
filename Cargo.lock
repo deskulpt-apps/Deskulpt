@@ -1157,7 +1157,7 @@ dependencies = [
 
 [[package]]
 name = "deskulpt"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "deskulpt-core",
  "deskulpt-widgets",
@@ -1170,7 +1170,7 @@ dependencies = [
 
 [[package]]
 name = "deskulpt-build"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "quote",
@@ -1180,7 +1180,7 @@ dependencies = [
 
 [[package]]
 name = "deskulpt-common"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "deskulpt-macros",
@@ -1191,7 +1191,7 @@ dependencies = [
 
 [[package]]
 name = "deskulpt-core"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "bitflags 2.9.4",
@@ -1222,7 +1222,7 @@ dependencies = [
 
 [[package]]
 name = "deskulpt-macros"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "heck 0.5.0",
  "quote",
@@ -1231,7 +1231,7 @@ dependencies = [
 
 [[package]]
 name = "deskulpt-plugin"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "deskulpt-plugin-macros",
@@ -1241,7 +1241,7 @@ dependencies = [
 
 [[package]]
 name = "deskulpt-plugin-fs"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "deskulpt-plugin",
@@ -1250,7 +1250,7 @@ dependencies = [
 
 [[package]]
 name = "deskulpt-plugin-macros"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "quote",
  "syn 2.0.107",
@@ -1258,7 +1258,7 @@ dependencies = [
 
 [[package]]
 name = "deskulpt-plugin-sys"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "deskulpt-plugin",
@@ -1268,7 +1268,7 @@ dependencies = [
 
 [[package]]
 name = "deskulpt-widgets"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "deskulpt-build",
@@ -1296,7 +1296,7 @@ dependencies = [
 
 [[package]]
 name = "deskulpt-workspace"
-version = "0.0.1"
+version = "0.1.0"
 
 [[package]]
 name = "digest"
@@ -7978,7 +7978,7 @@ checksum = "b9cc00251562a284751c9973bace760d86c0276c471b4be569fe6b068ee97a56"
 
 [[package]]
 name = "xtask-gen"
-version = "0.0.1"
+version = "0.1.0"
 dependencies = [
  "anyhow",
  "clap",

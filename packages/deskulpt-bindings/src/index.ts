@@ -138,7 +138,8 @@ export type UpdateWidgetCatalogEvent = WidgetCatalog
  * The widget catalog.
  * 
  * This is a collection of all widgets discovered locally, mapped from their
- * widget IDs to their configurations.
+ * widget IDs to their configurations. Invalid widgets are also included with
+ * their error messages.
  */
 export type WidgetCatalog = { [key in string]: Outcome<WidgetConfig> }
 

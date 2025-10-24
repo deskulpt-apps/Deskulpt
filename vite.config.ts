@@ -1,11 +1,11 @@
 import { defineConfig } from "vite";
 import { resolve } from "path";
 import react from "@vitejs/plugin-react";
-import tauriConf from "./crates/deskulpt/tauri.conf.json";
+import { version } from "./package.json";
 
 export default defineConfig({
   define: {
-    __VERSION__: JSON.stringify(tauriConf.version),
+    __VERSION__: JSON.stringify(version),
   },
   plugins: [
     react({
