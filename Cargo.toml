@@ -8,7 +8,7 @@ edition    = "2021"
 homepage   = "https://deskulpt-apps.github.io/"
 license    = "MIT"
 repository = "https://github.com/deskulpt-apps/Deskulpt"
-version    = "0.0.1"
+version    = "0.1.0"
 
 [workspace.dependencies]
 anyhow                         = "1.0.100"
@@ -44,17 +44,17 @@ thiserror                      = "2.0.17"
 tokio                          = "1.48.0"
 
 # Deskulpt crates
-deskulpt-build         = { version = "0.0.1", path = "crates/deskulpt-build" }
-deskulpt-common        = { version = "0.0.1", path = "crates/deskulpt-common" }
-deskulpt-core          = { version = "0.0.1", path = "crates/deskulpt-core" }
-deskulpt-macros        = { version = "0.0.1", path = "crates/deskulpt-macros" }
-deskulpt-plugin        = { version = "0.0.1", path = "crates/deskulpt-plugin" }
-deskulpt-plugin-macros = { version = "0.0.1", path = "crates/deskulpt-plugin-macros" }
-deskulpt-workspace     = { version = "0.0.1", path = "crates/deskulpt-workspace" }
+deskulpt-build         = { version = "0.1.0", path = "crates/deskulpt-build" }
+deskulpt-common        = { version = "0.1.0", path = "crates/deskulpt-common" }
+deskulpt-core          = { version = "0.1.0", path = "crates/deskulpt-core" }
+deskulpt-macros        = { version = "0.1.0", path = "crates/deskulpt-macros" }
+deskulpt-plugin        = { version = "0.1.0", path = "crates/deskulpt-plugin" }
+deskulpt-plugin-macros = { version = "0.1.0", path = "crates/deskulpt-plugin-macros" }
+deskulpt-workspace     = { version = "0.1.0", path = "crates/deskulpt-workspace" }
 
 # TODO: Remove these since they will not be dependencies of other crates when finalized
-deskulpt-plugin-fs  = { version = "0.0.1", path = "crates/deskulpt-plugin-fs" }
-deskulpt-plugin-sys = { version = "0.0.1", path = "crates/deskulpt-plugin-sys" }
+deskulpt-plugin-fs  = { version = "0.1.0", path = "crates/deskulpt-plugin-fs" }
+deskulpt-plugin-sys = { version = "0.1.0", path = "crates/deskulpt-plugin-sys" }
 sysinfo             = "0.37.2"
 
 [profile.dev]
