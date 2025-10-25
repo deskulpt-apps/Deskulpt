@@ -76,17 +76,16 @@ impl Builder {
             .map(|e| format_ident!("{e}"))
             .collect::<Vec<_>>();
 
-        let configure_bindings_builder = quote! {
+        let build_bindings = quote! {
             #[doc(hidden)]
-            pub fn configure_bindings_builder(builder: &mut ::deskulpt_common::bindings::BindingsBuilder) {
-                builder
-                    .commands(
-                        env!("CARGO_PKG_NAME"),
-                        ::deskulpt_common::bindings::collect_commands![
-                            #( #commands_mod::#commands::<::tauri::Wry> ),*
-                        ],
-                    )
-                    #( .event::<#events_mod::#events>() )*;
+            pub fn build_bindings() -> ::deskulpt_common::bindings::Bindings {
+                ::deskulpt_common::bindings::BindingsBuilder::new(env!("CARGO_PKG_NAME"))
+                    .commands(::deskulpt_common::bindings::collect_commands![
+                        #( #commands_mod::#commands::<::tauri::Wry> ),*
+                    ])
+                    #( .event::<#events_mod::#events>() )*
+                    .typ::<::deskulpt_common::window::DeskulptWindow>()
+                    .build()
             }
         };
 
@@ -101,8 +100,8 @@ impl Builder {
         let out_dir = PathBuf::from(out_dir);
 
         std::fs::write(
-            out_dir.join("configure_bindings_builder.rs"),
-            configure_bindings_builder.to_string(),
+            out_dir.join("build_bindings.rs"),
+            build_bindings.to_string(),
         )?;
 
         std::fs::write(out_dir.join("init_builder.rs"), init_builder.to_string())?;

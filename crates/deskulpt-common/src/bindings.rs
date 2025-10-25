@@ -9,28 +9,38 @@ use crate::event::Event;
 
 /// A collection of types, events, and commands to be exposed to the frontend.
 ///
-/// A [`Bindings`] should always be constructed via a [`BindingsBuilder`].
+/// This should never be constructed manually in bindings providers; instead,
+/// configure the build script and use [`build_bindings`].
 pub struct Bindings {
-    /// A specta type collection.
+    /// The namespace these bindings belong to, which should be the plugin name.
+    pub namespace: &'static str,
+    /// The specta type collection.
     pub types: TypeCollection,
-    /// A mapping from event names to their data types.
+    /// The mapping from event names to their data types.
     pub events: BTreeMap<&'static str, DataType>,
-    /// A mapping from plugin names to their commands.
-    pub commands: BTreeMap<&'static str, Vec<Function>>,
+    /// The collection of commands.
+    pub commands: Vec<Function>,
 }
 
 /// Builder for a [`Bindings`] instance.
-///
-/// This should never be constructed manually in bindings providers; instead,
-/// configure the build script and use [`configure_bindings_builder!`].
-#[derive(Default)]
 pub struct BindingsBuilder {
+    namespace: &'static str,
     types: TypeCollection,
     events: BTreeMap<&'static str, DataType>,
-    commands: BTreeMap<&'static str, fn(&mut TypeCollection) -> Vec<Function>>,
+    commands: Option<fn(&mut TypeCollection) -> Vec<Function>>,
 }
 
 impl BindingsBuilder {
+    /// Create a new [`BindingsBuilder`] instance.
+    pub fn new(namespace: &'static str) -> Self {
+        Self {
+            namespace,
+            types: Default::default(),
+            events: Default::default(),
+            commands: Default::default(),
+        }
+    }
+
     /// Register a type in the collection.
     pub fn typ<T: NamedType>(&mut self) -> &mut Self {
         self.types.register::<T>();
@@ -47,24 +57,20 @@ impl BindingsBuilder {
     /// Register commands in the collection.
     ///
     /// The argument should be obtained via the [`collect_commands!`] macro.
-    pub fn commands(
-        &mut self,
-        plugin_name: &'static str,
-        commands: fn(&mut TypeCollection) -> Vec<Function>,
-    ) -> &mut Self {
-        self.commands.insert(plugin_name, commands);
+    pub fn commands(&mut self, commands: fn(&mut TypeCollection) -> Vec<Function>) -> &mut Self {
+        self.commands.replace(commands);
         self
     }
 
     /// Build the [`Bindings`] instance.
     pub fn build(&mut self) -> Bindings {
-        let commands = self
-            .commands
-            .iter_mut()
-            .map(|(k, f)| (*k, f(&mut self.types)))
-            .collect();
+        let commands = match self.commands {
+            Some(f) => f(&mut self.types),
+            None => vec![],
+        };
 
         Bindings {
+            namespace: self.namespace,
             types: self.types.clone(),
             events: self.events.clone(),
             commands,
@@ -80,15 +86,15 @@ pub use specta::function::collect_functions as collect_commands;
 
 #[doc(hidden)]
 #[macro_export]
-macro_rules! __configure_bindings_builder {
+macro_rules! __build_bindings {
     () => {
-        include!(concat!(env!("OUT_DIR"), "/configure_bindings_builder.rs"));
+        include!(concat!(env!("OUT_DIR"), "/build_bindings.rs"));
     };
 }
 
-/// Configure a [`BindingsBuilder`] with the commands and events of this crate.
+/// Create a function that builds [`Bindings`] for this crate.
 ///
-/// The internals of this function are generated at build time, so one must
+/// The internals of the function are generated at build time, so one must
 /// configure the build script correctly with `deskulpt-build`.
 #[doc(inline)]
-pub use __configure_bindings_builder as configure_bindings_builder;
+pub use __build_bindings as build_bindings;

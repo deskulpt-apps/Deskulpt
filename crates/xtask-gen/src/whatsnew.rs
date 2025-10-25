@@ -9,7 +9,6 @@ pub struct Args {
     version: String,
 }
 
-/// Entry point for the `cargo gen whatsnew` command.
 pub fn run(args: Args) -> Result<()> {
     let dir = deskulpt_workspace::docs_dir().join("whatsnew");
     std::fs::create_dir_all(&dir)?;

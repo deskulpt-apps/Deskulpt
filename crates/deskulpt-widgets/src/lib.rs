@@ -14,7 +14,7 @@ use tauri::{Manager, Runtime};
 
 use crate::state::Widgets;
 
-deskulpt_common::bindings::configure_bindings_builder!();
+deskulpt_common::bindings::build_bindings!();
 
 /// Initialize the plugin.
 pub fn init<R: Runtime>() -> TauriPlugin<R> {

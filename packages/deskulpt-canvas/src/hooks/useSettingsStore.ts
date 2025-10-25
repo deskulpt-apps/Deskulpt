@@ -1,6 +1,6 @@
 import { create } from "zustand";
-import { Settings } from "@deskulpt/bindings";
+import { deskulptCore } from "@deskulpt/bindings";
 
-export const useSettingsStore = create<Settings>(() => ({
+export const useSettingsStore = create<deskulptCore.Settings>(() => ({
   ...window.__DESKULPT_INTERNALS__.initialSettings,
 }));

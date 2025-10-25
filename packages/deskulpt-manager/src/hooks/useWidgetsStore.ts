@@ -1,4 +1,4 @@
 import { create } from "zustand";
-import { WidgetCatalog } from "@deskulpt/bindings";
+import { deskulptCore } from "@deskulpt/bindings";
 
-export const useWidgetsStore = create<WidgetCatalog>(() => ({}));
+export const useWidgetsStore = create<deskulptCore.WidgetCatalog>(() => ({}));

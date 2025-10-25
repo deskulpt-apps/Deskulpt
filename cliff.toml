@@ -58,12 +58,12 @@ https://github.com/{{ remote.github.owner }}/{{ remote.github.repo }}/compare/{{
 {%- endfor -%}
 
 {%- if github.contributors | length != 0 -%}
-  ## ❤️ Contributors{% raw %}\n\n{% endraw -%}
+  ## Contributors{% raw %}\n\n{% endraw -%}
   This release was made possible by the following contributors:{% raw %}\n\n{% endraw -%}
   {%- for contributor in github.contributors -%}
     - @{{ contributor.username }}{% raw %}\n{% endraw -%}
   {%- endfor -%}
   {% raw %}\n{% endraw -%}
-  Thank you all for your contributions!{% raw %}\n{% endraw -%}
+  Thank you all for your contributions! ❤️{% raw %}\n{% endraw -%}
 {%- endif -%}
 """

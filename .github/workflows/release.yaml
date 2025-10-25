@@ -26,6 +26,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # Needed for changelog generation
 
       - uses: ./.github/actions/setup-rust
         with:
@@ -38,9 +40,11 @@ jobs:
       - name: Generate release notes
         id: release-notes
         shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
-          git-cliff --unreleased --tag ${{ github.ref_name }} >> $GITHUB_OUTPUT
+          git-cliff >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Build Deskulpt
