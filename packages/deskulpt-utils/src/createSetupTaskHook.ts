@@ -1,4 +1,4 @@
-import { commands } from "@deskulpt/bindings";
+import { deskulptCore } from "@deskulpt/bindings";
 import { useEffect } from "react";
 
 class SetupTasks {
@@ -15,7 +15,7 @@ class SetupTasks {
   public complete(task: string) {
     this.ready.add(task);
     if (this.ready.size === this.tasks.size) {
-      commands.core.completeSetup().catch(console.error);
+      deskulptCore.commands.completeSetup().catch(console.error);
     }
   }
 

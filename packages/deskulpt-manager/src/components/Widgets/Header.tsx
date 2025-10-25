@@ -2,7 +2,7 @@ import { Badge, Button, Flex } from "@radix-ui/themes";
 import { memo, useCallback } from "react";
 import { LuFolderOpen, LuRepeat } from "react-icons/lu";
 import { useWidgetsStore } from "../../hooks";
-import { commands } from "@deskulpt/bindings";
+import { deskulptCore } from "@deskulpt/bindings";
 
 interface HeaderProps {
   id: string;
@@ -12,11 +12,11 @@ const Header = memo(({ id }: HeaderProps) => {
   const type = useWidgetsStore((state) => state[id]?.type);
 
   const refreshAction = useCallback(() => {
-    commands.core.bundleWidgets([id]).catch(console.error);
+    deskulptCore.commands.bundleWidgets([id]).catch(console.error);
   }, [id]);
 
   const openAction = useCallback(() => {
-    commands.core.openWidget(id).catch(console.error);
+    deskulptCore.commands.openWidget(id).catch(console.error);
   }, [id]);
 
   return (

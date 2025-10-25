@@ -1,8 +1,8 @@
 import { create } from "zustand";
-import { WidgetSettings } from "@deskulpt/bindings";
+import { deskulptCore } from "@deskulpt/bindings";
 import { FC } from "react";
 
-interface WidgetProps extends WidgetSettings {
+interface WidgetProps extends deskulptCore.WidgetSettings {
   id: string;
 }
 
