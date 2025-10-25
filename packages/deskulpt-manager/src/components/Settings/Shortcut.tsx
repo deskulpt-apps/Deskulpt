@@ -16,7 +16,7 @@ import {
 } from "react";
 import { FaEdit } from "react-icons/fa";
 import { MdClear } from "react-icons/md";
-import { ShortcutKey, commands } from "@deskulpt/bindings";
+import { deskulptCore } from "@deskulpt/bindings";
 import { useSettingsStore } from "../../hooks";
 import { toast } from "sonner";
 import { INVALID_KEYCODES, KEYCODES, MODIFIERS } from "./keyboard";
@@ -36,7 +36,7 @@ const styles = {
 };
 
 interface Props {
-  shortcutKey: ShortcutKey;
+  shortcutKey: deskulptCore.ShortcutKey;
 }
 
 const ShortcutAction = ({ shortcutKey }: Props) => {
@@ -126,7 +126,7 @@ const ShortcutAction = ({ shortcutKey }: Props) => {
   }, []);
 
   const confirmAction = useCallback(() => {
-    commands.core
+    deskulptCore.commands
       .updateSettings({
         shortcuts: { [shortcutKey]: value === "" ? null : value },
       })

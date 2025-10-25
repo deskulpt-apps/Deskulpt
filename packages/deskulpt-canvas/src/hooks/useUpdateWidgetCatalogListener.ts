@@ -1,11 +1,11 @@
-import { events } from "@deskulpt/bindings";
+import { deskulptCore } from "@deskulpt/bindings";
 import { useWidgetsStore } from "./useWidgetsStore";
 import { createSetupTaskHook } from "@deskulpt/utils";
 
 export const useUpdateWidgetCatalogListener = createSetupTaskHook({
-  task: `event:${events.updateWidgetCatalog.name}`,
+  task: `event:${deskulptCore.events.updateWidgetCatalog.name}`,
   onMount: () =>
-    events.updateWidgetCatalog.listen((event) => {
+    deskulptCore.events.updateWidgetCatalog.listen((event) => {
       const widgets = Object.entries(useWidgetsStore.getState());
 
       // Clean up widgets that are no longer in the catalog

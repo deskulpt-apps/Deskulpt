@@ -4,7 +4,7 @@ import { useSettingsStore } from "../../hooks";
 import { memo, useCallback } from "react";
 import IntegerInput from "../IntegerInput";
 import { css } from "@emotion/react";
-import { commands } from "@deskulpt/bindings";
+import { deskulptCore } from "@deskulpt/bindings";
 
 const styles = {
   table: css({
@@ -19,7 +19,7 @@ const X = ({ id }: SettingsProps) => {
   const x = useSettingsStore((state) => state.widgets[id]?.x);
   const onValueChange = useCallback(
     (value: number) =>
-      commands.core.updateSettings({ widgets: { [id]: { x: value } } }),
+      deskulptCore.commands.updateSettings({ widgets: { [id]: { x: value } } }),
     [id],
   );
 
@@ -37,7 +37,7 @@ const Y = ({ id }: SettingsProps) => {
   const y = useSettingsStore((state) => state.widgets[id]?.y);
   const onValueChange = useCallback(
     (value: number) =>
-      commands.core.updateSettings({ widgets: { [id]: { y: value } } }),
+      deskulptCore.commands.updateSettings({ widgets: { [id]: { y: value } } }),
     [id],
   );
 
@@ -55,7 +55,9 @@ const Width = ({ id }: SettingsProps) => {
   const width = useSettingsStore((state) => state.widgets[id]?.width);
   const onValueChange = useCallback(
     (value: number) =>
-      commands.core.updateSettings({ widgets: { [id]: { width: value } } }),
+      deskulptCore.commands.updateSettings({
+        widgets: { [id]: { width: value } },
+      }),
     [id],
   );
 
@@ -73,7 +75,9 @@ const Height = ({ id }: SettingsProps) => {
   const height = useSettingsStore((state) => state.widgets[id]?.height);
   const onValueChange = useCallback(
     (value: number) =>
-      commands.core.updateSettings({ widgets: { [id]: { height: value } } }),
+      deskulptCore.commands.updateSettings({
+        widgets: { [id]: { height: value } },
+      }),
     [id],
   );
 
@@ -91,7 +95,9 @@ const Opacity = ({ id }: SettingsProps) => {
   const opacity = useSettingsStore((state) => state.widgets[id]?.opacity);
   const onValueChange = useCallback(
     (value: number) =>
-      commands.core.updateSettings({ widgets: { [id]: { opacity: value } } }),
+      deskulptCore.commands.updateSettings({
+        widgets: { [id]: { opacity: value } },
+      }),
     [id],
   );
 

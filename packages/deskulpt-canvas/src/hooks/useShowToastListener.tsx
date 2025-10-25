@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
-import { events } from "@deskulpt/bindings";
+import { deskulptCore } from "@deskulpt/bindings";
 
 export function useShowToastListener() {
   useEffect(() => {
-    const unlisten = events.showToast.listen((event) => {
+    const unlisten = deskulptCore.events.showToast.listen((event) => {
       const { type, content } = event.payload;
       switch (type) {
         case "success":
