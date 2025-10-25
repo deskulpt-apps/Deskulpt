@@ -1,12 +1,13 @@
+use deskulpt_core::path::PathExt;
 use serde::Serialize;
 use tauri::{AppHandle, Runtime};
-
-use crate::WidgetsExt;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
     #[error("{0:?}")]
     Anyhow(#[from] anyhow::Error),
+    #[error("I/O error: {0}")]
+    Io(#[from] std::io::Error),
 }
 
 impl Serialize for Error {
@@ -42,12 +43,11 @@ pub async fn bundle<R: Runtime>(
     _app_handle: AppHandle<R>,
     _ids: Option<Vec<String>>,
 ) -> Result<()> {
-    Ok(())
+    todo!()
 }
 
 #[tauri::command]
 #[specta::specta]
-pub async fn rescan<R: Runtime>(app_handle: AppHandle<R>) -> Result<()> {
-    app_handle.widgets().rescan()?;
-    Ok(())
+pub async fn rescan<R: Runtime>(_app_handle: AppHandle<R>) -> Result<()> {
+    todo!()
 }

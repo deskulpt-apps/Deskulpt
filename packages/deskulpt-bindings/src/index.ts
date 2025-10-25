@@ -8,6 +8,32 @@ import * as tauriEvent from "@tauri-apps/api/event";
 // =============================================================================
 
 /**
+ * The widget catalog.
+ * 
+ * This is a collection of all widgets discovered locally, mapped from their
+ * widget IDs to their configurations. Invalid widgets are also included with
+ * their error messages.
+ */
+export type Catalog = { [key in string]: Outcome<Config> }
+
+/**
+ * Full configuration of a Deskulpt widget.
+ */
+export type Config = { 
+/**
+ * The name of the widget.
+ */
+name: string; 
+/**
+ * The entry point of the widget.
+ */
+entry: string; 
+/**
+ * The dependencies of the widget.
+ */
+dependencies: { [key in string]: string } }
+
+/**
  * Deskulpt window enum.
  */
 export type DeskulptWindow = 
@@ -132,33 +158,7 @@ export type UpdateSettingsEvent = Settings
  * This event is emitted from the backend to all frontend windows whenever
  * there is a change in the widget catalog.
  */
-export type UpdateWidgetCatalogEvent = WidgetCatalog
-
-/**
- * The widget catalog.
- * 
- * This is a collection of all widgets discovered locally, mapped from their
- * widget IDs to their configurations. Invalid widgets are also included with
- * their error messages.
- */
-export type WidgetCatalog = { [key in string]: Outcome<WidgetConfig> }
-
-/**
- * Full configuration of a Deskulpt widget.
- */
-export type WidgetConfig = { 
-/**
- * The name of the widget.
- */
-name: string; 
-/**
- * The entry point of the widget.
- */
-entry: string; 
-/**
- * The dependencies of the widget.
- */
-dependencies: { [key in string]: string } }
+export type UpdateWidgetCatalogEvent = Catalog
 
 /**
  * Per-widget settings.

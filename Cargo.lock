@@ -1275,23 +1275,13 @@ dependencies = [
  "deskulpt-common",
  "deskulpt-core",
  "dunce",
- "either",
  "futures",
- "objc2 0.6.3",
- "once_cell",
- "open",
- "rolldown",
- "rolldown_common",
- "schemars 1.0.4",
  "serde",
  "serde_json",
- "serde_with",
  "serialize-to-javascript",
  "specta",
  "tauri",
- "tauri-plugin-global-shortcut",
  "thiserror 2.0.17",
- "tokio",
 ]
 
 [[package]]

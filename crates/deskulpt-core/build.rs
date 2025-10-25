@@ -10,7 +10,6 @@ fn main() {
             "RenderWidgetsEvent",
             "ShowToastEvent",
             "UpdateSettingsEvent",
-            "UpdateWidgetCatalogEvent",
         ])
         .build();
 }
