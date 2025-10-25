@@ -3,7 +3,7 @@ import { Toaster } from "sonner";
 import {
   useSettingsStore,
   useUpdateSettingsListener,
-  useUpdateWidgetCatalogListener,
+  useUpdateWidgetsListener,
 } from "./hooks";
 import About from "./components/About";
 import Widgets from "./components/Widgets";
@@ -20,7 +20,7 @@ const App = () => {
   const theme = useSettingsStore((state) => state.theme);
 
   useUpdateSettingsListener();
-  useUpdateWidgetCatalogListener();
+  useUpdateWidgetsListener();
 
   return (
     <RadixTheme appearance={theme} accentColor="indigo" grayColor="slate">

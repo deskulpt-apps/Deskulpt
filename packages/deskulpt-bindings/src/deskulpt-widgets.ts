@@ -60,7 +60,7 @@ export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: st
  * This event is emitted from the backend to all frontend windows whenever
  * there is a change in the widget catalog.
  */
-export type UpdateWidgetCatalogEvent = Catalog
+export type UpdateEvent = Catalog
 
 // =============================================================================
 // Events
@@ -85,7 +85,7 @@ function makeEvent<T>(name: string) {
 }
 
 export const events = {
-  updateWidgetCatalog: makeEvent<UpdateWidgetCatalogEvent>("deskulpt-widgets://update-widget-catalog"),
+  update: makeEvent<UpdateEvent>("deskulpt-widgets://update"),
 };
 
 // =============================================================================

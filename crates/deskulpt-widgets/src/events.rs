@@ -8,4 +8,4 @@ use crate::config::Catalog;
 /// This event is emitted from the backend to all frontend windows whenever
 /// there is a change in the widget catalog.
 #[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
-pub struct UpdateWidgetCatalogEvent(pub Catalog);
+pub struct UpdateEvent(pub Catalog);
