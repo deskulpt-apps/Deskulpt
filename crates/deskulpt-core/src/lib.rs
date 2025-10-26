@@ -12,7 +12,7 @@ mod commands;
 mod config;
 pub mod events;
 pub mod path;
-mod settings;
+pub mod settings;
 pub mod states;
 pub mod tray;
 pub mod window;

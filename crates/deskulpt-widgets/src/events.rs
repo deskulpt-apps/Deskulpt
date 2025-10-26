@@ -1,11 +1,10 @@
+use std::sync::Arc;
+
 use deskulpt_common::event::Event;
 use serde::{Deserialize, Serialize};
 
-use crate::config::Catalog;
+use crate::catalog::WidgetCatalog;
 
-/// Event for updating the widget catalog.
-///
-/// This event is emitted from the backend to all frontend windows whenever
-/// there is a change in the widget catalog.
+/// Event for notifying frontends of a widgets update.
 #[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
-pub struct UpdateEvent(pub Catalog);
+pub struct UpdateEvent(pub Arc<WidgetCatalog>);

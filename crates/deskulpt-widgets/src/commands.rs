@@ -1,6 +1,7 @@
-use deskulpt_core::path::PathExt;
 use serde::Serialize;
 use tauri::{AppHandle, Runtime};
+
+use crate::WidgetsExt;
 
 #[derive(thiserror::Error, Debug)]
 pub enum Error {
@@ -37,6 +38,7 @@ impl specta::Type for Error {
 
 pub type Result<T> = std::result::Result<T, Error>;
 
+/// TODO
 #[tauri::command]
 #[specta::specta]
 pub async fn bundle<R: Runtime>(
@@ -46,8 +48,10 @@ pub async fn bundle<R: Runtime>(
     todo!()
 }
 
+/// TODO
 #[tauri::command]
 #[specta::specta]
-pub async fn rescan<R: Runtime>(_app_handle: AppHandle<R>) -> Result<()> {
-    todo!()
+pub async fn rescan<R: Runtime>(app_handle: AppHandle<R>) -> Result<()> {
+    app_handle.widgets().rescan()?;
+    Ok(())
 }

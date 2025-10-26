@@ -4,8 +4,9 @@
     html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg"
 )]
 
+// mod bundler;
+mod catalog;
 mod commands;
-mod config;
 mod events;
 mod state;
 

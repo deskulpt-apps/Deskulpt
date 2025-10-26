@@ -8,32 +8,6 @@ import * as tauriEvent from "@tauri-apps/api/event";
 // =============================================================================
 
 /**
- * The widget catalog.
- * 
- * This is a collection of all widgets discovered locally, mapped from their
- * widget IDs to their configurations. Invalid widgets are also included with
- * their error messages.
- */
-export type Catalog = { [key in string]: Outcome<Config> }
-
-/**
- * Full configuration of a Deskulpt widget.
- */
-export type Config = { 
-/**
- * The name of the widget.
- */
-name: string; 
-/**
- * The entry point of the widget.
- */
-entry: string; 
-/**
- * The dependencies of the widget.
- */
-dependencies: { [key in string]: string } }
-
-/**
  * Deskulpt window enum.
  */
 export type DeskulptWindow = 
@@ -55,12 +29,34 @@ export type DeskulptWindow =
 export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
 
 /**
- * Event for updating the widget catalog.
- * 
- * This event is emitted from the backend to all frontend windows whenever
- * there is a change in the widget catalog.
+ * Event for notifying frontends of a widgets update.
  */
-export type UpdateEvent = Catalog
+export type UpdateEvent = WidgetCatalog
+
+/**
+ * The catalog of widgets.
+ * 
+ * This is a mapping from widget IDs to their full specifications (if valid) or
+ * error messages (if invalid).
+ */
+export type WidgetCatalog = { [key in string]: Outcome<WidgetSpec> }
+
+/**
+ * Full widget specification resolved from manifest files.
+ */
+export type WidgetSpec = { 
+/**
+ * The name of the widget.
+ */
+name: string; 
+/**
+ * The entry point of the widget.
+ */
+entry: string; 
+/**
+ * The dependencies of the widget.
+ */
+dependencies: { [key in string]: string } }
 
 // =============================================================================
 // Events
@@ -93,13 +89,17 @@ export const events = {
 // =============================================================================
 
 export const commands = {
-
+  /**
+   * TODO
+   */
   bundle: (
     ids: string[] | null,
   ) => invoke<null>("plugin:deskulpt-widgets|bundle", {
     ids,
   }),
 
-
+  /**
+   * TODO
+   */
   rescan: () => invoke<null>("plugin:deskulpt-widgets|rescan"),
 };
