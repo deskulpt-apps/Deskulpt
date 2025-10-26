@@ -1,6 +1,7 @@
 use serde::Serialize;
 use tauri::{AppHandle, Runtime};
 
+use crate::state::BundleTarget;
 use crate::WidgetsExt;
 
 #[derive(thiserror::Error, Debug)]
@@ -41,11 +42,9 @@ pub type Result<T> = std::result::Result<T, Error>;
 /// TODO
 #[tauri::command]
 #[specta::specta]
-pub async fn bundle<R: Runtime>(
-    _app_handle: AppHandle<R>,
-    _ids: Option<Vec<String>>,
-) -> Result<()> {
-    todo!()
+pub async fn bundle<R: Runtime>(app_handle: AppHandle<R>, target: BundleTarget) -> Result<()> {
+    app_handle.widgets().bundle(target)?;
+    Ok(())
 }
 
 /// TODO

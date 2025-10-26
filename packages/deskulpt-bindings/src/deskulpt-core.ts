@@ -23,23 +23,6 @@ export type DeskulptWindow =
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key in string]: JsonValue }
 
 /**
- * A result-like binary outcome.
- * 
- * This represents the outcome of an operation that can either succeed with a
- * value of type `T` or fail with an error message.
- */
-export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
-
-/**
- * Event for rendering widgets.
- * 
- * This event is emitted from the backend to the canvas window to instruct it
- * to render the provided widgets. The event carries a mapping from widget IDs
- * to their corresponding code strings.
- */
-export type RenderWidgetsEvent = { [key in string]: Outcome<string> }
-
-/**
  * Full settings of the Deskulpt application.
  */
 export type Settings = { 
@@ -202,7 +185,6 @@ function makeEvent<T>(name: string) {
 }
 
 export const events = {
-  renderWidgets: makeEvent<RenderWidgetsEvent>("deskulpt-core://render-widgets"),
   showToast: makeEvent<ShowToastEvent>("deskulpt-core://show-toast"),
   updateSettings: makeEvent<UpdateSettingsEvent>("deskulpt-core://update-settings"),
 };

@@ -8,6 +8,23 @@ import * as tauriEvent from "@tauri-apps/api/event";
 // =============================================================================
 
 /**
+ * Specifies which widget(s) to bundle.
+ */
+export type BundleTarget = 
+/**
+ * Bundle all widgets in the catalog.
+ */
+"all" | 
+/**
+ * Bundle the specified widget.
+ */
+{ id: string } | 
+/**
+ * Bundle the specified widgets.
+ */
+{ ids: string[] }
+
+/**
  * Deskulpt window enum.
  */
 export type DeskulptWindow = 
@@ -27,6 +44,14 @@ export type DeskulptWindow =
  * value of type `T` or fail with an error message.
  */
 export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
+
+/**
+ * Event for notifying the canvas to render widgets.
+ * 
+ * This event carries a mapping from widget IDs to their corresponding code
+ * strings or bundling errors.
+ */
+export type RenderEvent = { [key in string]: Outcome<string> }
 
 /**
  * Event for notifying frontends of a widgets update.
@@ -81,6 +106,7 @@ function makeEvent<T>(name: string) {
 }
 
 export const events = {
+  render: makeEvent<RenderEvent>("deskulpt-widgets://render"),
   update: makeEvent<UpdateEvent>("deskulpt-widgets://update"),
 };
 
@@ -93,9 +119,9 @@ export const commands = {
    * TODO
    */
   bundle: (
-    ids: string[] | null,
+    target: BundleTarget,
   ) => invoke<null>("plugin:deskulpt-widgets|bundle", {
-    ids,
+    target,
   }),
 
   /**

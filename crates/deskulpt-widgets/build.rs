@@ -1,6 +1,6 @@
 fn main() {
     deskulpt_build::Builder::default()
         .commands(&["bundle", "rescan"])
-        .events(&["UpdateEvent"])
+        .events(&["RenderEvent", "UpdateEvent"])
         .build();
 }

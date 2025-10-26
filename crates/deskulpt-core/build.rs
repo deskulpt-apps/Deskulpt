@@ -6,10 +6,6 @@ fn main() {
             "open_widget",
             "update_settings",
         ])
-        .events(&[
-            "RenderWidgetsEvent",
-            "ShowToastEvent",
-            "UpdateSettingsEvent",
-        ])
+        .events(&["ShowToastEvent", "UpdateSettingsEvent"])
         .build();
 }
