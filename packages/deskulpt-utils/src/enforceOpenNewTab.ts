@@ -35,7 +35,7 @@ export function enforceOpenNewTab() {
     ) {
       return;
     }
-
+    // Prevent the default behavior of the link
     event.preventDefault();
     openUrl(url.toString());
   };
