@@ -14,6 +14,7 @@ version    = { workspace = true }
 anyhow                       = { workspace = true }
 bitflags                     = { workspace = true }
 deskulpt-common              = { workspace = true }
+deskulpt-observability       = { workspace = true }
 dunce                        = { workspace = true }
 either                       = { workspace = true }
 futures                      = { workspace = true }
@@ -30,6 +31,7 @@ specta                       = { workspace = true, features = ["derive", "functi
 tauri-plugin-global-shortcut = { workspace = true }
 thiserror                    = { workspace = true }
 tokio                        = { workspace = true }
+tracing                      = { workspace = true }
 
 tauri = { workspace = true, features = [
   "specta",

@@ -119,6 +119,9 @@ pub struct Settings {
     /// The mapping from widget IDs to their respective settings.
     #[serde_as(deserialize_as = "MapSkipError<_, _>")]
     pub widgets: BTreeMap<String, WidgetSettings>,
+    /// Enable telemetry and crash reporting (opt-in).
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pub enable_telemetry: bool,
 }
 
 /// A patch for partial updates to [`Settings`].
@@ -144,4 +147,7 @@ pub struct SettingsPatch {
     /// values, and then the patch will be applied to it.
     #[specta(optional, type = BTreeMap<String, Option<WidgetSettingsPatch>>)]
     pub widgets: Option<BTreeMap<String, Option<WidgetSettingsPatch>>>,
+    /// If not `None`, update [`Settings::enable_telemetry`].
+    #[specta(optional, type = bool)]
+    pub enable_telemetry: Option<bool>,
 }

@@ -4,6 +4,7 @@
     html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg"
 )]
 
+use deskulpt_core::observability::ObservabilityExt;
 use deskulpt_core::path::PathExt;
 use deskulpt_core::states::{
     CanvasImodeStateExt, SettingsStateExt, SetupStateExt, WidgetCatalogStateExt,
@@ -22,6 +23,11 @@ pub fn run() {
         .setup(move |app| {
             app.init_widgets_dir()?;
             app.init_persist_dir()?;
+
+            // Initialize observability first (before other initialization)
+            // Default to enabled (opt-out) for production, disabled for development
+            let enable_telemetry = !cfg!(debug_assertions);
+            app.init_observability(enable_telemetry)?;
 
             app.manage_settings();
             app.manage_setup();
