@@ -1,4 +1,4 @@
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use deskulpt_common::bindings::Bindings;
 use handlebars::Handlebars;
 use heck::ToLowerCamelCase;
@@ -61,7 +61,13 @@ struct EventTemplate {
 impl EventTemplate {
     fn from(ts: &Typescript, tcl: &TypeCollection, name: &str, ty: &DataType) -> Result<Self> {
         Ok(Self {
-            key: name.to_lower_camel_case(),
+            key: name
+                .split("://")
+                .nth(1)
+                .ok_or_else(|| {
+                    anyhow!("Deskulpt event name must contain '://' separator, but got: {name}")
+                })?
+                .to_lower_camel_case(),
             name: name.to_string(),
             ty: export_datatype(ts, ty, tcl)?,
         })
