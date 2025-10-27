@@ -1,6 +1,7 @@
 //! Deskulpt core events.
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
@@ -43,4 +44,4 @@ pub struct UpdateSettingsEvent(pub Settings);
 /// This event is emitted from the backend to all frontend windows whenever
 /// there is a change in the widget catalog.
 #[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
-pub struct UpdateWidgetCatalogEvent(pub WidgetCatalog);
+pub struct UpdateWidgetCatalogEvent(pub Arc<WidgetCatalog>);

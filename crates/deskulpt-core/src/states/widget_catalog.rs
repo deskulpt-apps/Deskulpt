@@ -1,6 +1,6 @@
 //! State management for the widget catalog.
 
-use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{Arc, RwLock, RwLockReadGuard, RwLockWriteGuard};
 
 use tauri::{App, AppHandle, Manager, Runtime};
 
@@ -9,7 +9,7 @@ use crate::path::PathExt;
 
 /// Managed state for the widget catalog.
 #[derive(Default)]
-struct WidgetCatalogState(RwLock<WidgetCatalog>);
+struct WidgetCatalogState(RwLock<Arc<WidgetCatalog>>);
 
 /// Extension trait for operations on widget catalog state.
 pub trait WidgetCatalogStateExt<R: Runtime>: Manager<R> + PathExt<R> {
@@ -22,7 +22,7 @@ pub trait WidgetCatalogStateExt<R: Runtime>: Manager<R> + PathExt<R> {
     ///
     /// The returned reference is behind a lock guard, which should be dropped
     /// as soon as possible to minimize critical section.
-    fn get_widget_catalog(&self) -> RwLockReadGuard<'_, WidgetCatalog> {
+    fn get_widget_catalog(&self) -> RwLockReadGuard<'_, Arc<WidgetCatalog>> {
         let state = self.state::<WidgetCatalogState>().inner();
         state.0.read().unwrap()
     }
@@ -31,7 +31,7 @@ pub trait WidgetCatalogStateExt<R: Runtime>: Manager<R> + PathExt<R> {
     ///
     /// The returned reference is behind a lock guard, which should be dropped
     /// as soon as possible to minimize critical section.
-    fn get_widget_catalog_mut(&self) -> RwLockWriteGuard<'_, WidgetCatalog> {
+    fn get_widget_catalog_mut(&self) -> RwLockWriteGuard<'_, Arc<WidgetCatalog>> {
         let state = self.state::<WidgetCatalogState>().inner();
         state.0.write().unwrap()
     }
