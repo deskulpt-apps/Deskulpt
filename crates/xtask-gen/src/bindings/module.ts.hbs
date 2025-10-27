@@ -43,7 +43,7 @@ function makeEvent<T>(name: string) {
 
 export const events = {
 {{#each events}}
-  {{this.key}}: makeEvent<{{this.ty}}>("{{../namespace}}://{{this.name}}"),
+  {{this.key}}: makeEvent<{{this.ty}}>("{{this.name}}"),
 {{/each}}
 };
 {{/if}}
