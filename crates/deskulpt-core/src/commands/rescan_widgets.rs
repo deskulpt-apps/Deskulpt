@@ -1,5 +1,3 @@
-use std::sync::Arc;
-
 use deskulpt_common::event::Event;
 use tauri::{command, AppHandle, Runtime};
 
@@ -28,7 +26,7 @@ use crate::states::{SettingsStateExt, WidgetCatalogStateExt};
 #[command]
 #[specta::specta]
 pub async fn rescan_widgets<R: Runtime>(app_handle: AppHandle<R>) -> CmdResult<()> {
-    let catalog = Arc::new(WidgetCatalog::load(app_handle.widgets_dir()?)?);
+    let catalog = WidgetCatalog::load(app_handle.widgets_dir()?)?;
     *app_handle.get_widget_catalog_mut() = catalog.clone();
 
     {

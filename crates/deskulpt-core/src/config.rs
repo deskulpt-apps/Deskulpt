@@ -70,7 +70,7 @@ impl LoadManifest for PackageManifest {
 }
 
 /// Full configuration of a Deskulpt widget.
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Clone, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct WidgetConfig {
     /// The name of the widget.
@@ -112,7 +112,7 @@ impl WidgetConfig {
 /// This is a collection of all widgets discovered locally, mapped from their
 /// widget IDs to their configurations. Invalid widgets are also included with
 /// their error messages.
-#[derive(Debug, Default, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Default, Clone, Serialize, Deserialize, specta::Type)]
 pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetConfig>>);
 
 impl WidgetCatalog {
