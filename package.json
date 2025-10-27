@@ -25,7 +25,7 @@
     "docs:dev": "pnpm --filter @deskulpt/docs dev",
     "docs:build": "pnpm --filter @deskulpt/docs build",
     "docs:preview": "pnpm --filter @deskulpt/docs preview",
-    "build": "tsc -b && vite build",
+    "build": "tsc -b -f && vite build",
     "build:packages": "pnpm run --sequential --filter @deskulpt-test/* build"
   },
   "dependencies": {
