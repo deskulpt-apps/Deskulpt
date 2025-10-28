@@ -1,18 +1,19 @@
 //! Configuration of Deskulpt widgets.
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use std::fs::File;
 use std::io::BufReader;
 use std::path::Path;
 
 use anyhow::{Context, Result};
+use deskulpt_common::outcome::Outcome;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
-/// Deserialized `deskulpt.conf.json`.
+/// The Deskulpt widget manifest.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct DeskulptConf {
+pub struct WidgetManifest {
     /// The name of the widget.
     ///
     /// This is purely used for display purposes. It does not need to be related
@@ -31,23 +32,23 @@ pub struct DeskulptConf {
     ignore: bool,
 }
 
-/// Deserialized `package.json`.
+/// The Node.js package manifest.
 #[derive(Debug, Default, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PackageJson {
+pub struct PackageManifest {
     #[serde(default)]
     pub dependencies: HashMap<String, String>,
 }
 
-/// Helper trait for loading configuration files from a directory.
-trait LoadFromFile: Sized + DeserializeOwned {
-    /// The name of the configuration file.
+/// Helper trait for loading manifest files from a directory.
+trait LoadManifest: Sized + DeserializeOwned {
+    /// The name of the manifest file.
     const FILE_NAME: &'static str;
 
-    /// Load the configuration file from the given directory.
+    /// Load the manifest file from the given directory.
     ///
-    /// This method returns `Ok(None)` if the target file does not exist and
-    /// `Err` if there is failure to read or parse the file.
+    /// Specially, this method returns `Ok(None)` if the target file does not
+    /// exist and does not treat it as an error.
     fn load(dir: &Path) -> Result<Option<Self>> {
         let path = dir.join(Self::FILE_NAME);
         if !path.exists() {
@@ -60,71 +61,90 @@ trait LoadFromFile: Sized + DeserializeOwned {
     }
 }
 
-impl LoadFromFile for DeskulptConf {
-    const FILE_NAME: &'static str = "deskulpt.conf.json";
+impl LoadManifest for WidgetManifest {
+    const FILE_NAME: &'static str = "deskulpt.widget.json";
 }
 
-impl LoadFromFile for PackageJson {
+impl LoadManifest for PackageManifest {
     const FILE_NAME: &'static str = "package.json";
 }
 
 /// Full configuration of a Deskulpt widget.
-#[derive(Debug, Clone, Serialize, specta::Type)]
-#[serde(tag = "type", rename_all = "camelCase")]
-pub enum WidgetConfig {
-    /// Valid configuration of a widget.
-    #[serde(rename_all = "camelCase")]
-    Ok {
-        /// The name of the widget.
-        name: String,
-        /// The entry point of the widget.
-        entry: String,
-        /// The dependencies of the widget.
-        dependencies: HashMap<String, String>,
-    },
-    /// Error information if a widget failed to load.
-    #[serde(rename_all = "camelCase")]
-    Err {
-        /// The error message.
-        error: String,
-    },
+#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct WidgetConfig {
+    /// The name of the widget.
+    pub name: String,
+    /// The entry point of the widget.
+    pub entry: String,
+    /// The dependencies of the widget.
+    pub dependencies: HashMap<String, String>,
 }
 
 impl WidgetConfig {
-    /// Read widget configuration from a directory.
+    /// Read full widget configuration from a directory.
     ///
-    /// This returns `None` if the directory is not considered a widget
-    /// directory, or if the widget is explicitly marked as ignored.
-    pub fn load(dir: &Path) -> Option<Self> {
-        let deskulpt_conf =
-            match DeskulptConf::load(dir).context("Failed to load deskulpt.conf.json") {
-                Ok(Some(deskulpt_conf)) => deskulpt_conf,
-                Ok(None) => return None,
-                Err(e) => {
-                    return Some(WidgetConfig::Err {
-                        error: format!("{e:?}"),
-                    })
-                },
-            };
-
-        // Ignore widgets that are explicitly marked as such
-        if deskulpt_conf.ignore {
-            return None;
-        }
-
-        let package_json = match PackageJson::load(dir).context("Failed to load package.json") {
-            Ok(package_json) => package_json.unwrap_or_default(),
-            Err(e) => {
-                return Some(WidgetConfig::Err {
-                    error: format!("{e:?}"),
-                })
-            },
+    /// Specially, this method returns `Ok(None)` if the directory does not
+    /// contain a widget configuration file or if the widget is explicitly
+    /// marked as ignored in the configuration file.
+    pub fn load(dir: &Path) -> Result<Option<Self>> {
+        let widget_manifest = match WidgetManifest::load(dir)
+            .with_context(|| format!("Failed to load {}", WidgetManifest::FILE_NAME))?
+        {
+            Some(widget_manifest) if !widget_manifest.ignore => widget_manifest,
+            _ => return Ok(None),
         };
 
-        Some(WidgetConfig::Ok {
-            name: deskulpt_conf.name,
-            entry: deskulpt_conf.entry,
-            dependencies: package_json.dependencies,
-        })
+        let package_manifest = PackageManifest::load(dir)
+            .with_context(|| format!("Failed to load {}", PackageManifest::FILE_NAME))?
+            .unwrap_or_default();
+
+        Ok(Some(WidgetConfig {
+            name: widget_manifest.name,
+            entry: widget_manifest.entry,
+            dependencies: package_manifest.dependencies,
+        }))
+    }
+}
+
+/// The widget catalog.
+///
+/// This is a collection of all widgets discovered locally, mapped from their
+/// widget IDs to their configurations. Invalid widgets are also included with
+/// their error messages.
+#[derive(Debug, Default, Serialize, Deserialize, specta::Type)]
+pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetConfig>>);
+
+impl WidgetCatalog {
+    /// Load the widget catalog from the given directory.
+    ///
+    /// This scans all top-level subdirectories and attempts to load them as
+    /// widgets. Non-widget directories are simply ignored. See
+    /// [`WidgetConfig::load`] for more details.
+    pub fn load(dir: &Path) -> Result<Self> {
+        let mut catalog = Self::default();
+
+        let entries = std::fs::read_dir(dir)?;
+        for entry in entries {
+            let entry = entry?;
+
+            let path = entry.path();
+            if !path.is_dir() {
+                continue; // Non-directory entries are not widgets, skip
+            }
+
+            if let Some(config) = WidgetConfig::load(&path)
+                .map(|opt| opt.map(Outcome::Ok))
+                .unwrap_or_else(|e| Some(Outcome::Err(format!("{e:?}"))))
+            {
+                // Since each widget must be at the top level of the widgets
+                // directory, the directory names must be unique and we can use
+                // them as widget IDs
+                let id = entry.file_name().to_string_lossy().to_string();
+                catalog.0.insert(id, config);
+            }
+        }
+
+        Ok(catalog)
     }
 }

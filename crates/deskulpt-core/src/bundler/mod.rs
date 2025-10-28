@@ -29,7 +29,7 @@ impl WidgetBundlerBuilder {
     }
 
     /// Build the Deskulpt widget bundler.
-    pub fn build(self) -> WidgetBundler {
+    pub fn build(self) -> Result<WidgetBundler> {
         const JSX_RUNTIME_URL: &str = "__DESKULPT_BASE_URL__/gen/jsx-runtime.js";
         const RAW_APIS_URL: &str = "__DESKULPT_BASE_URL__/gen/raw-apis.js";
         const REACT_URL: &str = "__DESKULPT_BASE_URL__/gen/react.js";
@@ -84,9 +84,8 @@ impl WidgetBundlerBuilder {
             .into(),
         );
 
-        WidgetBundler {
-            bundler: Bundler::with_plugins(bundler_options, vec![Arc::new(alias_plugin)]),
-        }
+        let bundler = Bundler::with_plugins(bundler_options, vec![Arc::new(alias_plugin)])?;
+        Ok(WidgetBundler { bundler })
     }
 }
 

@@ -1,36 +1,27 @@
 //! Deskulpt core events.
 
-use deskulpt_common::event::Event;
-use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 
+use deskulpt_common::event::Event;
+use deskulpt_common::outcome::Outcome;
+use serde::Serialize;
+
+use crate::config::WidgetCatalog;
 use crate::settings::Settings;
 
-/// Event for removing widgets.
+/// Event for rendering widgets.
 ///
-/// This event is emitted from the manager window to the canvas window when
-/// widgets need to be removed.
-#[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
-pub struct RemoveWidgetsEvent(
-    /// The list of widget IDs to be removed.
-    Vec<String>,
-);
-
-/// Event for re-rendering widgets.
-///
-/// This event is mainly emitted from the manager window to the canvas window
-/// when settings or code of a widget needs to be re-rendered. It may also be
-/// emitted from the backend to the canvas window for the initial render.
-#[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
-pub struct RenderWidgetsEvent(
-    /// The list of widget IDs to be re-rendered.
-    Vec<String>,
-);
+/// This event is emitted from the backend to the canvas window to instruct it
+/// to render the provided widgets. The event carries a mapping from widget IDs
+/// to their corresponding code strings.
+#[derive(Debug, Serialize, specta::Type, Event)]
+pub struct RenderWidgetsEvent<'a>(pub &'a HashMap<String, Outcome<String>>);
 
 /// Event for showing a toast notification.
 ///
 /// This event is emitted from the backend to the canvas window when a toast
 /// notification needs to be displayed.
-#[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
+#[derive(Debug, Serialize, specta::Type, Event)]
 #[serde(tag = "type", content = "content", rename_all = "camelCase")]
 pub enum ShowToastEvent {
     /// Show a [success](https://sonner.emilkowal.ski/toast#success) toast.
@@ -39,9 +30,17 @@ pub enum ShowToastEvent {
     Error(String),
 }
 
-/// Event for updating settings of a widget.
+/// Event for updating the settings.
 ///
-/// This event is emitted between the manager window and the canvas window to
-/// each other when widget settings are updated on one side.
-#[derive(Clone, Serialize, Deserialize, specta::Type, Event)]
-pub struct UpdateSettingsEvent(pub Settings);
+/// This event is emitted from the backend to all frontend windows whenever
+/// there is a change in the settings. Full settings are included to ensure
+/// that all windows see the most up-to-date version eventually.
+#[derive(Debug, Serialize, specta::Type, Event)]
+pub struct UpdateSettingsEvent<'a>(pub &'a Settings);
+
+/// Event for updating the widget catalog.
+///
+/// This event is emitted from the backend to all frontend windows whenever
+/// there is a change in the widget catalog.
+#[derive(Debug, Serialize, specta::Type, Event)]
+pub struct UpdateWidgetCatalogEvent<'a>(pub &'a WidgetCatalog);

@@ -39,7 +39,7 @@ export default defineConfig({
       "meta",
       {
         property: "og:url",
-        content: "https://csci-shu-410-se-project.github.io/",
+        content: "https://deskulpt-apps.github.io/",
       },
     ],
   ],
@@ -89,7 +89,7 @@ export default defineConfig({
           items: [
             {
               text: "Backend Rustdoc",
-              link: "https://csci-shu-410-se-project.github.io/rustdoc/deskulpt/",
+              link: "https://deskulpt-apps.github.io/rustdoc/deskulpt/",
             },
           ],
         },

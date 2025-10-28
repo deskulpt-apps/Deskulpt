@@ -5,16 +5,18 @@ resolver = "2"
 [workspace.package]
 authors    = ["The Deskulpt Development Team"]
 edition    = "2021"
-homepage   = "https://csci-shu-410-se-project.github.io/"
+homepage   = "https://deskulpt-apps.github.io/"
 license    = "MIT"
 repository = "https://github.com/deskulpt-apps/Deskulpt"
-version    = "0.0.1"
+version    = "0.1.0"
 
 [workspace.dependencies]
 anyhow                         = "1.0.100"
-clap                           = "4.5.48"
+bitflags                       = "2.10.0"
+clap                           = "4.5.50"
 dunce                          = "1.0.5"
 either                         = "1.15.0"
+futures                        = "0.3.31"
 handlebars                     = "6.3.2"
 heck                           = "0.5.0"
 objc2                          = "0.6.3"
@@ -22,39 +24,39 @@ once_cell                      = "1.21.3"
 open                           = "5.3.2"
 quote                          = "1.0.41"
 rdev                           = "0.5.3"
-regex                          = "1.11.3"
-rolldown                       = { git = "https://github.com/rolldown/rolldown.git", tag = "v1.0.0-beta.36" }
-rolldown_common                = { git = "https://github.com/rolldown/rolldown.git", tag = "v1.0.0-beta.36" }
+regex                          = "1.12.2"
+rolldown                       = "0.1.0"
+rolldown_common                = "0.1.0"
 schemars                       = "1.0.4"
 serde                          = "1.0.228"
 serde_json                     = "1.0.145"
-serde_with                     = "3.15.0"
+serde_with                     = "3.15.1"
 serialize-to-javascript        = "0.1.1"
 specta                         = "2.0.0-rc.22"
 specta-typescript              = "0.0.9"
-syn                            = "2.0.106"
+syn                            = "2.0.108"
 tauri                          = "2.2.0"
 tauri-build                    = "2.0.4"
 tauri-plugin                   = "2.4.0"
-tauri-plugin-clipboard-manager = "2.3.0"
+tauri-plugin-clipboard-manager = "2.3.1"
 tauri-plugin-global-shortcut   = "2.3.0"
-tauri-plugin-opener            = "2.5.0"
+tauri-plugin-opener            = "2.5.1"
 thiserror                      = "2.0.17"
-tokio                          = "1.47.1"
+tokio                          = "1.48.0"
 
 # Deskulpt crates
-deskulpt-build         = { version = "0.0.1", path = "crates/deskulpt-build" }
-deskulpt-common        = { version = "0.0.1", path = "crates/deskulpt-common" }
-deskulpt-core          = { version = "0.0.1", path = "crates/deskulpt-core" }
-deskulpt-macros        = { version = "0.0.1", path = "crates/deskulpt-macros" }
-deskulpt-plugin        = { version = "0.0.1", path = "crates/deskulpt-plugin" }
-deskulpt-plugin-macros = { version = "0.0.1", path = "crates/deskulpt-plugin-macros" }
-deskulpt-workspace     = { version = "0.0.1", path = "crates/deskulpt-workspace" }
+deskulpt-build         = { version = "0.1.0", path = "crates/deskulpt-build" }
+deskulpt-common        = { version = "0.1.0", path = "crates/deskulpt-common" }
+deskulpt-core          = { version = "0.1.0", path = "crates/deskulpt-core" }
+deskulpt-macros        = { version = "0.1.0", path = "crates/deskulpt-macros" }
+deskulpt-plugin        = { version = "0.1.0", path = "crates/deskulpt-plugin" }
+deskulpt-plugin-macros = { version = "0.1.0", path = "crates/deskulpt-plugin-macros" }
+deskulpt-workspace     = { version = "0.1.0", path = "crates/deskulpt-workspace" }
 
 # TODO: Remove these since they will not be dependencies of other crates when finalized
-deskulpt-plugin-fs  = { version = "0.0.1", path = "crates/deskulpt-plugin-fs" }
-deskulpt-plugin-sys = { version = "0.0.1", path = "crates/deskulpt-plugin-sys" }
-sysinfo             = "0.33.1"
+deskulpt-plugin-fs  = { version = "0.1.0", path = "crates/deskulpt-plugin-fs" }
+deskulpt-plugin-sys = { version = "0.1.0", path = "crates/deskulpt-plugin-sys" }
+sysinfo             = "0.37.2"
 
 [profile.dev]
 debug = "line-tables-only"

@@ -26,13 +26,26 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v5
+        with:
+          fetch-depth: 0 # Needed for changelog generation
 
       - uses: ./.github/actions/setup-rust
         with:
           platform: ${{ matrix.platform }}
           targets: ${{ matrix.target }}
+          tools: git-cliff
 
       - uses: ./.github/actions/setup-node
+
+      - name: Generate release notes
+        id: release-notes
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
+          git-cliff >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Build Deskulpt
         uses: tauri-apps/tauri-action@v0
@@ -42,5 +55,4 @@ jobs:
           args: --target ${{ matrix.target }}
           tagName: v__VERSION__
           releaseName: "Deskulpt v__VERSION__"
-          releaseDraft: true
-          prerelease: false
+          releaseBody: ${{ steps.release-notes.outputs.RELEASE_NOTES }}

@@ -1,10 +1,12 @@
 {
   "name": "workspace",
   "private": true,
+  "version": "0.1.0",
   "type": "module",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky",
+    "tauri": "tauri",
     "format": "pnpm format:js && pnpm format:rs",
     "format:check": "pnpm format:js:check && pnpm format:rs:check",
     "format:js": "prettier --write .",
@@ -23,15 +25,26 @@
     "docs:dev": "pnpm --filter @deskulpt/docs dev",
     "docs:build": "pnpm --filter @deskulpt/docs build",
     "docs:preview": "pnpm --filter @deskulpt/docs preview",
+    "build": "tsc -b && vite build",
     "build:packages": "pnpm run --sequential --filter @deskulpt-test/* build"
   },
+  "dependencies": {
+    "@emotion/react": "catalog:",
+    "@radix-ui/themes": "catalog:",
+    "@tauri-apps/api": "catalog:",
+    "react": "catalog:"
+  },
   "devDependencies": {
-    "@tauri-apps/cli": "^2.8.4",
-    "husky": "^9.1.6",
-    "lint-staged": "^16.2.4",
-    "oxlint": "^1.22.0",
-    "prettier": "^3.6.2",
-    "prettier-plugin-toml": "^2.0.6"
+    "@tauri-apps/cli": "catalog:",
+    "@vitejs/plugin-react": "catalog:",
+    "husky": "catalog:",
+    "knip": "catalog:",
+    "lint-staged": "catalog:",
+    "oxlint": "catalog:",
+    "prettier": "catalog:",
+    "prettier-plugin-toml": "catalog:",
+    "typescript": "catalog:",
+    "vite": "catalog:"
   },
   "prettier": {
     "plugins": [

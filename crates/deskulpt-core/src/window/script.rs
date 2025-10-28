@@ -9,7 +9,7 @@ use crate::settings::Settings;
 #[derive(Template)]
 #[default_template("manager.js")]
 pub struct ManagerInitJS<'a> {
-    /// `window.__DESKULPT_MANAGER_INTERNALS__.initialSettings`
+    /// `window.__DESKULPT_INTERNALS__.initialSettings`
     initial_settings: &'a Settings,
 }
 
@@ -17,9 +17,9 @@ pub struct ManagerInitJS<'a> {
 #[derive(Template)]
 #[default_template("canvas.js")]
 pub struct CanvasInitJS<'a> {
-    /// `window.__DESKULPT_CANVAS_INTERNALS__.apisWrapper`
+    /// `window.__DESKULPT_INTERNALS__.apisWrapper`
     apis_wrapper: &'static str,
-    /// `window.__DESKULPT_CANVAS_INTERNALS__.initialSettings`
+    /// `window.__DESKULPT_INTERNALS__.initialSettings`
     initial_settings: &'a Settings,
 }
 

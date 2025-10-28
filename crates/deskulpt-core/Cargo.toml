@@ -12,9 +12,11 @@ version    = { workspace = true }
 
 [dependencies]
 anyhow                       = { workspace = true }
+bitflags                     = { workspace = true }
 deskulpt-common              = { workspace = true }
 dunce                        = { workspace = true }
 either                       = { workspace = true }
+futures                      = { workspace = true }
 once_cell                    = { workspace = true }
 open                         = { workspace = true, features = ["shellexecute-on-windows"] }
 rdev                         = { workspace = true }

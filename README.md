@@ -1,9 +1,9 @@
 <div align="center">
 
-<a href="https://csci-shu-410-se-project.github.io/">
+<a href="https://deskulpt-apps.github.io/">
   <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/deskulpt-apps/Deskulpt/raw/main/packages/deskulpt/public/deskulpt-wide-dark.svg" />
-    <img alt="Deskulpt" src="https://github.com/deskulpt-apps/Deskulpt/raw/main/packages/deskulpt/public/deskulpt-wide.svg" width="300px" />
+    <source media="(prefers-color-scheme: dark)" srcset="https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt-wide-dark.svg" />
+    <img alt="Deskulpt" src="https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt-wide.svg" width="300px" />
   </picture>
 </a>
 
@@ -11,44 +11,26 @@
 
 <br />
 
-[![release](https://img.shields.io/github/v/release/deskulpt-apps/Deskulpt)](https://github.com/deskulpt-apps/Deskulpt/releases/latest) [![ci](https://img.shields.io/github/actions/workflow/status/deskulpt-apps/Deskulpt/ci.yaml?label=ci&logo=github)](https://github.com/deskulpt-apps/Deskulpt/actions/workflows/ci.yaml) [![hompage](https://img.shields.io/badge/homepage-Deskulpt-blue.svg)](https://csci-shu-410-se-project.github.io/)
+[![release](https://img.shields.io/github/v/release/deskulpt-apps/Deskulpt)](https://github.com/deskulpt-apps/Deskulpt/releases/latest) [![ci](https://img.shields.io/github/actions/workflow/status/deskulpt-apps/Deskulpt/ci.yaml?label=ci&logo=github)](https://github.com/deskulpt-apps/Deskulpt/actions/workflows/ci.yaml) [![hompage](https://img.shields.io/badge/homepage-Deskulpt-blue.svg)](https://deskulpt-apps.github.io/) [![cs1060 team folder](https://img.shields.io/badge/cs1060%20team%20folder-4285F4?logo=googledrive&logoColor=white)](https://drive.google.com/drive/folders/1EmadY8rYWEcFHqrn6d1MQ6fx0wTt1TqN?usp=drive_link) ![cs1060 linear](https://img.shields.io/badge/cs1060%20linear-5E6AD2?logo=linear&logoColor=white)
 
 </div>
 
 ## Introduction
 
-**Deskulpt** is a cross-platform desktop customization tool that allows you to write
-React code to define widgets on your desktop. It is powered by [Tauri v2](https://v2.tauri.app/),
-and written in Rust and TypeScript.
-
-The project was started in 2024 as a final project for the Software Engineering course
-at [NYU Shanghai](https://shanghai.nyu.edu/). It is currently maintained by the original
-authors.
-
-Similar softwares exist ([Rainmeter](https://www.rainmeter.net/) for Windows,
-[Ubersicht](https://tracesof.net/uebersicht/) for MacOS), but what makes Deskulpt
-different is that:
-
-- **Deskulpt is cross-platform.** To the best of our knowledge, Deskulpt is the first
-  desktop customization tool that supports all major desktop platforms (Windows, MacOS,
-  Linux).
-
-- **Deskulpt is light-weight and memory-safe.** Deskulpt is powered by Tauri, which uses
-  Rust as its backend. Tauri provides a more light-weight solution than other existing
-  frameworks (e.g. Electron), and Rust guarantees the memory safety of Deskulpt.
+**Deskulpt** is a modern cross-platform desktop customization tool that allows you to define widgets with React components and render them directly on your desktop. It leverages web capabilities for infinite widget UI customizations and a plugin system for high extensibility and deep integration with your system. Deskulpt aims to provide a curated widget gallery for end-users and also first-class web-like development experience for widget authors.
 
 Currently, Deskulpt supports the following platforms:
 
-- Windows (10, 11)
-- MacOS
-- Linux (X11, tested on Ubuntu)
+- Windows (10 and later)
+- MacOS (Catalina 10.15 and later, Intel and Apple Silicon)
+- Linux (X11, tested on Ubuntu 24.04 Desktop)
 
-Website: [https://csci-shu-410-se-project.github.io/](https://csci-shu-410-se-project.github.io/)
+Website: [https://deskulpt-apps.github.io/](https://deskulpt-apps.github.io/) (under construction)
 
 ## Download
 
-Download the latest release of Deskulpt [here](https://github.com/deskulpt-apps/Deskulpt/releases). See [Quick Start](https://csci-shu-410-se-project.github.io/guide/quick-start.html) for more details.
+Download the latest release of Deskulpt [here](https://github.com/deskulpt-apps/Deskulpt/releases). See [Quick Start](https://deskulpt-apps.github.io/guide/quick-start.html) for more details.
 
 ## Contributing
 
-We welcome all sorts of contributions, no matter how large or small! See the [Contribution Guide](https://csci-shu-410-se-project.github.io/contribute/overview.html) for more details.
+We welcome all sorts of contributions, no matter how large or small! See the [Contribution Guide](https://deskulpt-apps.github.io/contribute/overview.html) for more details.

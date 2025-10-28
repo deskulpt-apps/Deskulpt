@@ -12,10 +12,10 @@ cleanDir(join(__dirname, "./dist"));
 export default defineConfig([
   // ESM build of the emotion JSX runtime to be used internally
   {
-    input: "src/jsx-runtime.js",
+    input: "src/jsx-runtime.ts",
     output: {
       format: "esm",
-      file: "../deskulpt/src/gen/jsx-runtime.js",
+      file: "../../gen/jsx-runtime.js",
       banner: "/*! Auto-generated from packages/ui. DO NOT EDIT! */",
     },
     external: ["@emotion/react/jsx-runtime"],
@@ -27,7 +27,7 @@ export default defineConfig([
     input: "src/index.ts",
     output: {
       format: "esm",
-      file: "../deskulpt/src/gen/ui.js",
+      file: "../../gen/ui.js",
       banner: "/*! Auto-generated from packages/ui. DO NOT EDIT! */",
     },
     external: ["@emotion/react", "@radix-ui/themes"],

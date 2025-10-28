@@ -1,7 +1,7 @@
 #![doc = include_str!("../README.md")]
 #![doc(
-    html_logo_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/packages/deskulpt/public/deskulpt.svg",
-    html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/packages/deskulpt/public/deskulpt.svg"
+    html_logo_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/packages/deskulpt.svg",
+    html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/packages/deskulpt.svg"
 )]
 
 use tauri::plugin::TauriPlugin;
@@ -17,7 +17,7 @@ pub mod states;
 pub mod tray;
 pub mod window;
 
-deskulpt_common::bindings::configure_bindings_builder!();
+deskulpt_common::bindings::build_bindings!();
 
 /// Initialize the plugin.
 pub fn init<R: Runtime>() -> TauriPlugin<R> {

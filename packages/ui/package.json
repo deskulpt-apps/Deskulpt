@@ -22,7 +22,7 @@
   "bugs": {
     "url": "https://github.com/deskulpt-apps/Deskulpt/issues"
   },
-  "homepage": "https://csci-shu-410-se-project.github.io/",
+  "homepage": "https://deskulpt-apps.github.io/",
   "devDependencies": {
     "@rollup/plugin-terser": "catalog:",
     "@rollup/plugin-typescript": "catalog:",

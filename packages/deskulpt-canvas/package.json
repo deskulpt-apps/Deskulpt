@@ -1,0 +1,26 @@
+{
+  "name": "@deskulpt/canvas",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm"
+  },
+  "dependencies": {
+    "@deskulpt/bindings": "workspace:*",
+    "@deskulpt/utils": "workspace:*",
+    "@emotion/react": "catalog:",
+    "@radix-ui/themes": "catalog:",
+    "re-resizable": "catalog:",
+    "react": "catalog:",
+    "react-dom": "catalog:",
+    "react-draggable": "catalog:",
+    "react-error-boundary": "catalog:",
+    "react-icons": "catalog:",
+    "sonner": "catalog:",
+    "zustand": "catalog:"
+  },
+  "devDependencies": {
+    "@types/react": "catalog:",
+    "@types/react-dom": "catalog:"
+  }
+}

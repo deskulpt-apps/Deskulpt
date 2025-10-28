@@ -1,18 +1,15 @@
 {
   "productName": "Deskulpt",
-  "version": "0.0.1",
-  "identifier": "com.tauri.deskulpt",
+  "version": "../../package.json",
+  "identifier": "com.deskulpt",
   "build": {
-    "beforeDevCommand": "pnpm --filter deskulpt dev",
-    "beforeBuildCommand": "pnpm --filter deskulpt build",
+    "beforeDevCommand": "pnpm vite dev",
+    "beforeBuildCommand": "pnpm build",
     "devUrl": "http://localhost:1420",
-    "frontendDist": "../../packages/deskulpt/dist"
+    "frontendDist": "../../dist"
   },
   "app": {
-    "macOSPrivateApi": true,
-    "security": {
-      "csp": null
-    }
+    "macOSPrivateApi": true
   },
   "bundle": {
     "active": true,

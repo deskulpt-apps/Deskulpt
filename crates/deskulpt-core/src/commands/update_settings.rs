@@ -23,8 +23,8 @@ pub async fn update_settings<R: Runtime>(
 ) -> CmdResult<()> {
     app_handle.apply_settings_patch(patch)?;
 
-    let settings = app_handle.get_settings().clone();
-    UpdateSettingsEvent(settings).emit(&app_handle)?;
+    let settings = app_handle.get_settings();
+    UpdateSettingsEvent(&settings).emit(&app_handle)?;
 
     Ok(())
 }

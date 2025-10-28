@@ -1,0 +1,17 @@
+{
+  "name": "@deskulpt/utils",
+  "private": true,
+  "type": "module",
+  "main": "src/index.ts",
+  "scripts": {
+    "preinstall": "npx only-allow pnpm"
+  },
+  "dependencies": {
+    "@deskulpt/bindings": "workspace:*",
+    "@tauri-apps/plugin-opener": "catalog:"
+  },
+  "peerDependencies": {
+    "react": "catalog:",
+    "@types/react": "catalog:"
+  }
+}

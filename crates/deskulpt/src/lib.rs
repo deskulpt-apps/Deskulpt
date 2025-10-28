@@ -1,12 +1,12 @@
 #![doc = include_str!("../README.md")]
 #![doc(
-    html_logo_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/packages/deskulpt/public/deskulpt.svg",
-    html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/packages/deskulpt/public/deskulpt.svg"
+    html_logo_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg",
+    html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg"
 )]
 
 use deskulpt_core::path::PathExt;
 use deskulpt_core::states::{
-    CanvasImodeStateExt, InitialRenderStateExt, SettingsStateExt, WidgetConfigMapStateExt,
+    CanvasImodeStateExt, SettingsStateExt, SetupStateExt, WidgetCatalogStateExt,
 };
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
@@ -24,8 +24,8 @@ pub fn run() {
             app.init_persist_dir()?;
 
             app.manage_settings();
-            app.manage_initial_render();
-            app.manage_widget_config_map();
+            app.manage_setup();
+            app.manage_widget_catalog();
             app.manage_canvas_imode();
 
             // Hide the application from the dock on macOS because skipping

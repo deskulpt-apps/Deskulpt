@@ -1,0 +1,17 @@
+{
+  "$schema": "https://unpkg.com/knip@5/schema.json",
+  "workspaces": {
+    ".": {
+      "project": [],
+      "entry": ["gen/*"],
+      "ignoreBinaries": ["rustfmt", "only-allow"],
+      "ignoreDependencies": ["@emotion/babel-plugin"]
+    },
+    "packages/ui": {
+      "entry": ["src/index.ts", "src/jsx-runtime.ts"]
+    },
+    "docs": {
+      "entry": [".vitepress/config.ts", ".vitepress/theme/index.ts"]
+    }
+  }
+}

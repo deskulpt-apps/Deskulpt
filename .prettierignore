@@ -1,9 +1,9 @@
 pnpm-lock.yaml
 Cargo.lock
-*.ts.hbs
+*.hbs
 
 # Auto-generated files
 crates/deskulpt-core/gen/
-packages/deskulpt/src/gen/
-packages/deskulpt/src/bindings.ts
+gen/
+packages/deskulpt-bindings/src/
 docs/src/public/settings-schema.json

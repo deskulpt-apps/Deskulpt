@@ -13,7 +13,7 @@ use super::Settings;
 static SETTINGS_FILE: &str = "settings.json";
 
 /// The URL to the JSON schema file of the settings.
-static SETTINGS_SCHEMA_URL: &str = "https://csci-shu-410-se-project.github.io/settings-schema.json";
+static SETTINGS_SCHEMA_URL: &str = "https://deskulpt-apps.github.io/settings-schema.json";
 
 /// Wrapper of [`Settings`] with additional metadata.
 #[derive(Serialize)]

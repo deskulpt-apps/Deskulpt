@@ -3,8 +3,8 @@
   "ignorePatterns": [
     "**/dist/**",
     "crates/deskulpt-core/gen/**",
-    "packages/deskulpt/src/gen/**",
-    "packages/deskulpt/src/bindings.ts",
+    "gen/**",
+    "packages/deskulpt-bindings/src/**",
     "**/docs/**"
   ],
   "plugins": ["import", "oxc", "react", "typescript", "unicorn"],
@@ -23,7 +23,7 @@
     "import/no-absolute-path": "off",
     "import/no-unassigned-import": [
       "error",
-      { "allow": ["@radix-ui/themes/styles.css", "**/styles/custom.css"] }
+      { "allow": ["@radix-ui/themes/styles.css", "**/custom.css"] }
     ],
     "react/react-in-jsx-scope": "off",
     "react/exhaustive-deps": "error"
