@@ -101,6 +101,7 @@ static mut ENGINE_CALLBACKS: Option<EngineCallbacks> = None;
 /// ```rust
 /// use deskulpt_plugin::{implement_plugin, Plugin, PluginCommand};
 ///
+/// #[derive(Default)]
 /// struct MyPlugin;
 ///
 /// impl Plugin for MyPlugin {
@@ -215,11 +216,13 @@ macro_rules! implement_plugin {
 /// ### Example
 ///
 /// ```no_run
-/// use deskulpt_plugin::{register_commands, Plugin};
+/// use deskulpt_plugin::{register_commands, Plugin, PluginCommand};
 ///
 /// struct MyPlugin;
 ///
 /// impl Plugin for MyPlugin {
+///     fn name(&self) -> &str { "my-plugin" }
+///
 ///     register_commands![/* List of commands to register */];
 /// }
 /// ```
