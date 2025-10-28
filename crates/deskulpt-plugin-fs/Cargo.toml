@@ -9,6 +9,9 @@ license    = { workspace = true }
 repository = { workspace = true }
 version    = { workspace = true }
 
+[lib]
+crate-type = ["cdylib"]
+
 [dependencies]
 anyhow          = { workspace = true }
 deskulpt-plugin = { workspace = true }

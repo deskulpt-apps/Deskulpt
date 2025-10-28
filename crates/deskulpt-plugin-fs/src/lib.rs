@@ -6,17 +6,25 @@
 
 mod commands;
 
-use deskulpt_plugin::{register_commands, Plugin};
+use deskulpt_plugin::{implement_plugin, register_commands, Plugin};
 
-/// The file system plugin (🚧 TODO 🚧).
+/// The file system plugin.
 ///
-/// ### 🚧 TODO 🚧
-///
-/// Redesign the exposed APIs, possibly referring to the APIs of the
-/// [Tauri file system plugin](https://v2.tauri.app/plugin/file-system).
+/// This plugin provides file system operations for widgets, including
+/// reading, writing, and manipulating files and directories within
+/// the widget's designated directory.
+#[derive(Default)]
 pub struct FsPlugin;
 
 impl Plugin for FsPlugin {
+    fn name(&self) -> &str {
+        "fs"
+    }
+
+    fn version(&self) -> String {
+        env!("CARGO_PKG_VERSION").to_string()
+    }
+
     register_commands![
         commands::AppendFile,
         commands::CreateDir,
@@ -29,3 +37,6 @@ impl Plugin for FsPlugin {
         commands::WriteFile,
     ];
 }
+
+// Implement the required C ABI exports for the plugin
+implement_plugin!(FsPlugin);

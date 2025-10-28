@@ -1,36 +1,46 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use deskulpt_plugin::{dispatch, EngineInterface, PluginCommand};
-use serde::Deserialize;
-
-use crate::FsPlugin;
+use deskulpt_plugin::{EngineInterface, TypedPluginCommand};
+use serde::{Deserialize, Serialize};
 
 pub struct CreateDir;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateDirInputPayload {
+pub struct CreateDirInput {
     path: PathBuf,
+    recursive: Option<bool>,
 }
 
-impl PluginCommand for CreateDir {
-    type Plugin = FsPlugin;
+#[derive(Serialize)]
+pub struct CreateDirOutput {
+    success: bool,
+}
+
+impl TypedPluginCommand for CreateDir {
+    type Input = CreateDirInput;
+    type Output = CreateDirOutput;
 
     fn name(&self) -> &str {
         "create_dir"
     }
 
-    #[dispatch]
-    fn run(
+    fn run_typed(
         &self,
-        id: String,
-        _plugin: &Self::Plugin,
+        widget_id: &str,
         engine: &EngineInterface,
-        input: CreateDirInputPayload,
-    ) -> Result<()> {
-        let path = engine.widget_dir(id.as_str())?.join(input.path);
-        std::fs::create_dir_all(&path)?;
-        Ok(())
+        input: Self::Input,
+    ) -> Result<Self::Output> {
+        let widget_dir = engine.widget_dir(widget_id)?;
+        let dir_path = widget_dir.join(input.path);
+
+        if input.recursive.unwrap_or(false) {
+            std::fs::create_dir_all(&dir_path)?;
+        } else {
+            std::fs::create_dir(&dir_path)?;
+        }
+
+        Ok(CreateDirOutput { success: true })
     }
 }
