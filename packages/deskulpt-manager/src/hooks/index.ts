@@ -1,4 +1,4 @@
 export * from "./useSettingsStore";
 export * from "./useUpdateSettingsListener";
-export * from "./useUpdateWidgetCatalogListener";
+export * from "./useUpdateWidgetsListener";
 export * from "./useWidgetsStore";

@@ -33,6 +33,6 @@ dist-ssr
 # Generated files
 target/
 crates/deskulpt/gen/
-crates/deskulpt-core/permissions/
+crates/deskulpt-*/permissions/
 docs/.vitepress/dist/
 docs/.vitepress/cache/

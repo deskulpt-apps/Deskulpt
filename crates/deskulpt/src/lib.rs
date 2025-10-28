@@ -5,9 +5,7 @@
 )]
 
 use deskulpt_core::path::PathExt;
-use deskulpt_core::states::{
-    CanvasImodeStateExt, SettingsStateExt, SetupStateExt, WidgetCatalogStateExt,
-};
+use deskulpt_core::states::{CanvasImodeStateExt, SettingsStateExt, SetupStateExt};
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
 use tauri::image::Image;
@@ -25,7 +23,6 @@ pub fn run() {
 
             app.manage_settings();
             app.manage_setup();
-            app.manage_widget_catalog();
             app.manage_canvas_imode();
 
             // Hide the application from the dock on macOS because skipping
@@ -50,6 +47,7 @@ pub fn run() {
                 .build(),
         )
         .plugin(deskulpt_core::init())
+        .plugin(deskulpt_widgets::init())
         .run(generate_context!())
         .expect("Error running the Deskulpt application");
 }

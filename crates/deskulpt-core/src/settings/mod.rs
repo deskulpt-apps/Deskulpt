@@ -1,6 +1,6 @@
 //! Application and widget settings.
 
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, HashMap};
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize};
@@ -20,7 +20,17 @@ pub enum Theme {
 
 /// Types of keyboard shortcuts in the application.
 #[derive(
-    Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize, JsonSchema, specta::Type,
+    Debug,
+    Clone,
+    PartialEq,
+    Eq,
+    PartialOrd,
+    Ord,
+    Hash,
+    Deserialize,
+    Serialize,
+    JsonSchema,
+    specta::Type,
 )]
 #[serde(rename_all = "camelCase")]
 pub enum ShortcutKey {
@@ -133,8 +143,8 @@ pub struct SettingsPatch {
     /// Non-specified shortcuts will remain unchanged. If a shortcut value is
     /// `None`, it means removing that shortcut. Otherwise, it means updating
     /// or adding that shortcut.
-    #[specta(optional, type = BTreeMap<ShortcutKey, Option<String>>)]
-    pub shortcuts: Option<BTreeMap<ShortcutKey, Option<String>>>,
+    #[specta(optional, type = HashMap<ShortcutKey, Option<String>>)]
+    pub shortcuts: Option<HashMap<ShortcutKey, Option<String>>>,
     /// If not `None`, update [`Settings::widgets`].
     ///
     /// Non-specified widgets will remain unchanged. If a widget settings patch
@@ -142,6 +152,6 @@ pub struct SettingsPatch {
     /// it means applying the patch to that widget settings. If the widget ID
     /// does not exist, a new widget settings will be created with default
     /// values, and then the patch will be applied to it.
-    #[specta(optional, type = BTreeMap<String, Option<WidgetSettingsPatch>>)]
-    pub widgets: Option<BTreeMap<String, Option<WidgetSettingsPatch>>>,
+    #[specta(optional, type = HashMap<String, Option<WidgetSettingsPatch>>)]
+    pub widgets: Option<HashMap<String, Option<WidgetSettingsPatch>>>,
 }

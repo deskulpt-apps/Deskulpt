@@ -4,7 +4,10 @@ mod index;
 mod module;
 
 pub fn run() -> Result<()> {
-    let all_bindings = vec![deskulpt_core::build_bindings()];
+    let all_bindings = vec![
+        deskulpt_core::build_bindings(),
+        deskulpt_widgets::build_bindings(),
+    ];
 
     let mut index = index::Template::default();
     for bindings in all_bindings {

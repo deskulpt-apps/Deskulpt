@@ -19,6 +19,7 @@ either                         = "1.15.0"
 futures                        = "0.3.31"
 handlebars                     = "6.3.2"
 heck                           = "0.5.0"
+itertools                      = "0.14.0"
 objc2                          = "0.6.3"
 once_cell                      = "1.21.3"
 open                           = "5.3.2"
@@ -50,6 +51,7 @@ deskulpt-core          = { version = "0.1.0", path = "crates/deskulpt-core" }
 deskulpt-macros        = { version = "0.1.0", path = "crates/deskulpt-macros" }
 deskulpt-plugin        = { version = "0.1.0", path = "crates/deskulpt-plugin" }
 deskulpt-plugin-macros = { version = "0.1.0", path = "crates/deskulpt-plugin-macros" }
+deskulpt-widgets       = { version = "0.1.0", path = "crates/deskulpt-widgets" }
 deskulpt-workspace     = { version = "0.1.0", path = "crates/deskulpt-workspace" }
 
 # TODO: Remove these since they will not be dependencies of other crates when finalized

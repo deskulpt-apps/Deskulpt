@@ -7,7 +7,7 @@ import {
   useSettingsStore,
   useShowToastListener,
   useUpdateSettingsListener,
-  useUpdateWidgetCatalogListener,
+  useUpdateWidgetsListener,
   useWidgetsStore,
 } from "./hooks";
 
@@ -18,7 +18,7 @@ const App = () => {
   useRenderWidgetsListener();
   useShowToastListener();
   useUpdateSettingsListener();
-  useUpdateWidgetCatalogListener();
+  useUpdateWidgetsListener();
 
   return (
     <RadixTheme

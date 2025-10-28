@@ -1160,6 +1160,7 @@ name = "deskulpt"
 version = "0.1.0"
 dependencies = [
  "deskulpt-core",
+ "deskulpt-widgets",
  "tauri",
  "tauri-build",
  "tauri-plugin-clipboard-manager",
@@ -1263,6 +1264,28 @@ dependencies = [
  "deskulpt-plugin",
  "serde",
  "sysinfo",
+]
+
+[[package]]
+name = "deskulpt-widgets"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "deskulpt-build",
+ "deskulpt-common",
+ "deskulpt-core",
+ "dunce",
+ "either",
+ "futures",
+ "itertools",
+ "rolldown",
+ "rolldown_common",
+ "serde",
+ "serde_json",
+ "serialize-to-javascript",
+ "specta",
+ "tauri",
+ "thiserror 2.0.17",
 ]
 
 [[package]]
@@ -7955,6 +7978,7 @@ dependencies = [
  "clap",
  "deskulpt-common",
  "deskulpt-core",
+ "deskulpt-widgets",
  "deskulpt-workspace",
  "handlebars",
  "heck 0.5.0",
