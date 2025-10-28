@@ -1,9 +1,11 @@
 //! Deskulpt windows.
 
+pub mod mouse_interaction;
 mod script;
 
 use anyhow::Result;
 use deskulpt_common::window::DeskulptWindow;
+use mouse_interaction::MouseInteractionManager;
 use script::{CanvasInitJS, ManagerInitJS};
 use tauri::{
     App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, Window, WindowEvent,
@@ -85,6 +87,33 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsStateExt<R> {
                 let () = msg_send![ns_window, setHasShadow:Bool::NO];
             }
         }
+
+        let canvas_cloned = canvas.clone();
+        std::thread::spawn(move || {
+            // Initialize mouse interaction manager with the window's scale factor
+            let mut mouse_manager = MouseInteractionManager::new();
+
+            rdev::listen(move |event| {
+                if let rdev::EventType::MouseMove { x, y } = event.event_type {
+                    let settings = canvas_cloned.app_handle().get_settings();
+
+                    // Process mouse movement and update cursor interaction state if needed
+                    if let Some(should_ignore_cursor) =
+                        mouse_manager.process_mouse_move(x, y, &settings.widgets)
+                    {
+                        if let Err(e) = canvas_cloned.set_ignore_cursor_events(should_ignore_cursor)
+                        {
+                            eprintln!("Failed to set cursor events state: {e}");
+                        } else {
+                            println!("ignore_cursor_events: {should_ignore_cursor}");
+                        }
+                    }
+                }
+            })
+            .unwrap_or_else(|e| {
+                eprintln!("Failed to listen for mouse events: {e:?}");
+            });
+        });
 
         // TODO: Remove when the following issue is fixed:
         // https://github.com/tauri-apps/tauri/issues/9597
