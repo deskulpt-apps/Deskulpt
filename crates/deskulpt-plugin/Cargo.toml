@@ -10,9 +10,10 @@ repository = { workspace = true }
 version    = { workspace = true }
 
 [dependencies]
-anyhow                 = { workspace = true }
-deskulpt-plugin-macros = { workspace = true }
-serde_json             = { workspace = true }
+anyhow     = { workspace = true }
+libc       = "0.2"
+serde      = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
 
 [dev-dependencies]
 serde = { workspace = true }

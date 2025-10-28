@@ -12,6 +12,7 @@ mod commands;
 mod config;
 pub mod events;
 pub mod path;
+pub mod plugin;
 mod settings;
 pub mod states;
 pub mod tray;

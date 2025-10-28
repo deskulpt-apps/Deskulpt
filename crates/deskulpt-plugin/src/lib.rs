@@ -4,62 +4,207 @@
     html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg"
 )]
 
-mod command;
-mod interface;
+//! Deskulpt Plugin SDK
+//!
+//! This crate provides the necessary APIs and macros for building Deskulpt
+//! plugins as dynamic libraries with C ABI compatibility.
 
-use std::path::PathBuf;
+mod abi;
+mod engine;
+mod plugin;
+mod registry;
 
-use anyhow::{bail, Result};
-pub use command::PluginCommand;
-pub use interface::EngineInterface;
-pub use {anyhow, serde_json};
+pub use abi::*;
+// Re-export commonly used types
+pub use anyhow::{self, Result};
+pub use engine::EngineInterface;
+pub use plugin::{Plugin, PluginCommand, PluginInfo, TypedPluginCommand};
+pub use registry::PluginRegistry;
+pub use serde_json;
 
-/// The API for a Deskulpt plugin.
-pub trait Plugin {
-    /// The version of the plugin.
-    ///
-    /// The default (recommended) implementation uses the version as specified
-    /// in `Cargo.toml` for the plugin.
-    fn version(&self) -> String {
-        env!("CARGO_PKG_VERSION").to_string()
+/// Initialize a plugin with the given engine callbacks.
+///
+/// This function should be called by the plugin's `plugin_init` export.
+/// It sets up the engine interface and returns plugin information.
+pub fn init_plugin<P: Plugin + 'static>(
+    plugin: P,
+    engine_callbacks: EngineCallbacks,
+) -> Result<PluginInfo> {
+    let mut registry = PluginRegistry::new();
+
+    // Register the plugin
+    let plugin_name = plugin.name().to_string();
+    let plugin_version = plugin.version();
+    let commands = plugin.commands();
+
+    registry.register_plugin(plugin_name.clone(), Box::new(plugin))?;
+
+    // Store the registry globally
+    unsafe {
+        PLUGIN_REGISTRY = Some(registry);
+        ENGINE_CALLBACKS = Some(engine_callbacks);
     }
 
-    /// The commands provided by the plugin.
-    ///
-    /// One may use the [`register_commands!`] macro for a convenient way to
-    /// implement this method.
-    fn commands(&self) -> Vec<Box<dyn PluginCommand<Plugin = Self>>>;
+    Ok(PluginInfo {
+        name: plugin_name,
+        version: plugin_version,
+        commands: commands
+            .into_iter()
+            .map(|cmd| cmd.name().to_string())
+            .collect(),
+    })
 }
 
-/// Call a Deskulpt plugin (🚧 TODO 🚧).
+/// Call a plugin command.
 ///
-/// ### 🚧 TODO 🚧
-///
-/// This function should be completed removed and replaced with a `serve_plugin`
-/// function that will serve as the entry point of the plugin, running it as a
-/// standalone process that can interact with the Deskulpt core through IPC. See
-/// [nushell](https://docs.rs/nu-plugin/0.101.0/nu_plugin/fn.serve_plugin.html)
-/// for reference.
-pub fn call_plugin<P: Plugin>(
-    widget_dir_fn: impl Fn(&str) -> Result<PathBuf> + 'static,
-    plugin: &P,
-    command: &str,
-    id: String,
-    payload: Option<serde_json::Value>,
-) -> Result<serde_json::Value> {
-    let engine = EngineInterface::new(widget_dir_fn);
+/// This function should be called by the plugin's `plugin_call_command` export.
+pub fn call_command(command_name: &str, widget_id: &str, payload: &str) -> Result<String> {
+    let registry = unsafe {
+        PLUGIN_REGISTRY
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("Plugin not initialized"))?
+    };
 
-    for plugin_command in plugin.commands() {
-        if plugin_command.name() == command {
-            return plugin_command.run(
-                id,
-                plugin,
-                &engine,
-                payload.unwrap_or(serde_json::Value::Null),
-            );
-        }
+    let engine_callbacks = unsafe {
+        ENGINE_CALLBACKS
+            .as_ref()
+            .ok_or_else(|| anyhow::anyhow!("Engine callbacks not available"))?
+    };
+
+    let engine = EngineInterface::new(*engine_callbacks);
+
+    let result = registry.call_command(command_name, widget_id, &engine, payload)?;
+    Ok(result)
+}
+
+/// Cleanup plugin resources.
+///
+/// This function should be called by the plugin's `plugin_destroy` export.
+pub fn destroy_plugin() {
+    unsafe {
+        PLUGIN_REGISTRY = None;
+        ENGINE_CALLBACKS = None;
     }
-    bail!("Unknown command: {}", command)
+}
+
+// Global state for the plugin
+static mut PLUGIN_REGISTRY: Option<PluginRegistry> = None;
+static mut ENGINE_CALLBACKS: Option<EngineCallbacks> = None;
+
+/// Convenience macro for implementing the required C ABI exports for a plugin.
+///
+/// This macro generates the necessary `extern "C"` functions that the plugin
+/// loader expects.
+///
+/// # Example
+///
+/// ```rust
+/// use deskulpt_plugin::{implement_plugin, Plugin, PluginCommand};
+///
+/// struct MyPlugin;
+///
+/// impl Plugin for MyPlugin {
+///     fn name(&self) -> &str { "my-plugin" }
+///     fn version(&self) -> String { "1.0.0".to_string() }
+///     fn commands(&self) -> Vec<Box<dyn PluginCommand>> { vec![] }
+/// }
+///
+/// implement_plugin!(MyPlugin);
+/// ```
+#[macro_export]
+macro_rules! implement_plugin {
+    ($plugin_type:ty) => {
+        use std::ffi::{c_char, CStr, CString};
+        use std::ptr;
+
+        use $crate::{EngineCallbacks, PluginInfo};
+
+        #[no_mangle]
+        pub extern "C" fn plugin_init(
+            engine_callbacks: $crate::EngineCallbacks,
+            info_out: *mut $crate::PluginInfo,
+        ) -> i32 {
+            let plugin = <$plugin_type>::default();
+
+            match $crate::init_plugin(plugin, engine_callbacks) {
+                Ok(info) => {
+                    if !info_out.is_null() {
+                        unsafe {
+                            *info_out = info;
+                        }
+                    }
+                    0 // Success
+                },
+                Err(_) => -1, // Error
+            }
+        }
+
+        #[no_mangle]
+        pub extern "C" fn plugin_call_command(
+            command_name: *const c_char,
+            widget_id: *const c_char,
+            payload: *const c_char,
+            result_out: *mut *mut c_char,
+        ) -> i32 {
+            if command_name.is_null() || widget_id.is_null() || payload.is_null() {
+                return -1;
+            }
+
+            let command_name = unsafe {
+                match CStr::from_ptr(command_name).to_str() {
+                    Ok(s) => s,
+                    Err(_) => return -1,
+                }
+            };
+
+            let widget_id = unsafe {
+                match CStr::from_ptr(widget_id).to_str() {
+                    Ok(s) => s,
+                    Err(_) => return -1,
+                }
+            };
+
+            let payload = unsafe {
+                match CStr::from_ptr(payload).to_str() {
+                    Ok(s) => s,
+                    Err(_) => return -1,
+                }
+            };
+
+            match $crate::call_command(command_name, widget_id, payload) {
+                Ok(result) => {
+                    if !result_out.is_null() {
+                        match CString::new(result) {
+                            Ok(c_string) => {
+                                unsafe {
+                                    *result_out = c_string.into_raw();
+                                }
+                                0 // Success
+                            },
+                            Err(_) => -1,
+                        }
+                    } else {
+                        0
+                    }
+                },
+                Err(_) => -1,
+            }
+        }
+
+        #[no_mangle]
+        pub extern "C" fn plugin_destroy() {
+            $crate::destroy_plugin();
+        }
+
+        #[no_mangle]
+        pub extern "C" fn plugin_free_string(ptr: *mut c_char) {
+            if !ptr.is_null() {
+                unsafe {
+                    let _ = CString::from_raw(ptr);
+                }
+            }
+        }
+    };
 }
 
 /// Register commands in a Deskulpt plugin.
@@ -81,81 +226,8 @@ pub fn call_plugin<P: Plugin>(
 #[macro_export]
 macro_rules! register_commands {
     ($($command:path),* $(,)?) => {
-        fn commands(&self) -> Vec<Box<dyn $crate::PluginCommand<Plugin = Self>>> {
+        fn commands(&self) -> Vec<Box<dyn $crate::PluginCommand>> {
             vec![$(Box::new($command),)*]
         }
     };
 }
-
-/// Dispatch a Deskulpt plugin command.
-///
-/// The [`PluginCommand::run`] method requires the [`serde_json::Value`] type
-/// for command input and output so as to interoperate with calls from the
-/// widgets in the frontend. This would require manual deserialization and
-/// serialization when implementing any command.
-///
-/// When marked with `#[dispatch]`, the signature of the method remains the
-/// same, except that `input` is allowed to be any type that implements
-/// [`serde::Deserialize`], and the return type is allowed to be `Result<T, E>`
-/// for any type `T` that implements [`serde::Serialize`] and any type `E` that
-/// can be converted to [`anyhow::Error`] with the `?` operator. That said, the
-/// most convenient way would be to use [`anyhow::Result<T>`](anyhow::Result)
-/// for the return type directly.
-///
-/// ### Example
-///
-/// ```no_run
-/// use anyhow::Result;
-/// use deskulpt_plugin::{dispatch, EngineInterface, PluginCommand};
-/// # use deskulpt_plugin::{register_commands, Plugin};
-/// use serde::{Deserialize, Serialize};
-///
-/// // Implement the plugin...
-/// # struct MyPlugin;
-/// #
-/// # impl Plugin for MyPlugin {
-/// #     register_commands![MetadataCommand];
-/// # }
-///
-/// struct MetadataCommand;
-///
-/// #[derive(Deserialize)]
-/// struct InputPayload {
-///     path: std::path::PathBuf,
-/// }
-///
-/// #[derive(Serialize)]
-/// struct OutputPayload {
-///     is_dir: bool,
-///     is_file: bool,
-///     is_symlink: bool,
-///     len: u64,
-/// }
-///
-/// impl PluginCommand for MetadataCommand {
-///     // Associate types and methods...
-///     # type Plugin = MyPlugin;
-///     #
-///     # fn name(&self) -> &str {
-///     #     "metadata"
-///     # }
-///
-///     #[dispatch]
-///     fn run(
-///         &self,
-///         _id: String,
-///         _plugin: &Self::Plugin,
-///         _engine: &EngineInterface,
-///         input: InputPayload,     // Custom deserializable input type
-///     ) -> Result<OutputPayload> { // Custom serializable output type
-///         let metadata = std::fs::metadata(input.path)?;
-///         Ok(OutputPayload {
-///             is_dir: metadata.is_dir(),
-///             is_file: metadata.is_file(),
-///             is_symlink: metadata.file_type().is_symlink(),
-///             len: metadata.len(),
-///         })
-///     }
-/// }
-/// ```
-pub use deskulpt_plugin_macros::dispatch;
