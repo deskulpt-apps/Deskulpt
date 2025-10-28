@@ -88,10 +88,11 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsStateExt<R> {
             }
         }
 
+        let scale_factor = canvas.scale_factor()?;
         let canvas_cloned = canvas.clone();
         std::thread::spawn(move || {
             // Initialize mouse interaction manager with the window's scale factor
-            let mut mouse_manager = MouseInteractionManager::new();
+            let mut mouse_manager = MouseInteractionManager::new(scale_factor);
 
             rdev::listen(move |event| {
                 if let rdev::EventType::MouseMove { x, y } = event.event_type {
