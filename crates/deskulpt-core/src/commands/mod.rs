@@ -19,7 +19,6 @@ mod error;
 pub use bundle_widgets::*;
 pub use call_plugin::*;
 pub use complete_setup::*;
-pub use logs::{clear_logs, get_log_stats, list_logs, read_log, LogEntry, LogFileInfo, LogStats};
 pub use open_widget::*;
 pub use rescan_widgets::*;
 pub use update_settings::*;

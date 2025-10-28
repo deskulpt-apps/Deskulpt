@@ -1,14 +1,14 @@
 //! Observability integration for Deskulpt.
 
 use anyhow::Result;
-use tauri::{AppHandle, Runtime};
+use tauri::{App, AppHandle, Runtime};
 
 use crate::path::PathExt;
 
 /// Extension trait for initializing observability.
 pub trait ObservabilityExt<R: Runtime>: PathExt<R> {
     /// Initialize observability with crash reporting and logging.
-    fn init_observability(&self, enable_telemetry: bool) -> Result<()> {
+    fn init_observability(&mut self, enable_telemetry: bool) -> Result<()> {
         let persist_dir = self.persist_dir()?;
         let log_dir = persist_dir.join("logs");
 
@@ -36,4 +36,5 @@ pub trait ObservabilityExt<R: Runtime>: PathExt<R> {
     }
 }
 
+impl<R: Runtime> ObservabilityExt<R> for App<R> {}
 impl<R: Runtime> ObservabilityExt<R> for AppHandle<R> {}

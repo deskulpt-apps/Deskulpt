@@ -1,5 +1,4 @@
 use std::fs;
-use std::path::PathBuf;
 
 use anyhow::{anyhow, Result};
 use serde::{Deserialize, Serialize};
@@ -164,7 +163,7 @@ pub fn get_log_stats<R: Runtime>(app: &AppHandle<R>) -> Result<LogStats> {
     let logs = list_logs(app)?;
 
     let total_size: u64 = logs.iter().map(|l| l.size).sum();
-    let file_count = logs.len();
+    let file_count = logs.len() as u32;
 
     Ok(LogStats {
         file_count,

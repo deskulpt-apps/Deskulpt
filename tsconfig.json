@@ -4,6 +4,7 @@
     { "path": "./packages/deskulpt-bindings" },
     { "path": "./packages/deskulpt-canvas" },
     { "path": "./packages/deskulpt-manager" },
-    { "path": "./packages/deskulpt-utils" }
+    { "path": "./packages/deskulpt-utils" },
+    { "path": "./packages/observability" }
   ]
 }
