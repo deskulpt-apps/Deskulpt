@@ -16,8 +16,7 @@ use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::util::SubscriberInitExt;
 use tracing_subscriber::EnvFilter;
 
-mod log_file;
-pub use log_file::{RotatingFileAppender, RotationConfig};
+pub mod log_file;
 
 static INIT: Once = Once::new();
 
@@ -118,23 +117,11 @@ fn init_inner(config: ObservabilityConfig) -> Result<()> {
     // Create logs directory
     std::fs::create_dir_all(&config.log_dir)?;
 
-    // Set up file appender with rotation
-    let rotation_config = RotationConfig {
-        max_file_size: 10 * 1024 * 1024, // 10 MB
-        max_files: 10,
-        format_fn: Box::new(|idx| {
-            let now = time::OffsetDateTime::now_utc();
-            format!(
-                "deskulpt-{}-{:03}.log",
-                now.format(time::macros::format_description!("[year]-[month]-[day]"))
-                    .unwrap(),
-                idx
-            )
-        }),
-    };
-
-    let file_appender = RotatingFileAppender::new(config.log_dir.clone(), rotation_config)?;
-    let file_appender = std::sync::Arc::new(std::sync::Mutex::new(file_appender));
+    // Initialize log rotation manager in background
+    let log_dir = config.log_dir.clone();
+    std::thread::spawn(move || {
+        let _ = log_file::start_rotation_monitor(log_dir);
+    });
 
     // Set up tracing layers
     let env_filter =
@@ -145,21 +132,26 @@ fn init_inner(config: ObservabilityConfig) -> Result<()> {
         .with_thread_ids(is_dev)
         .with_level(true);
 
+    // Use tracing_appender for file logging with rotation
+    let file_appender = tracing_appender::rolling::daily(&config.log_dir, "deskulpt.log");
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
     let file_layer = tracing_subscriber::fmt::layer()
         .json()
-        .with_writer(move || file_appender.clone())
+        .with_writer(non_blocking)
         .with_target(true)
         .with_thread_ids(true)
         .with_thread_names(true);
 
     // Initialize Sentry if enabled and DSN is provided
-    let _guard = if config.enable_telemetry {
+    let _sentry_guard = if config.enable_telemetry {
         if let Some(dsn) = &config.sentry_dsn {
+            let release = config.release.clone();
+            let environment = config.environment.clone();
             let guard = sentry::init((
                 dsn.as_str(),
                 sentry::ClientOptions {
-                    release: Some(config.release.into()),
-                    environment: Some(config.environment.clone().into()),
+                    release: Some(release.into()),
+                    environment: Some(environment.into()),
                     traces_sample_rate: if is_dev { 1.0 } else { 0.1 },
                     attach_stacktrace: true,
                     ..Default::default()
