@@ -7,7 +7,7 @@
 //! - Sentry integration for error tracking
 
 use std::panic;
-use std::path::{Path, PathBuf};
+use std::path::PathBuf;
 use std::sync::Once;
 
 use anyhow::Result;
@@ -134,6 +134,7 @@ fn init_inner(config: ObservabilityConfig) -> Result<()> {
     };
 
     let file_appender = RotatingFileAppender::new(config.log_dir.clone(), rotation_config)?;
+    let file_appender = std::sync::Arc::new(std::sync::Mutex::new(file_appender));
 
     // Set up tracing layers
     let env_filter =
@@ -146,7 +147,7 @@ fn init_inner(config: ObservabilityConfig) -> Result<()> {
 
     let file_layer = tracing_subscriber::fmt::layer()
         .json()
-        .with_writer(file_appender)
+        .with_writer(move || file_appender.clone())
         .with_target(true)
         .with_thread_ids(true)
         .with_thread_names(true);
