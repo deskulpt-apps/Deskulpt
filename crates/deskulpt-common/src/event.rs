@@ -9,9 +9,9 @@ use crate::window::DeskulptWindow;
 /// Trait for Deskulpt events.
 ///
 /// This trait should be derived using the [`derive@Event`] macro.
-pub trait Event: specta::Type + Serialize {
+pub trait Event: Serialize {
     /// The name of the event.
-    const NAME: &str;
+    const NAME: &'static str;
 
     /// Emit the event to all target.
     fn emit<R, E>(&self, emitter: &E) -> Result<()>

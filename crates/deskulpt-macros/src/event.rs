@@ -37,7 +37,7 @@ pub fn proc_derive_event(input: TokenStream) -> TokenStream {
 
     let expanded = quote! {
         impl #impl_generics ::deskulpt_common::event::Event for #ident #ty_generics #where_clause {
-            const NAME: &str = concat!(env!("CARGO_PKG_NAME"), "://", #lit);
+            const NAME: &'static str = concat!(env!("CARGO_PKG_NAME"), "://", #lit);
         }
     };
     TokenStream::from(expanded)

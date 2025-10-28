@@ -37,12 +37,18 @@ pub async fn bundle_widgets<R: Runtime>(
         match ids {
             Some(ids) => ids
                 .into_iter()
-                .filter_map(|id| catalog.0.get(&id).cloned().map(|config| (id, config)))
+                .filter_map(|id| match catalog.0.get(&id) {
+                    Some(Outcome::Ok(config)) => Some((id, config.entry.clone())),
+                    _ => None,
+                })
                 .collect(),
             None => catalog
                 .0
                 .iter()
-                .map(|(id, config)| (id.clone(), config.clone()))
+                .filter_map(|(id, config)| match config {
+                    Outcome::Ok(config) => Some((id.clone(), config.entry.clone())),
+                    _ => None,
+                })
                 .collect(),
         }
     };
@@ -51,25 +57,19 @@ pub async fn bundle_widgets<R: Runtime>(
         return Ok(());
     }
 
-    let futs = widgets.into_iter().map(|(id, config)| async move {
-        match config {
-            Outcome::Ok(config) => {
-                let report =
-                    match WidgetBundlerBuilder::new(widgets_dir.join(&id), config.entry.clone())
-                        .build()
-                        .context("Failed to build widget bundler")
-                    {
-                        Ok(mut bundler) => bundler
-                            .bundle()
-                            .await
-                            .with_context(|| format!("Failed to bundle widget (id={id})"))
-                            .map_or_else(|e| Outcome::Err(format!("{e:?}")), Outcome::Ok),
-                        Err(e) => Outcome::Err(format!("{e:?}")),
-                    };
-                (id, report)
-            },
-            Outcome::Err(e) => (id, Outcome::Err(e.clone())),
-        }
+    let futs = widgets.into_iter().map(|(id, entry)| async move {
+        let report = match WidgetBundlerBuilder::new(widgets_dir.join(&id), entry)
+            .build()
+            .context("Failed to build widget bundler")
+        {
+            Ok(mut bundler) => bundler
+                .bundle()
+                .await
+                .with_context(|| format!("Failed to bundle widget (id={id})"))
+                .map_or_else(|e| Outcome::Err(format!("{e:?}")), Outcome::Ok),
+            Err(e) => Outcome::Err(format!("{e:?}")),
+        };
+        (id, report)
     });
 
     let reports = futures::future::join_all(futs)
@@ -77,6 +77,6 @@ pub async fn bundle_widgets<R: Runtime>(
         .into_iter()
         .collect::<HashMap<_, _>>();
 
-    RenderWidgetsEvent(reports).emit_to(&app_handle, DeskulptWindow::Canvas)?;
+    RenderWidgetsEvent(&reports).emit_to(&app_handle, DeskulptWindow::Canvas)?;
     Ok(())
 }
