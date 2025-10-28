@@ -27,7 +27,6 @@ use crate::states::{SettingsStateExt, WidgetCatalogStateExt};
 #[specta::specta]
 pub async fn rescan_widgets<R: Runtime>(app_handle: AppHandle<R>) -> CmdResult<()> {
     let catalog = WidgetCatalog::load(app_handle.widgets_dir()?)?;
-    *app_handle.get_widget_catalog_mut() = catalog.clone();
 
     {
         let mut settings = app_handle.get_settings_mut();
@@ -38,10 +37,14 @@ pub async fn rescan_widgets<R: Runtime>(app_handle: AppHandle<R>) -> CmdResult<(
                 .entry(id.clone())
                 .or_insert_with(Default::default);
         }
-        UpdateSettingsEvent(settings.clone()).emit(&app_handle)?;
+        UpdateSettingsEvent(&settings).emit(&app_handle)?;
     }
 
-    UpdateWidgetCatalogEvent(catalog).emit(&app_handle)?;
+    {
+        let mut prev_catalog = app_handle.get_widget_catalog_mut();
+        *prev_catalog = catalog;
+        UpdateWidgetCatalogEvent(&prev_catalog).emit(&app_handle)?;
+    }
 
     bundle_widgets(app_handle, None).await?;
     Ok(())

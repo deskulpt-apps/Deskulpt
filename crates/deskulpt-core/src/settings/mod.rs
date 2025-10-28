@@ -35,7 +35,7 @@ pub enum ShortcutKey {
 /// Different from widget configurations, these are independent of the widget
 /// configuration files and are managed internally by the application.
 #[serde_as]
-#[derive(Debug, Clone, Deserialize, Serialize, JsonSchema, specta::Type)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
 pub struct WidgetSettings {
     /// The leftmost x-coordinate in pixels.
@@ -107,7 +107,7 @@ pub struct WidgetSettingsPatch {
 
 /// Full settings of the Deskulpt application.
 #[serde_as]
-#[derive(Debug, Clone, Default, Deserialize, Serialize, JsonSchema, specta::Type)]
+#[derive(Debug, Default, Deserialize, Serialize, JsonSchema, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Settings {
     /// The application theme.
