@@ -1,11 +1,13 @@
 //! State management for the settings.
 
-use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
+use std::sync::{RwLock, RwLockReadGuard};
 
 use anyhow::{bail, Result};
-use tauri::{App, AppHandle, Manager, Runtime};
+use deskulpt_common::event::Event;
+use tauri::{App, AppHandle, Emitter, Manager, Runtime};
 use tauri_plugin_global_shortcut::GlobalShortcutExt;
 
+use crate::events::UpdateSettingsEvent;
 use crate::path::PathExt;
 use crate::settings::{Settings, SettingsPatch};
 
@@ -13,7 +15,9 @@ use crate::settings::{Settings, SettingsPatch};
 struct SettingsState(RwLock<Settings>);
 
 /// Extension trait for operations on the settings state.
-pub trait SettingsStateExt<R: Runtime>: Manager<R> + PathExt<R> + GlobalShortcutExt<R> {
+pub trait SettingsStateExt<R: Runtime>:
+    Manager<R> + Emitter<R> + PathExt<R> + GlobalShortcutExt<R>
+{
     /// Initialize state management for the settings.
     ///
     /// This will load the settings from the persistence directory and
@@ -40,25 +44,21 @@ pub trait SettingsStateExt<R: Runtime>: Manager<R> + PathExt<R> + GlobalShortcut
         state.0.read().unwrap()
     }
 
-    /// Get a mutable reference to the settings.
-    ///
-    /// The returned reference is behind a lock guard, which should be dropped
-    /// as soon as possible to minimize critical section.
-    fn get_settings_mut(&self) -> RwLockWriteGuard<'_, Settings> {
-        let state = self.state::<SettingsState>().inner();
-        state.0.write().unwrap()
-    }
-
     /// Apply a patch to the settings.
     ///
     /// See [`SettingsPatch`] for more information of how the patch is applied.
     /// The patch application is best-effort: any part of the patch that fails
     /// to be applied will be skipped, and the rest will be applied as normal.
     /// Errors will be accumulated and returned as a single error at the end if
-    /// any occurred.
-    fn apply_settings_patch(&self, patch: SettingsPatch) -> Result<()> {
+    /// any occurred. Regardless of whether there were errors, partial updates
+    /// will always be emitted via the [`UpdateSettingsEvent`].
+    fn apply_settings_patch(&self, patch: SettingsPatch) -> Result<()>
+    where
+        Self: Sized,
+    {
         let mut errors = vec![];
-        let mut settings = self.get_settings_mut();
+        let state = self.state::<SettingsState>();
+        let mut settings = state.0.write().unwrap();
 
         if let Some(theme) = patch.theme {
             settings.theme = theme;
@@ -100,16 +100,19 @@ pub trait SettingsStateExt<R: Runtime>: Manager<R> + PathExt<R> + GlobalShortcut
             }
         }
 
-        if errors.is_empty() {
-            return Ok(());
+        let emit_result = UpdateSettingsEvent(&settings).emit(self);
+
+        if !errors.is_empty() {
+            let message = errors
+                .into_iter()
+                .map(|e| format!("{e:?}"))
+                .collect::<Vec<_>>()
+                .join("\n\n");
+            bail!("One or more errors occurred while applying the settings patch:\n\n{message}");
         }
 
-        let message = errors
-            .into_iter()
-            .map(|e| format!("{e:?}"))
-            .collect::<Vec<_>>()
-            .join("\n\n");
-        bail!("One or more errors occurred while applying the settings patch:\n\n{message}");
+        emit_result?; // Propagate event emission error if any
+        Ok(())
     }
 }
 

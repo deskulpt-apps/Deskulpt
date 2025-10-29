@@ -1202,6 +1202,7 @@ dependencies = [
  "dunce",
  "either",
  "futures",
+ "itertools",
  "objc2 0.6.3",
  "once_cell",
  "open",
