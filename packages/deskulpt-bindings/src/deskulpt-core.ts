@@ -327,8 +327,9 @@ export const commands = {
    * Rescan the widgets directory to discover widgets.
    * 
    * This command scans the widgets directory for available widgets and updates
-   * the widget catalog and settings accordingly. It then emits events to notify
-   * the frontend of these changes. Finally, it triggers the bundling of all
+   * the widget catalog. It also updates the settings in accordance with the new
+   * catalog. It then emits an [`UpdateWidgetCatalogEvent`] to notify the
+   * frontend of the catalog change. Finally, it triggers the bundling of all
    * widgets in the updated catalog with `bundle_widgets` to ensure they are
    * ready for use.
    * 
@@ -336,22 +337,14 @@ export const commands = {
    * 
    * - Error accessing the widgets directory.
    * - Error loading the new widget catalog from the widgets directory.
-   * - Error emitting the [`UpdateSettingsEvent`].
+   * - Error updating the settings based on the new catalog.
    * - Error emitting the [`UpdateWidgetCatalogEvent`].
    * - Error bundling all discovered widgets.
    */
   rescanWidgets: () => invoke<null>("plugin:deskulpt-core|rescan_widgets"),
 
   /**
-   * Update the settings.
-   * 
-   * This command updates the settings state in the backend. If an update has
-   * side effects, they will be applied prior to the update being committed. See
-   * [`SettingsStateExt`] for more information.
-   * 
-   * ### Errors
-   * 
-   * - Failed to apply the side effects, if any.
+   * Wrapper of [`SettingsStateExt::apply_settings_patch`].
    */
   updateSettings: (
     patch: SettingsPatch,
