@@ -8,11 +8,13 @@ import {
 import About from "./components/About";
 import Widgets from "./components/Widgets";
 import Settings from "./components/Settings";
+import Logs from "./components/Logs";
 import ThemeToggler from "./components/ThemeToggler";
 
 const tabs = [
   { value: "widgets", label: "Widgets", content: <Widgets /> },
   { value: "settings", label: "Settings", content: <Settings /> },
+  { value: "logs", label: "Logs", content: <Logs /> },
   { value: "about", label: "About", content: <About /> },
 ];
 

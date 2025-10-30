@@ -6,6 +6,7 @@ mod bundle_widgets;
 mod call_plugin;
 #[doc(hidden)]
 mod complete_setup;
+pub mod logs;
 #[doc(hidden)]
 mod open_widget;
 #[doc(hidden)]
