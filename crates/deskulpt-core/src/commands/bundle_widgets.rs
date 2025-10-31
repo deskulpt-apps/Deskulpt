@@ -58,9 +58,7 @@ pub async fn bundle_widgets<R: Runtime>(
         return Ok(());
     }
 
-    let start = std::time::Instant::now();
     let mut errors = vec![];
-    let num_widgets = widgets.len();
     for (id, entry) in widgets.into_iter() {
         let code = match WidgetBundlerBuilder::new(widgets_dir.join(&id), entry)
             .build()
@@ -79,8 +77,6 @@ pub async fn bundle_widgets<R: Runtime>(
             errors.push(e.context(format!("Failed to render widget (id={id})")));
         }
     }
-    let duration = std::time::Instant::now() - start;
-    println!("Bundled {num_widgets} widgets in {duration:?}");
 
     if !errors.is_empty() {
         let message = errors
