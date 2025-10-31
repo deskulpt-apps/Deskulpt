@@ -3,7 +3,7 @@
 mod canvas_imode;
 mod settings;
 mod setup;
-mod widget_catalog;
+mod widgets;
 
 #[doc(hidden)]
 pub use canvas_imode::CanvasImodeStateExt;
@@ -12,4 +12,4 @@ pub use settings::SettingsStateExt;
 #[doc(hidden)]
 pub use setup::SetupStateExt;
 #[doc(hidden)]
-pub use widget_catalog::WidgetCatalogStateExt;
+pub use widgets::WidgetsStateExt;

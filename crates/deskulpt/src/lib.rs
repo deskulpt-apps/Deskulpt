@@ -6,7 +6,7 @@
 
 use deskulpt_core::path::PathExt;
 use deskulpt_core::states::{
-    CanvasImodeStateExt, SettingsStateExt, SetupStateExt, WidgetCatalogStateExt,
+    CanvasImodeStateExt, SettingsStateExt, SetupStateExt, WidgetsStateExt,
 };
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
@@ -25,7 +25,7 @@ pub fn run() {
 
             app.manage_settings();
             app.manage_setup();
-            app.manage_widget_catalog();
+            app.manage_widgets();
             app.manage_canvas_imode();
 
             // Hide the application from the dock on macOS because skipping
