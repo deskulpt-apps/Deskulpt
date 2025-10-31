@@ -31,13 +31,20 @@ export type JsonValue = null | boolean | number | string | JsonValue[] | { [key 
 export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
 
 /**
- * Event for rendering widgets.
+ * Event for rendering a widget.
  * 
  * This event is emitted from the backend to the canvas window to instruct it
- * to render the provided widgets. The event carries a mapping from widget IDs
- * to their corresponding code strings.
+ * to render the specified widget.
  */
-export type RenderWidgetEvent = { id: string; code: Outcome<string> }
+export type RenderWidgetEvent = { 
+/**
+ * The ID of the widget.
+ */
+id: string; 
+/**
+ * Either the code string to render or a bundling error message.
+ */
+code: Outcome<string> }
 
 /**
  * Full settings of the Deskulpt application.
@@ -252,14 +259,16 @@ export const commands = {
    * 
    * This command bundles the specified widgets that exist in the catalog. If
    * `ids` is not provided, all widgets in the catalog are bundled. Failure to
-   * bundle an individual widget does not prevent other widgets from being
-   * bundled. Instead, the outcome of each bundling operation is collected and
-   * sent to the canvas window via the [`RenderWidgetsEvent`].
+   * bundle a widget does not result in an error, but is reported back to the
+   * canvas window via the [`RenderWidgetEvent`]. Moreover, failure to emit a
+   * single [`RenderWidgetEvent`] does not prevent other widgets from being
+   * processed; instead, errors are collected and returned as a single error at
+   * the end, if any.
    * 
    * ### Errors
    * 
    * - Error accessing the widgets directory.
-   * - Error emitting the [`RenderWidgetsEvent`].
+   * - Error emitting [`RenderWidgetEvent`] for one or more widgets.
    */
   bundleWidgets: (
     ids: string[] | null,
