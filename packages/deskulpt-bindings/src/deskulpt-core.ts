@@ -37,7 +37,7 @@ export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: st
  * to render the provided widgets. The event carries a mapping from widget IDs
  * to their corresponding code strings.
  */
-export type RenderWidgetsEvent = { [key in string]: Outcome<string> }
+export type RenderWidgetEvent = { id: string; code: Outcome<string> }
 
 /**
  * Full settings of the Deskulpt application.
@@ -236,7 +236,7 @@ function makeEvent<T>(name: string) {
 }
 
 export const events = {
-  renderWidgets: makeEvent<RenderWidgetsEvent>("deskulpt-core://render-widgets"),
+  renderWidget: makeEvent<RenderWidgetEvent>("deskulpt-core://render-widget"),
   showToast: makeEvent<ShowToastEvent>("deskulpt-core://show-toast"),
   updateSettings: makeEvent<UpdateSettingsEvent>("deskulpt-core://update-settings"),
   updateWidgetCatalog: makeEvent<UpdateWidgetCatalogEvent>("deskulpt-core://update-widget-catalog"),

@@ -9,7 +9,7 @@ fn main() {
             "update_settings",
         ])
         .events(&[
-            "RenderWidgetsEvent",
+            "RenderWidgetEvent",
             "ShowToastEvent",
             "UpdateSettingsEvent",
             "UpdateWidgetCatalogEvent",

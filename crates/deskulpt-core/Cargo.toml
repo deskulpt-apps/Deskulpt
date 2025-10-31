@@ -16,7 +16,6 @@ bitflags                     = { workspace = true }
 deskulpt-common              = { workspace = true }
 dunce                        = { workspace = true }
 either                       = { workspace = true }
-futures                      = { workspace = true }
 once_cell                    = { workspace = true }
 open                         = { workspace = true, features = ["shellexecute-on-windows"] }
 rolldown                     = { workspace = true }

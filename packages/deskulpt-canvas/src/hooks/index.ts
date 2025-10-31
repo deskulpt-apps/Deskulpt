@@ -1,4 +1,4 @@
-export * from "./useRenderWidgetsListener";
+export * from "./useRenderWidgetListener";
 export * from "./useSettingsStore";
 export * from "./useShowToastListener";
 export * from "./useUpdateSettingsListener";
