@@ -255,36 +255,14 @@ export const events = {
 
 export const commands = {
   /**
-   * Bundle widgets.
-   * 
-   * This command bundles the specified widgets that exist in the catalog. If
-   * `ids` is not provided, all widgets in the catalog are bundled. Failure to
-   * bundle a widget does not result in an error, but is reported back to the
-   * canvas window via the [`RenderWidgetEvent`]. Moreover, failure to emit a
-   * single [`RenderWidgetEvent`] does not prevent other widgets from being
-   * processed; instead, errors are collected and returned as a single error at
-   * the end, if any.
-   * 
-   * ### Errors
-   * 
-   * - Error accessing the widgets directory.
-   * - Error emitting [`RenderWidgetEvent`] for one or more widgets.
-   */
-  bundleWidgets: (
-    ids: string[] | null,
-  ) => invoke<null>("plugin:deskulpt-core|bundle_widgets", {
-    ids,
-  }),
-
-  /**
    * Mark the window to have completed its setup.
    * 
    * If all setup has been completed after marking this window as completed, this
-   * command will automatically trigger an initial rescan of the widgets.
+   * command will automatically trigger an initial refresh of the widgets.
    * 
    * ### Errors
    * 
-   * - Error rescanning the widgets (if applicable).
+   * - Error refreshing the widgets (if applicable).
    */
   completeSetup: () => invoke<null>("plugin:deskulpt-core|complete_setup"),
 
@@ -333,23 +311,18 @@ export const commands = {
   }),
 
   /**
-   * Rescan the widgets directory to discover widgets.
-   * 
-   * This command scans the widgets directory for available widgets and updates
-   * the widget catalog and settings accordingly. It then emits events to notify
-   * the frontend of these changes. Finally, it triggers the bundling of all
-   * widgets in the updated catalog with `bundle_widgets` to ensure they are
-   * ready for use.
-   * 
-   * ### Errors
-   * 
-   * - Error accessing the widgets directory.
-   * - Error loading the new widget catalog from the widgets directory.
-   * - Error emitting the [`UpdateSettingsEvent`].
-   * - Error emitting the [`UpdateWidgetCatalogEvent`].
-   * - Error bundling all discovered widgets.
+   * TODO(Charlie-XIAO)
    */
-  rescanWidgets: () => invoke<null>("plugin:deskulpt-core|rescan_widgets"),
+  refreshAllWidgets: () => invoke<null>("plugin:deskulpt-core|refresh_all_widgets"),
+
+  /**
+   * TODO(Charlie-XIAO)
+   */
+  refreshWidget: (
+    id: string,
+  ) => invoke<null>("plugin:deskulpt-core|refresh_widget", {
+    id,
+  }),
 
   /**
    * Update the settings.

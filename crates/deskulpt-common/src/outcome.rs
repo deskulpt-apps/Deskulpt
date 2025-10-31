@@ -10,3 +10,12 @@ pub enum Outcome<T> {
     Ok(T),
     Err(String),
 }
+
+impl<T, E: std::fmt::Debug> From<Result<T, E>> for Outcome<T> {
+    fn from(result: Result<T, E>) -> Self {
+        match result {
+            Ok(value) => Outcome::Ok(value),
+            Err(e) => Outcome::Err(format!("{e:?}")),
+        }
+    }
+}
