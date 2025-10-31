@@ -4,8 +4,8 @@ fn main() {
             "complete_setup",
             "call_plugin",
             "open_widget",
-            "refresh_all_widgets",
             "refresh_widget",
+            "refresh_widgets_all",
             "update_settings",
         ])
         .events(&[

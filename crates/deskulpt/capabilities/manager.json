@@ -7,7 +7,7 @@
     "deskulpt-core:allow-open-widget",
     "deskulpt-core:allow-complete-setup",
     "deskulpt-core:allow-refresh-widget",
-    "deskulpt-core:allow-refresh-all-widgets",
+    "deskulpt-core:allow-refresh-widgets-all",
     "deskulpt-core:allow-update-settings",
     "core:event:default",
     "clipboard-manager:allow-write-text",

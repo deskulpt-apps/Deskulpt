@@ -9,7 +9,7 @@ interface GlobalActionsProps {
 
 const GlobalActions = memo(({ length }: GlobalActionsProps) => {
   const refreshAction = useCallback(() => {
-    deskulptCore.commands.refreshAllWidgets().catch(console.error);
+    deskulptCore.commands.refreshWidgetsAll().catch(console.error);
   }, []);
 
   const openAction = useCallback(() => {

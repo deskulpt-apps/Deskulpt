@@ -1,7 +1,7 @@
 use tauri::{command, AppHandle, Runtime, WebviewWindow};
 
 use super::error::CmdResult;
-use crate::commands::refresh_all_widgets;
+use crate::commands::refresh_widgets_all;
 use crate::states::SetupStateExt;
 
 /// Mark the window to have completed its setup.
@@ -21,7 +21,7 @@ pub async fn complete_setup<R: Runtime>(
     let window = window.label().try_into().unwrap();
     let complete = app_handle.complete_setup(window);
     if complete {
-        refresh_all_widgets(app_handle).await?;
+        refresh_widgets_all(app_handle).await?;
     }
     Ok(())
 }

@@ -313,16 +313,16 @@ export const commands = {
   /**
    * TODO(Charlie-XIAO)
    */
-  refreshAllWidgets: () => invoke<null>("plugin:deskulpt-core|refresh_all_widgets"),
-
-  /**
-   * TODO(Charlie-XIAO)
-   */
   refreshWidget: (
     id: string,
   ) => invoke<null>("plugin:deskulpt-core|refresh_widget", {
     id,
   }),
+
+  /**
+   * TODO(Charlie-XIAO)
+   */
+  refreshWidgetsAll: () => invoke<null>("plugin:deskulpt-core|refresh_widgets_all"),
 
   /**
    * Update the settings.
