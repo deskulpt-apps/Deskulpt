@@ -255,25 +255,22 @@ export const events = {
 
 export const commands = {
   /**
-   * Bundle widgets.
+   * Bundle widget(s).
    * 
-   * This command bundles the specified widgets that exist in the catalog. If
-   * `ids` is not provided, all widgets in the catalog are bundled. Failure to
-   * bundle a widget does not result in an error, but is reported back to the
-   * canvas window via the [`RenderWidgetEvent`]. Moreover, failure to emit a
-   * single [`RenderWidgetEvent`] does not prevent other widgets from being
-   * processed; instead, errors are collected and returned as a single error at
-   * the end, if any.
+   * This command bundles the specified widget(s) that exist in the catalog. If
+   * `id` is not provided, all widgets in the catalog are bundled. This only
+   * notifies the bundler to process the widgets and does not wait for the
+   * bundling to complete. Bundling results are communicated back to the canvas
+   * window asynchronously.
    * 
    * ### Errors
    * 
-   * - Error accessing the widgets directory.
-   * - Error emitting [`RenderWidgetEvent`] for one or more widgets.
+   * - Error sending any bundling task to the bundler.
    */
   bundleWidgets: (
-    ids: string[] | null,
+    id: string | null,
   ) => invoke<null>("plugin:deskulpt-core|bundle_widgets", {
-    ids,
+    id,
   }),
 
   /**

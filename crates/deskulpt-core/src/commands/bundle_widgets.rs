@@ -1,91 +1,28 @@
-use anyhow::Context;
-use deskulpt_common::event::Event;
-use deskulpt_common::outcome::Outcome;
-use deskulpt_common::window::DeskulptWindow;
 use tauri::{command, AppHandle, Runtime};
 
 use super::error::CmdResult;
-use crate::bundler::WidgetBundlerBuilder;
-use crate::commands::error::cmdbail;
-use crate::events::RenderWidgetEvent;
-use crate::path::PathExt;
-use crate::states::WidgetCatalogStateExt;
+use crate::states::WidgetsStateExt;
 
-/// Bundle widgets.
+/// Bundle widget(s).
 ///
-/// This command bundles the specified widgets that exist in the catalog. If
-/// `ids` is not provided, all widgets in the catalog are bundled. Failure to
-/// bundle a widget does not result in an error, but is reported back to the
-/// canvas window via the [`RenderWidgetEvent`]. Moreover, failure to emit a
-/// single [`RenderWidgetEvent`] does not prevent other widgets from being
-/// processed; instead, errors are collected and returned as a single error at
-/// the end, if any.
+/// This command bundles the specified widget(s) that exist in the catalog. If
+/// `id` is not provided, all widgets in the catalog are bundled. This only
+/// notifies the bundler to process the widgets and does not wait for the
+/// bundling to complete. Bundling results are communicated back to the canvas
+/// window asynchronously.
 ///
 /// ### Errors
 ///
-/// - Error accessing the widgets directory.
-/// - Error emitting [`RenderWidgetEvent`] for one or more widgets.
+/// - Error sending any bundling task to the bundler.
 #[command]
 #[specta::specta]
 pub async fn bundle_widgets<R: Runtime>(
     app_handle: AppHandle<R>,
-    ids: Option<Vec<String>>,
+    id: Option<String>,
 ) -> CmdResult<()> {
-    let widgets_dir = app_handle.widgets_dir()?;
-
-    let widgets: Vec<_> = {
-        let catalog = app_handle.get_widget_catalog();
-        match ids {
-            Some(ids) => ids
-                .into_iter()
-                .filter_map(|id| match catalog.0.get(&id) {
-                    Some(Outcome::Ok(config)) => Some((id, config.entry.clone())),
-                    _ => None,
-                })
-                .collect(),
-            None => catalog
-                .0
-                .iter()
-                .filter_map(|(id, config)| match config {
-                    Outcome::Ok(config) => Some((id.clone(), config.entry.clone())),
-                    _ => None,
-                })
-                .collect(),
-        }
-    };
-
-    if widgets.is_empty() {
-        return Ok(());
+    match id {
+        Some(id) => app_handle.render_widget(id)?,
+        None => app_handle.render_widgets_all()?,
     }
-
-    let mut errors = vec![];
-    for (id, entry) in widgets.into_iter() {
-        let code = match WidgetBundlerBuilder::new(widgets_dir.join(&id), entry)
-            .build()
-            .context("Failed to build widget bundler")
-        {
-            Ok(mut bundler) => bundler
-                .bundle()
-                .await
-                .with_context(|| format!("Failed to bundle widget (id={id})"))
-                .map_or_else(|e| Outcome::Err(format!("{e:?}")), Outcome::Ok),
-            Err(e) => Outcome::Err(format!("{e:?}")),
-        };
-
-        let event = RenderWidgetEvent { id: &id, code };
-        if let Err(e) = event.emit_to(&app_handle, DeskulptWindow::Canvas) {
-            errors.push(e.context(format!("Failed to render widget (id={id})")));
-        }
-    }
-
-    if !errors.is_empty() {
-        let message = errors
-            .into_iter()
-            .map(|e| format!("{e}"))
-            .collect::<Vec<_>>()
-            .join("\n");
-        cmdbail!(message);
-    }
-
     Ok(())
 }
