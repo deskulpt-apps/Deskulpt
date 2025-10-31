@@ -1201,7 +1201,6 @@ dependencies = [
  "deskulpt-plugin-sys",
  "dunce",
  "either",
- "futures",
  "objc2 0.6.3",
  "once_cell",
  "open",

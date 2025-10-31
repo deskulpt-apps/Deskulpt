@@ -1,7 +1,5 @@
 //! Deskulpt core events.
 
-use std::collections::HashMap;
-
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use serde::Serialize;
@@ -9,13 +7,17 @@ use serde::Serialize;
 use crate::config::WidgetCatalog;
 use crate::settings::Settings;
 
-/// Event for rendering widgets.
+/// Event for rendering a widget.
 ///
 /// This event is emitted from the backend to the canvas window to instruct it
-/// to render the provided widgets. The event carries a mapping from widget IDs
-/// to their corresponding code strings.
+/// to render the specified widget.
 #[derive(Debug, Serialize, specta::Type, Event)]
-pub struct RenderWidgetsEvent<'a>(pub &'a HashMap<String, Outcome<String>>);
+pub struct RenderWidgetEvent<'a> {
+    /// The ID of the widget.
+    pub id: &'a str,
+    /// Either the code string to render or a bundling error message.
+    pub code: Outcome<String>,
+}
 
 /// Event for showing a toast notification.
 ///
