@@ -89,7 +89,12 @@ pub trait WidgetsStateExt<R: Runtime>: Manager<R> + PathExt<R> + SettingsStateEx
         state.catalog.write().unwrap()
     }
 
-    fn refresh_widget(&self, id: &str) -> Result<()>
+    /// Reload a specific widget by its ID.
+    ///
+    /// This function loads the widget configuration from the widgets directory
+    /// and updates the catalog accordingly. It then syncs the settings with the
+    /// updated catalog. If any step fails, an error is returned.
+    fn reload_widget(&self, id: &str) -> Result<()>
     where
         Self: Sized,
     {
@@ -115,7 +120,12 @@ pub trait WidgetsStateExt<R: Runtime>: Manager<R> + PathExt<R> + SettingsStateEx
         Ok(())
     }
 
-    fn refresh_widgets_all(&self) -> Result<()>
+    /// Reload all widgets.
+    ///
+    /// This function loads a new widget catalog from the widgets directory and
+    /// replaces the existing catalog. It then syncs the settings with the
+    /// updated catalog. If any step fails, an error is returned.
+    fn reload_widgets_all(&self) -> Result<()>
     where
         Self: Sized,
     {

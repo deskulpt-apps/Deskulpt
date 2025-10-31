@@ -311,7 +311,14 @@ export const commands = {
   }),
 
   /**
-   * TODO(Charlie-XIAO)
+   * Refresh a specific widget.
+   * 
+   * This command reloads the specified widget and triggers its rendering.
+   * 
+   * ### Errors
+   * 
+   * - Error reloading the widget.
+   * - Error rendering the widget.
    */
   refreshWidget: (
     id: string,
@@ -320,7 +327,14 @@ export const commands = {
   }),
 
   /**
-   * TODO(Charlie-XIAO)
+   * Refresh all widgets.
+   * 
+   * This command reloads all widgets and triggers their rendering.
+   * 
+   * ### Errors
+   * 
+   * - Error reloading the widgets.
+   * - Error rendering the widgets.
    */
   refreshWidgetsAll: () => invoke<null>("plugin:deskulpt-core|refresh_widgets_all"),
 
