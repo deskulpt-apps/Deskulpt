@@ -6,7 +6,7 @@ use crate::commands::bundle_widgets;
 use crate::config::WidgetCatalog;
 use crate::events::{UpdateSettingsEvent, UpdateWidgetCatalogEvent};
 use crate::path::PathExt;
-use crate::states::{SettingsStateExt, WidgetCatalogStateExt};
+use crate::states::{SettingsStateExt, WidgetsStateExt};
 
 /// Rescan the widgets directory to discover widgets.
 ///
