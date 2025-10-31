@@ -5,10 +5,12 @@ use std::sync::{RwLock, RwLockReadGuard};
 use anyhow::Result;
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
+use deskulpt_common::window::DeskulptWindow;
 use tauri::{App, AppHandle, Emitter, Manager, Runtime};
 
+use crate::bundler::WidgetBundlerBuilder;
 use crate::config::{WidgetCatalog, WidgetConfig};
-use crate::events::UpdateWidgetCatalogEvent;
+use crate::events::{RenderWidgetEvent, UpdateWidgetCatalogEvent};
 use crate::path::PathExt;
 use crate::states::SettingsStateExt;
 
@@ -65,7 +67,7 @@ pub trait WidgetCatalogStateExt<R: Runtime>:
         Self: Sized,
     {
         let widgets_dir = self.widgets_dir()?;
-        let new_catalog = WidgetCatalog::load(&widgets_dir)?;
+        let new_catalog = WidgetCatalog::load(widgets_dir)?;
 
         let state = self.state::<WidgetCatalogState>();
         let mut catalog = state.0.write().unwrap();
@@ -76,19 +78,41 @@ pub trait WidgetCatalogStateExt<R: Runtime>:
         Ok(())
     }
 
-    // #[allow(async_fn_in_trait)]
-    // async fn bundle_widget(&self, id: &str) -> Result<()> {
-    //     let catalog = self.get_widget_catalog();
-    //     if let Some(Outcome::Ok(config)) = catalog.0.get(id) {
-    //         let widget_dir = self.widgets_dir()?.join(id);
-    //         let mut bundler =
-    //             WidgetBundlerBuilder::new(widget_dir,
-    // config.entry.clone()).build()?;         let code =
-    // bundler.bundle().await?;         RenderWidgetsEvent(&HashMap::from([(id,
-    // report)]))             .emit_to(&app_handle, DeskulptWindow::Canvas)?;
-    //     }
-    //     Ok(())
-    // }
+    #[allow(async_fn_in_trait)]
+    async fn render_widgets(&self, id: Option<&str>) -> Result<()>
+    where
+        Self: Sized,
+    {
+        let entries = match id {
+            Some(id) => match self.get_widget_catalog().0.get(id) {
+                Some(Outcome::Ok(config)) => vec![(id.to_string(), config.entry.clone())],
+                _ => vec![],
+            },
+            None => self
+                .get_widget_catalog()
+                .0
+                .iter()
+                .filter_map(|(id, config)| match config {
+                    Outcome::Ok(config) => Some((id.clone(), config.entry.clone())),
+                    _ => None,
+                })
+                .collect(),
+        };
+
+        for (id, entry) in entries {
+            let widget_dir = self.widgets_dir()?.join(&id);
+            let bundle_one = async {
+                let mut bundler = WidgetBundlerBuilder::new(widget_dir, entry).build()?;
+                let code = bundler.bundle().await?;
+                Ok::<_, anyhow::Error>(code)
+            };
+            let code = bundle_one.await.into();
+            let event = RenderWidgetEvent { id: &id, code };
+            event.emit_to(self, DeskulptWindow::Canvas)?;
+        }
+
+        Ok(())
+    }
 }
 
 impl<R: Runtime> WidgetCatalogStateExt<R> for App<R> {}
