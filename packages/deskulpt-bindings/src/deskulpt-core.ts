@@ -10,11 +10,11 @@ import * as tauriEvent from "@tauri-apps/api/event";
 /**
  * Deskulpt window enum.
  */
-export type DeskulptWindow =
+export type DeskulptWindow = 
 /**
  * The manager window.
  */
-"manager" |
+"manager" | 
 /**
  * The canvas window.
  */
@@ -24,7 +24,7 @@ export type JsonValue = null | boolean | number | string | JsonValue[] | { [key 
 
 /**
  * A result-like binary outcome.
- *
+ * 
  * This represents the outcome of an operation that can either succeed with a
  * value of type `T` or fail with an error message.
  */
@@ -32,15 +32,15 @@ export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: st
 
 /**
  * Event for rendering a widget.
- *
+ * 
  * This event is emitted from the backend to the canvas window to instruct it
  * to render the specified widget.
  */
-export type RenderWidgetEvent = {
+export type RenderWidgetEvent = { 
 /**
  * The ID of the widget.
  */
-id: string;
+id: string; 
 /**
  * Either the code string to render or a bundling error message.
  */
@@ -49,15 +49,15 @@ code: Outcome<string> }
 /**
  * Full settings of the Deskulpt application.
  */
-export type Settings = {
+export type Settings = { 
 /**
  * The application theme.
  */
-theme: Theme;
+theme: Theme; 
 /**
  * The keyboard shortcuts.
  */
-shortcuts: Partial<{ [key in ShortcutKey]: string }>;
+shortcuts: Partial<{ [key in ShortcutKey]: string }>; 
 /**
  * The mapping from widget IDs to their respective settings.
  */
@@ -66,22 +66,22 @@ widgets: { [key in string]: WidgetSettings } }
 /**
  * A patch for partial updates to [`Settings`].
  */
-export type SettingsPatch = {
+export type SettingsPatch = { 
 /**
  * If not `None`, update [`Settings::theme`].
  */
-theme?: Theme;
+theme?: Theme; 
 /**
  * If not `None`, update [`Settings::shortcuts`].
- *
+ * 
  * Non-specified shortcuts will remain unchanged. If a shortcut value is
  * `None`, it means removing that shortcut. Otherwise, it means updating
  * or adding that shortcut.
  */
-shortcuts?: Partial<{ [key in ShortcutKey]: string | null }>;
+shortcuts?: Partial<{ [key in ShortcutKey]: string | null }>; 
 /**
  * If not `None`, update [`Settings::widgets`].
- *
+ * 
  * Non-specified widgets will remain unchanged. If a widget settings patch
  * is `None`, it means leaving that widget settings unchanged. Otherwise,
  * it means applying the patch to that widget settings. If the widget ID
@@ -93,11 +93,11 @@ widgets?: { [key in string]: WidgetSettingsPatch | null } }
 /**
  * Types of keyboard shortcuts in the application.
  */
-export type ShortcutKey =
+export type ShortcutKey = 
 /**
  * For toggling canvas interaction mode.
  */
-"toggleCanvasImode" |
+"toggleCanvasImode" | 
 /**
  * For opening the manager window.
  */
@@ -105,15 +105,15 @@ export type ShortcutKey =
 
 /**
  * Event for showing a toast notification.
- *
+ * 
  * This event is emitted from the backend to the canvas window when a toast
  * notification needs to be displayed.
  */
-export type ShowToastEvent =
+export type ShowToastEvent = 
 /**
  * Show a [success](https://sonner.emilkowal.ski/toast#success) toast.
  */
-{ type: "success"; content: string } |
+{ type: "success"; content: string } | 
 /**
  * Show an [error](https://sonner.emilkowal.ski/toast#error) toast.
  */
@@ -126,7 +126,7 @@ export type Theme = "light" | "dark"
 
 /**
  * Event for updating the settings.
- *
+ * 
  * This event is emitted from the backend to all frontend windows whenever
  * there is a change in the settings. Full settings are included to ensure
  * that all windows see the most up-to-date version eventually.
@@ -135,7 +135,7 @@ export type UpdateSettingsEvent = Settings
 
 /**
  * Event for updating the widget catalog.
- *
+ * 
  * This event is emitted from the backend to all frontend windows whenever
  * there is a change in the widget catalog.
  */
@@ -143,7 +143,7 @@ export type UpdateWidgetCatalogEvent = WidgetCatalog
 
 /**
  * The widget catalog.
- *
+ * 
  * This is a collection of all widgets discovered locally, mapped from their
  * widget IDs to their configurations. Invalid widgets are also included with
  * their error messages.
@@ -153,15 +153,15 @@ export type WidgetCatalog = { [key in string]: Outcome<WidgetConfig> }
 /**
  * Full configuration of a Deskulpt widget.
  */
-export type WidgetConfig = {
+export type WidgetConfig = { 
 /**
  * The name of the widget.
  */
-name: string;
+name: string; 
 /**
  * The entry point of the widget.
  */
-entry: string;
+entry: string; 
 /**
  * The dependencies of the widget.
  */
@@ -169,27 +169,27 @@ dependencies: { [key in string]: string } }
 
 /**
  * Per-widget settings.
- *
+ * 
  * Different from widget configurations, these are independent of the widget
  * configuration files and are managed internally by the application.
  */
-export type WidgetSettings = {
+export type WidgetSettings = { 
 /**
  * The leftmost x-coordinate in pixels.
  */
-x: number;
+x: number; 
 /**
  * The topmost y-coordinate in pixels.
  */
-y: number;
+y: number; 
 /**
  * The width in pixels.
  */
-width: number;
+width: number; 
 /**
  * The height in pixels.
  */
-height: number;
+height: number; 
 /**
  * The opacity in percentage.
  */
@@ -198,23 +198,23 @@ opacity: number }
 /**
  * A patch for partial updates to [`WidgetSettings`].
  */
-export type WidgetSettingsPatch = {
+export type WidgetSettingsPatch = { 
 /**
  * If not `None`, update [`WidgetSettings::x`].
  */
-x?: number;
+x?: number; 
 /**
  * If not `None`, update [`WidgetSettings::y`].
  */
-y?: number;
+y?: number; 
 /**
  * If not `None`, update [`WidgetSettings::width`].
  */
-width?: number;
+width?: number; 
 /**
  * If not `None`, update [`WidgetSettings::height`].
  */
-height?: number;
+height?: number; 
 /**
  * If not `None`, update [`WidgetSettings::opacity`].
  */
@@ -255,20 +255,17 @@ export const events = {
 
 export const commands = {
   /**
-   * Bundle widgets.
-   *
-   * This command bundles the specified widgets that exist in the catalog. If
-   * `ids` is not provided, all widgets in the catalog are bundled. Failure to
-   * bundle a widget does not result in an error, but is reported back to the
-   * canvas window via the [`RenderWidgetEvent`]. Moreover, failure to emit a
-   * single [`RenderWidgetEvent`] does not prevent other widgets from being
-   * processed; instead, errors are collected and returned as a single error at
-   * the end, if any.
-   *
+   * Bundle widget(s).
+   * 
+   * This command bundles the specified widget(s) that exist in the catalog. If
+   * `id` is not provided, all widgets in the catalog are bundled. This only
+   * notifies the bundler to process the widgets and does not wait for the
+   * bundling to complete. Bundling results are communicated back to the canvas
+   * window asynchronously.
+   * 
    * ### Errors
-   *
-   * - Error accessing the widgets directory.
-   * - Error emitting [`RenderWidgetEvent`] for one or more widgets.
+   * 
+   * - Error sending any bundling task to the bundler.
    */
   bundleWidgets: (
     id: string | null,
@@ -278,26 +275,26 @@ export const commands = {
 
   /**
    * Mark the window to have completed its setup.
-   *
+   * 
    * If all setup has been completed after marking this window as completed, this
    * command will automatically trigger an initial rescan of the widgets.
-   *
+   * 
    * ### Errors
-   *
+   * 
    * - Error rescanning the widgets (if applicable).
    */
   completeSetup: () => invoke<null>("plugin:deskulpt-core|complete_setup"),
 
   /**
    * Call a plugin command (🚧 TODO 🚧).
-   *
+   * 
    * ### 🚧 TODO 🚧
-   *
+   * 
    * The Deskulpt core should keep a state of the registered plugins and call the
    * plugins dynamically. Also, instead of invoking the plugins directly, the
    * Deskulpt core should not depend on any of the plugins and should use IPC to
    * communicate with the plugins.
-   *
+   * 
    * Also, in order to simplify the engine API for the plugin (because it is
    * a temporary implementation), `app_handle` is using the default runtime but
    * it should be a generic `R: Runtime` parameter in the final implementation.
@@ -316,12 +313,12 @@ export const commands = {
 
   /**
    * Open the widgets directory or a specific widget directory.
-   *
+   * 
    * If the widget ID is provided, a specific widget directory will be opened.
    * Otherwise, the widgets directory will be opened.
-   *
+   * 
    * ### Errors
-   *
+   * 
    * - Widget ID is provided but does not exist in the collection.
    * - Failed to access the widgets directory.
    * - Error opening the directory.
@@ -334,15 +331,15 @@ export const commands = {
 
   /**
    * Rescan the widgets directory to discover widgets.
-   *
+   * 
    * This command scans the widgets directory for available widgets and updates
    * the widget catalog and settings accordingly. It then emits events to notify
    * the frontend of these changes. Finally, it triggers the bundling of all
    * widgets in the updated catalog with `bundle_widgets` to ensure they are
    * ready for use.
-   *
+   * 
    * ### Errors
-   *
+   * 
    * - Error accessing the widgets directory.
    * - Error loading the new widget catalog from the widgets directory.
    * - Error emitting the [`UpdateSettingsEvent`].
@@ -353,13 +350,13 @@ export const commands = {
 
   /**
    * Update the settings.
-   *
+   * 
    * This command updates the settings state in the backend. If an update has
    * side effects, they will be applied prior to the update being committed. See
    * [`SettingsStateExt`] for more information.
-   *
+   * 
    * ### Errors
-   *
+   * 
    * - Failed to apply the side effects, if any.
    */
   updateSettings: (
