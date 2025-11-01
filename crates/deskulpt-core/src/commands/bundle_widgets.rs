@@ -1,6 +1,6 @@
+use deskulpt_common::SerResult;
 use tauri::{command, AppHandle, Runtime};
 
-use super::error::CmdResult;
 use crate::states::WidgetsStateExt;
 
 /// Bundle widget(s).
@@ -19,7 +19,7 @@ use crate::states::WidgetsStateExt;
 pub async fn bundle_widgets<R: Runtime>(
     app_handle: AppHandle<R>,
     id: Option<String>,
-) -> CmdResult<()> {
+) -> SerResult<()> {
     match id {
         Some(id) => app_handle.render_widget(id)?,
         None => app_handle.render_widgets_all()?,
