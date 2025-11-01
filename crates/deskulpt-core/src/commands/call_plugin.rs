@@ -1,6 +1,6 @@
-use deskulpt_common::{ser_bail, SerResult};
+use deskulpt_common::{SerResult, ser_bail};
 use once_cell::sync::Lazy;
-use tauri::{command, AppHandle, Runtime};
+use tauri::{AppHandle, Runtime, command};
 use tokio::sync::Mutex;
 
 use crate::path::PathExt;

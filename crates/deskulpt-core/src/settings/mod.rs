@@ -4,7 +4,7 @@ use std::collections::BTreeMap;
 
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize};
-use serde_with::{serde_as, DefaultOnError, MapSkipError};
+use serde_with::{DefaultOnError, MapSkipError, serde_as};
 
 mod persistence;
 mod shortcuts;

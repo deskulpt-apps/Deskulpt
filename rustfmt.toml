@@ -1,4 +1,4 @@
-edition = "2021"
+edition = "2024"
 
 format_strings             = true
 group_imports              = "StdExternalCrate"

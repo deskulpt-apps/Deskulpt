@@ -2,7 +2,7 @@
 
 use std::sync::{RwLock, RwLockReadGuard};
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 use deskulpt_common::event::Event;
 use tauri::{App, AppHandle, Emitter, Manager, Runtime};
 use tauri_plugin_global_shortcut::GlobalShortcutExt;

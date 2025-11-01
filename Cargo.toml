@@ -4,7 +4,7 @@ resolver = "2"
 
 [workspace.package]
 authors    = ["The Deskulpt Development Team"]
-edition    = "2021"
+edition    = "2024"
 homepage   = "https://deskulpt-apps.github.io/"
 license    = "MIT"
 repository = "https://github.com/deskulpt-apps/Deskulpt"

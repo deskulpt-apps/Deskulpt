@@ -9,7 +9,7 @@ mod interface;
 
 use std::path::PathBuf;
 
-use anyhow::{bail, Result};
+use anyhow::{Result, bail};
 pub use command::PluginCommand;
 pub use interface::EngineInterface;
 pub use {anyhow, serde_json};

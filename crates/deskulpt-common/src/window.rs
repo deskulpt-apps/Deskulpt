@@ -1,6 +1,6 @@
 //! Common utilities for Deskulpt windows.
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use tauri::{Manager, Runtime, WebviewWindow};
 
 /// Deskulpt window enum.

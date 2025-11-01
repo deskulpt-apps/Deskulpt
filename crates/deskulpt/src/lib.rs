@@ -11,7 +11,7 @@ use deskulpt_core::states::{
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
 use tauri::image::Image;
-use tauri::{generate_context, include_image, Builder};
+use tauri::{Builder, generate_context, include_image};
 
 /// Image object for the Deskulpt icon.
 const DESKULPT_ICON: Image = include_image!("./icons/icon.png");

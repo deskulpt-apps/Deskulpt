@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use anyhow::Result;
-use deskulpt_plugin::{dispatch, EngineInterface, PluginCommand};
+use deskulpt_plugin::{EngineInterface, PluginCommand, dispatch};
 use serde::Deserialize;
 
 use crate::FsPlugin;

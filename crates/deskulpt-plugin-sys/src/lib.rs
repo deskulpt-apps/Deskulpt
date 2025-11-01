@@ -8,7 +8,7 @@ mod commands;
 
 use std::sync::Mutex;
 
-use deskulpt_plugin::{register_commands, Plugin};
+use deskulpt_plugin::{Plugin, register_commands};
 use sysinfo::System;
 
 /// The system information plugin (🚧 TODO 🚧).
