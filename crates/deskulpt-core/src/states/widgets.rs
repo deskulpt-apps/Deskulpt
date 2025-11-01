@@ -2,7 +2,7 @@
 
 use std::sync::{RwLock, RwLockReadGuard, RwLockWriteGuard};
 
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{Context, Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use deskulpt_common::window::DeskulptWindow;
@@ -145,17 +145,16 @@ pub trait WidgetsStateExt<R: Runtime>: Manager<R> + PathExt<R> + SettingsStateEx
 
         let mut errors = vec![];
         for (id, config) in catalog.0.iter() {
-            if let Outcome::Ok(config) = config {
-                if let Err(e) = state
+            if let Outcome::Ok(config) = config
+                && let Err(e) = state
                     .render_tx
                     .send(RenderWidgetTask {
                         id: id.clone(),
                         entry: config.entry.clone(),
                     })
                     .with_context(|| format!("Failed to send render task for widget {id}"))
-                {
-                    errors.push(e);
-                }
+            {
+                errors.push(e);
             }
         }
 

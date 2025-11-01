@@ -1,12 +1,12 @@
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use deskulpt_common::bindings::Bindings;
 use handlebars::Handlebars;
 use heck::ToLowerCamelCase;
 use regex::Regex;
 use serde::Serialize;
-use specta::datatype::{DataType, Function, FunctionResultVariant};
 use specta::TypeCollection;
-use specta_typescript::{datatype, export_named_datatype, js_doc, Typescript};
+use specta::datatype::{DataType, Function, FunctionResultVariant};
+use specta_typescript::{Typescript, datatype, export_named_datatype, js_doc};
 
 mod helpers {
     use handlebars::{Context, Handlebars, Helper, HelperResult, Output, RenderContext};

@@ -1,6 +1,6 @@
 //! Utilities for persisting the settings.
 
-use std::fs::{create_dir_all, File};
+use std::fs::{File, create_dir_all};
 use std::io::{BufReader, BufWriter};
 use std::path::Path;
 

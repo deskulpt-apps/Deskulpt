@@ -1,5 +1,5 @@
 use deskulpt_common::SerResult;
-use tauri::{command, AppHandle, Runtime};
+use tauri::{AppHandle, Runtime, command};
 
 use crate::states::WidgetsStateExt;
 

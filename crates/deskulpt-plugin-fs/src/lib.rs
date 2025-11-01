@@ -6,7 +6,7 @@
 
 mod commands;
 
-use deskulpt_plugin::{register_commands, Plugin};
+use deskulpt_plugin::{Plugin, register_commands};
 
 /// The file system plugin (🚧 TODO 🚧).
 ///

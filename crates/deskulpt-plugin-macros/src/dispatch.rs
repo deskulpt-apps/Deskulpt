@@ -2,7 +2,7 @@
 
 use proc_macro::TokenStream;
 use quote::ToTokens;
-use syn::{parse_macro_input, parse_quote, FnArg, ItemFn, Pat, PatType, ReturnType};
+use syn::{FnArg, ItemFn, Pat, PatType, ReturnType, parse_macro_input, parse_quote};
 
 /// Token stream processor for the `#[dispatch]` macro.
 ///
@@ -23,13 +23,12 @@ pub fn proc_dispatch(_attr: TokenStream, item: TokenStream) -> TokenStream {
 
     let mut input_type = None;
     for arg in &mut meth.sig.inputs {
-        if let FnArg::Typed(PatType { pat, ty, .. }) = arg {
-            if let Pat::Ident(ident) = &**pat {
-                if ident.ident == "input" {
-                    input_type = Some(ty.clone());
-                    *ty = Box::new(parse_quote!(::deskulpt_plugin::serde_json::Value));
-                }
-            }
+        if let FnArg::Typed(PatType { pat, ty, .. }) = arg
+            && let Pat::Ident(ident) = &**pat
+            && ident.ident == "input"
+        {
+            input_type = Some(ty.clone());
+            *ty = Box::new(parse_quote!(::deskulpt_plugin::serde_json::Value));
         }
     }
     let input_type = input_type.expect("Missing `input` parameter");
