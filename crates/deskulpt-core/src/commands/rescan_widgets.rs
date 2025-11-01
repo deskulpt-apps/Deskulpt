@@ -1,12 +1,8 @@
-use deskulpt_common::event::Event;
 use tauri::{command, AppHandle, Runtime};
 
 use super::error::CmdResult;
 use crate::commands::bundle_widgets;
-use crate::config::WidgetCatalog;
-use crate::events::{UpdateSettingsEvent, UpdateWidgetCatalogEvent};
-use crate::path::PathExt;
-use crate::states::{SettingsStateExt, WidgetsStateExt};
+use crate::states::WidgetsStateExt;
 
 /// Rescan the widgets directory to discover widgets.
 ///
@@ -18,34 +14,12 @@ use crate::states::{SettingsStateExt, WidgetsStateExt};
 ///
 /// ### Errors
 ///
-/// - Error accessing the widgets directory.
-/// - Error loading the new widget catalog from the widgets directory.
-/// - Error emitting the [`UpdateSettingsEvent`].
-/// - Error emitting the [`UpdateWidgetCatalogEvent`].
-/// - Error bundling all discovered widgets.
+/// - Error reloading all widgets.
+/// - Error rendering all widgets.
 #[command]
 #[specta::specta]
 pub async fn rescan_widgets<R: Runtime>(app_handle: AppHandle<R>) -> CmdResult<()> {
-    let catalog = WidgetCatalog::load(app_handle.widgets_dir()?)?;
-
-    {
-        let mut settings = app_handle.get_settings_mut();
-        settings.widgets.retain(|id, _| catalog.0.contains_key(id));
-        for id in catalog.0.keys() {
-            settings
-                .widgets
-                .entry(id.clone())
-                .or_insert_with(Default::default);
-        }
-        UpdateSettingsEvent(&settings).emit(&app_handle)?;
-    }
-
-    {
-        let mut prev_catalog = app_handle.get_widget_catalog_mut();
-        *prev_catalog = catalog;
-        UpdateWidgetCatalogEvent(&prev_catalog).emit(&app_handle)?;
-    }
-
+    app_handle.reload_widgets_all()?;
     bundle_widgets(app_handle, None).await?;
     Ok(())
 }

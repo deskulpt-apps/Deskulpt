@@ -11,8 +11,9 @@ use tokio::sync::mpsc::{self, UnboundedReceiver};
 
 use crate::bundler::WidgetBundlerBuilder;
 use crate::config::WidgetCatalog;
-use crate::events::RenderWidgetEvent;
+use crate::events::{RenderWidgetEvent, UpdateWidgetCatalogEvent};
 use crate::path::PathExt;
+use crate::states::SettingsStateExt;
 
 /// Task to render a specific widget.
 struct RenderWidgetTask {
@@ -55,7 +56,7 @@ async fn render_worker<R: Runtime>(
 }
 
 /// Extension trait for operations on Deskulpt widgets.
-pub trait WidgetsStateExt<R: Runtime>: Manager<R> + PathExt<R> {
+pub trait WidgetsStateExt<R: Runtime>: Manager<R> + PathExt<R> + SettingsStateExt<R> {
     /// Initialize state management for Deskulpt widgets.
     fn manage_widgets(&self) {
         let (tx, rx) = mpsc::unbounded_channel::<RenderWidgetTask>();
@@ -86,6 +87,27 @@ pub trait WidgetsStateExt<R: Runtime>: Manager<R> + PathExt<R> {
     fn get_widget_catalog_mut(&self) -> RwLockWriteGuard<'_, WidgetCatalog> {
         let state = self.state::<WidgetsState>().inner();
         state.catalog.write().unwrap()
+    }
+
+    /// Reload all widgets.
+    ///
+    /// This function loads a new widget catalog from the widgets directory and
+    /// replaces the existing catalog. It then syncs the settings with the
+    /// updated catalog. If any step fails, an error is returned.
+    fn reload_widgets_all(&self) -> Result<()>
+    where
+        Self: Sized,
+    {
+        let widgets_dir = self.widgets_dir()?;
+        let new_catalog = WidgetCatalog::load(widgets_dir)?;
+
+        let state = self.state::<WidgetsState>();
+        let mut catalog = state.catalog.write().unwrap();
+        *catalog = new_catalog;
+        UpdateWidgetCatalogEvent(&catalog).emit(self)?;
+
+        self.update_settings(|settings| catalog.compute_settings_patch(settings))?;
+        Ok(())
     }
 
     /// Render a specific widget by its ID.

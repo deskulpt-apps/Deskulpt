@@ -10,6 +10,9 @@ use deskulpt_common::outcome::Outcome;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
+use crate::schema::Settings;
+use crate::settings::SettingsPatch;
+
 /// The Deskulpt widget manifest.
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -146,5 +149,41 @@ impl WidgetCatalog {
         }
 
         Ok(catalog)
+    }
+
+    /// Compute a settings patch to synchronize with the catalog.
+    ///
+    /// This method compares the given widget settings with catalog and
+    /// generates a patch such that:
+    ///
+    /// - If a widget exists in the settings but not in the catalog, it will be
+    ///   removed from the settings.
+    /// - If a widget exists in the catalog but not in the settings, it will be
+    ///   added to the settings with an empty patch, which results in default
+    ///   settings.
+    /// - If a widget exists in both, no changes are made.
+    pub fn compute_settings_patch(&self, settings: &Settings) -> SettingsPatch {
+        let mut patches = BTreeMap::new();
+
+        for e in itertools::merge_join_by(
+            settings.widgets.iter(), // settings (to be synced)
+            self.0.iter(),           // catalog (truth)
+            |(a, _), (b, _)| a.cmp(b),
+        ) {
+            match e {
+                itertools::EitherOrBoth::Left((id, _)) => {
+                    patches.insert(id.clone(), None);
+                },
+                itertools::EitherOrBoth::Right((id, _)) => {
+                    patches.insert(id.clone(), Some(Default::default()));
+                },
+                itertools::EitherOrBoth::Both(_, _) => {},
+            }
+        }
+
+        SettingsPatch {
+            widgets: Some(patches),
+            ..Default::default()
+        }
     }
 }
