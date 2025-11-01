@@ -4,7 +4,7 @@ use std::fs::create_dir_all;
 use std::path::{Path, PathBuf};
 use std::sync::Arc;
 
-use anyhow::{anyhow, Result};
+use anyhow::{Result, anyhow};
 use once_cell::sync::OnceCell;
 use tauri::{App, AppHandle, Manager, Runtime};
 

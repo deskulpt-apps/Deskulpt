@@ -1215,7 +1215,6 @@ dependencies = [
  "specta",
  "tauri",
  "tauri-plugin-global-shortcut",
- "thiserror 2.0.17",
  "tokio",
 ]
 

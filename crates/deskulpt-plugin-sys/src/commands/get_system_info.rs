@@ -1,5 +1,5 @@
 use anyhow::{Ok, Result};
-use deskulpt_plugin::{dispatch, EngineInterface, PluginCommand};
+use deskulpt_plugin::{EngineInterface, PluginCommand, dispatch};
 use serde::Serialize;
 use sysinfo::{Disks, Networks, System};
 

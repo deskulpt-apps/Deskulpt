@@ -8,4 +8,7 @@ pub mod bindings;
 pub mod event;
 pub mod init;
 pub mod outcome;
+mod ser_error;
 pub mod window;
+
+pub use ser_error::*;

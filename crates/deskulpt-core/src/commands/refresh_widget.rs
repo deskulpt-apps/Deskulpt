@@ -1,6 +1,6 @@
-use tauri::{command, AppHandle, Runtime};
+use deskulpt_common::SerResult;
+use tauri::{AppHandle, Runtime, command};
 
-use super::error::CmdResult;
 use crate::states::WidgetsStateExt;
 
 /// Refresh a specific widget.
@@ -13,7 +13,7 @@ use crate::states::WidgetsStateExt;
 /// - Error rendering the widget.
 #[command]
 #[specta::specta]
-pub async fn refresh_widget<R: Runtime>(app_handle: AppHandle<R>, id: String) -> CmdResult<()> {
+pub async fn refresh_widget<R: Runtime>(app_handle: AppHandle<R>, id: String) -> SerResult<()> {
     app_handle.reload_widget(&id)?;
     app_handle.render_widget(id)?;
     Ok(())

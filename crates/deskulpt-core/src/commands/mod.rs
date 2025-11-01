@@ -13,8 +13,6 @@ mod refresh_widgets_all;
 #[doc(hidden)]
 mod update_settings;
 
-mod error;
-
 pub use call_plugin::*;
 pub use complete_setup::*;
 pub use open_widget::*;

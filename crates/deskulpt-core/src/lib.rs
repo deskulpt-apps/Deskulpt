@@ -4,8 +4,8 @@
     html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg"
 )]
 
-use tauri::plugin::TauriPlugin;
 use tauri::Runtime;
+use tauri::plugin::TauriPlugin;
 
 mod bundler;
 mod commands;

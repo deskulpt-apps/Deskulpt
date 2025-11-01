@@ -86,12 +86,12 @@ fn on_tray_icon_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
         button_state,
         ..
     } = event
+        && button == MouseButton::Left
+        && button_state == MouseButtonState::Down
     {
-        if button == MouseButton::Left && button_state == MouseButtonState::Down {
-            // Toggle canvas interaction mode on left-click
-            if let Err(e) = tray.app_handle().toggle_canvas_imode() {
-                eprintln!("Error toggling canvas interaction mode: {e}");
-            }
+        // Toggle canvas interaction mode on left-click
+        if let Err(e) = tray.app_handle().toggle_canvas_imode() {
+            eprintln!("Error toggling canvas interaction mode: {e}");
         }
     }
 }

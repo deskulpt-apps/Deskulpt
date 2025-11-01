@@ -2,8 +2,8 @@
 
 use anyhow::Result;
 
-use crate::interface::EngineInterface;
 use crate::Plugin;
+use crate::interface::EngineInterface;
 
 /// The API for a Deskulpt plugin command.
 pub trait PluginCommand {

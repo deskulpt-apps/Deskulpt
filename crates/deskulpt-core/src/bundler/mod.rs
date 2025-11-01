@@ -6,7 +6,7 @@ use std::path::PathBuf;
 use std::sync::Arc;
 
 use alias::AliasPlugin;
-use anyhow::{anyhow, bail, Result};
+use anyhow::{Result, anyhow, bail};
 use either::Either;
 use rolldown::{
     Bundler, BundlerOptions, BundlerTransformOptions, JsxOptions, OutputFormat, Platform,
@@ -98,12 +98,13 @@ impl WidgetBundler {
     /// Bundle the widget into a single ESM code string.
     pub async fn bundle(&mut self) -> Result<String> {
         let result = self.bundler.generate().await.map_err(|e| {
-            anyhow!(e
-                .into_vec()
-                .iter()
-                .map(|diagnostic| diagnostic.to_diagnostic().to_string())
-                .collect::<Vec<String>>()
-                .join("\n"))
+            anyhow!(
+                e.into_vec()
+                    .iter()
+                    .map(|diagnostic| diagnostic.to_diagnostic().to_string())
+                    .collect::<Vec<String>>()
+                    .join("\n")
+            )
         })?;
 
         // We have supplied a single entry file, so we expect a single output

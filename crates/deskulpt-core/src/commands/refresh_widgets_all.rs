@@ -1,6 +1,6 @@
-use tauri::{command, AppHandle, Runtime};
+use deskulpt_common::SerResult;
+use tauri::{AppHandle, Runtime, command};
 
-use super::error::CmdResult;
 use crate::states::WidgetsStateExt;
 
 /// Refresh all widgets.
@@ -13,7 +13,7 @@ use crate::states::WidgetsStateExt;
 /// - Error rendering the widgets.
 #[command]
 #[specta::specta]
-pub async fn refresh_widgets_all<R: Runtime>(app_handle: AppHandle<R>) -> CmdResult<()> {
+pub async fn refresh_widgets_all<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
     app_handle.reload_widgets_all()?;
     app_handle.render_widgets_all()?;
     Ok(())

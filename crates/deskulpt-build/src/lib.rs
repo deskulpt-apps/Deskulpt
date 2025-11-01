@@ -6,7 +6,7 @@
 
 use std::path::PathBuf;
 
-use anyhow::{anyhow, bail, Context, Result};
+use anyhow::{Context, Result, anyhow, bail};
 use quote::{format_ident, quote};
 
 /// Builder for build-time configuration of Deskulpt.
