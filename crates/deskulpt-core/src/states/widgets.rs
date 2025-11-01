@@ -10,7 +10,7 @@ use tauri::{App, AppHandle, Manager, Runtime};
 use tokio::sync::mpsc::{self, UnboundedReceiver};
 
 use crate::bundler::WidgetBundlerBuilder;
-use crate::config::WidgetCatalog;
+use crate::config::{WidgetCatalog, WidgetConfig};
 use crate::events::{RenderWidgetEvent, UpdateWidgetCatalogEvent};
 use crate::path::PathExt;
 use crate::states::SettingsStateExt;
@@ -87,6 +87,37 @@ pub trait WidgetsStateExt<R: Runtime>: Manager<R> + PathExt<R> + SettingsStateEx
     fn get_widget_catalog_mut(&self) -> RwLockWriteGuard<'_, WidgetCatalog> {
         let state = self.state::<WidgetsState>().inner();
         state.catalog.write().unwrap()
+    }
+
+    /// Reload a specific widget by its ID.
+    ///
+    /// This function loads the widget configuration from the widgets directory
+    /// and updates the catalog accordingly. It then syncs the settings with the
+    /// updated catalog. If any step fails, an error is returned.
+    fn reload_widget(&self, id: &str) -> Result<()>
+    where
+        Self: Sized,
+    {
+        let widget_dir = self.widgets_dir()?.join(id);
+        let config = WidgetConfig::load(&widget_dir);
+
+        let state = self.state::<WidgetsState>();
+        let mut catalog = state.catalog.write().unwrap();
+        match config {
+            Ok(Some(config)) => {
+                catalog.0.insert(id.to_string(), Outcome::Ok(config));
+            },
+            Ok(None) => {
+                catalog.0.remove(id);
+            },
+            Err(e) => {
+                catalog.0.insert(id.to_string(), Err(e).into());
+            },
+        };
+        UpdateWidgetCatalogEvent(&catalog).emit(self)?;
+
+        self.update_settings(|settings| catalog.compute_settings_patch(settings))?;
+        Ok(())
     }
 
     /// Reload all widgets.

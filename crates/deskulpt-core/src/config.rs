@@ -10,8 +10,7 @@ use deskulpt_common::outcome::Outcome;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
-use crate::schema::Settings;
-use crate::settings::SettingsPatch;
+use crate::settings::{Settings, SettingsPatch};
 
 /// The Deskulpt widget manifest.
 #[derive(Debug, Deserialize)]
