@@ -44,13 +44,16 @@ pub trait SettingsStateExt<R: Runtime>:
         state.0.read().unwrap()
     }
 
-    /// Apply a patch to the settings.
+    /// Update the settings.
     ///
-    /// See [`SettingsPatch`] for more information of how the patch is applied.
-    /// The patch application is best-effort: any part of the patch that fails
-    /// to be applied will be skipped, and the rest will be applied as normal.
-    /// Errors will be accumulated and returned as a single error at the end if
-    /// any occurred.
+    /// The `update` closure has access to the current settings and is expected
+    /// to return a [`SettingsPatch`] that describes the desired updates. See
+    /// its documentation for more information of how the patch will be applied.
+    /// Patch application is best-effort: any part of the patch that fails to be
+    /// applied will be skipped, and the rest will be applied as normal. An
+    /// [`UpdateSettingsEvent`] will be emitted to notify the frontend of the
+    /// changes. Errors will be accumulated and returned as a single error at
+    /// the end if any occurred.
     fn update_settings<F>(&self, update: F) -> Result<()>
     where
         F: FnOnce(&Settings) -> SettingsPatch,

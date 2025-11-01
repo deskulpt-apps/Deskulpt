@@ -10,7 +10,7 @@ use deskulpt_common::outcome::Outcome;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
 
-use crate::settings::{Settings, SettingsPatch, WidgetSettingsPatch};
+use crate::settings::{Settings, SettingsPatch};
 
 /// The Deskulpt widget manifest.
 #[derive(Debug, Deserialize)]
@@ -107,15 +107,6 @@ impl WidgetConfig {
             dependencies: package_manifest.dependencies,
         }))
     }
-
-    /// Compute a widget settings patch from the specification.
-    ///
-    /// TODO: Currently this method always returns an empty patch. In the
-    /// future, we will extend the widget manifest to allow customization of
-    /// default widget settings, which will be used to compute the patch.
-    pub fn compute_settings_patch(&self) -> WidgetSettingsPatch {
-        Default::default()
-    }
 }
 
 /// The widget catalog.
@@ -159,37 +150,31 @@ impl WidgetCatalog {
         Ok(catalog)
     }
 
-    /// Compute a settings patch to synchronize with the current catalog.
+    /// Compute a settings patch to synchronize with the catalog.
     ///
-    /// This method compares the current catalog with the given (old) settings
-    /// and generates a settings patch that:
+    /// This method compares the given widget settings with catalog and
+    /// generates a patch such that:
     ///
-    /// - If a widget exists in the old settings but not in the current catalog,
-    ///   it will be removed.
-    /// - If a widget exists in the current catalog but not in the old settings,
-    ///   it will be added. If the widget is valid, an appropriate patch is
-    ///   computed with [`WidgetSpec::compute_settings_patch`]. Otherwise, an
-    ///   empty patch is used. In either case, fields not specified in the patch
-    ///   will be filled with default when the patch is actually applied.
+    /// - If a widget exists in the settings but not in the catalog, it will be
+    ///   removed from the settings.
+    /// - If a widget exists in the catalog but not in the settings, it will be
+    ///   added to the settings with an empty patch, which results in default
+    ///   settings.
     /// - If a widget exists in both, no changes are made.
     pub fn compute_settings_patch(&self, settings: &Settings) -> SettingsPatch {
         let mut patches = BTreeMap::new();
 
         for e in itertools::merge_join_by(
-            settings.widgets.iter(), // Old
-            self.0.iter(),           // New
+            settings.widgets.iter(), // settings (to be synced)
+            self.0.iter(),           // catalog (truth)
             |(a, _), (b, _)| a.cmp(b),
         ) {
             match e {
                 itertools::EitherOrBoth::Left((id, _)) => {
                     patches.insert(id.clone(), None);
                 },
-                itertools::EitherOrBoth::Right((id, config)) => {
-                    let patch = match config {
-                        Outcome::Ok(config) => config.compute_settings_patch(),
-                        Outcome::Err(_) => Default::default(),
-                    };
-                    patches.insert(id.clone(), Some(patch));
+                itertools::EitherOrBoth::Right((id, _)) => {
+                    patches.insert(id.clone(), Some(Default::default()));
                 },
                 itertools::EitherOrBoth::Both(_, _) => {},
             }

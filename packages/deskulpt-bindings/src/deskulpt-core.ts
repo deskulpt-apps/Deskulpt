@@ -339,15 +339,7 @@ export const commands = {
   refreshWidgetsAll: () => invoke<null>("plugin:deskulpt-core|refresh_widgets_all"),
 
   /**
-   * Update the settings.
-   * 
-   * This command updates the settings state in the backend. If an update has
-   * side effects, they will be applied prior to the update being committed. See
-   * [`SettingsStateExt`] for more information.
-   * 
-   * ### Errors
-   * 
-   * - Failed to apply the side effects, if any.
+   * Wrapper of [`SettingsStateExt::update_settings`].
    */
   updateSettings: (
     patch: SettingsPatch,
