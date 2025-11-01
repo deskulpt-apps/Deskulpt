@@ -1,8 +1,8 @@
+use deskulpt_common::{ser_bail, SerResult};
 use once_cell::sync::Lazy;
 use tauri::{command, AppHandle, Runtime};
 use tokio::sync::Mutex;
 
-use super::error::{cmdbail, CmdResult};
 use crate::path::PathExt;
 
 // TODO: Remove this temporary implementation
@@ -33,7 +33,7 @@ pub async fn call_plugin<R: Runtime>(
     command: String,
     id: String,
     payload: Option<serde_json::Value>,
-) -> CmdResult<serde_json::Value> {
+) -> SerResult<serde_json::Value> {
     let widget_dir_fn = move |id: &str| app_handle.widget_dir(id);
 
     match plugin.as_str() {
@@ -59,6 +59,6 @@ pub async fn call_plugin<R: Runtime>(
             )?;
             Ok(result)
         },
-        _ => cmdbail!("Unknown plugin: {}", plugin),
+        _ => ser_bail!("Unknown plugin: {}", plugin),
     }
 }

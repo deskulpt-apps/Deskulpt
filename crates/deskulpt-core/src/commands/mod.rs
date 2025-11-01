@@ -13,8 +13,6 @@ mod rescan_widgets;
 #[doc(hidden)]
 mod update_settings;
 
-mod error;
-
 pub use bundle_widgets::*;
 pub use call_plugin::*;
 pub use complete_setup::*;

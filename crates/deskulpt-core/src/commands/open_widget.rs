@@ -1,6 +1,6 @@
+use deskulpt_common::SerResult;
 use tauri::{command, AppHandle, Runtime};
 
-use super::error::CmdResult;
 use crate::path::PathExt;
 
 /// Open the widgets directory or a specific widget directory.
@@ -18,7 +18,7 @@ use crate::path::PathExt;
 pub async fn open_widget<R: Runtime>(
     app_handle: AppHandle<R>,
     id: Option<String>,
-) -> CmdResult<()> {
+) -> SerResult<()> {
     let widgets_dir = app_handle.widgets_dir()?;
 
     if let Some(id) = id {
