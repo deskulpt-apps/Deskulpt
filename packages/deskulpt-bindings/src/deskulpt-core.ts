@@ -340,24 +340,13 @@ export const commands = {
    * 
    * ### Errors
    * 
-   * - Error accessing the widgets directory.
-   * - Error loading the new widget catalog from the widgets directory.
-   * - Error emitting the [`UpdateSettingsEvent`].
-   * - Error emitting the [`UpdateWidgetCatalogEvent`].
-   * - Error bundling all discovered widgets.
+   * - Error reloading all widgets.
+   * - Error rendering all widgets.
    */
   rescanWidgets: () => invoke<null>("plugin:deskulpt-core|rescan_widgets"),
 
   /**
-   * Update the settings.
-   * 
-   * This command updates the settings state in the backend. If an update has
-   * side effects, they will be applied prior to the update being committed. See
-   * [`SettingsStateExt`] for more information.
-   * 
-   * ### Errors
-   * 
-   * - Failed to apply the side effects, if any.
+   * Wrapper of [`SettingsStateExt::update_settings`].
    */
   updateSettings: (
     patch: SettingsPatch,
