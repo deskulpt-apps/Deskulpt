@@ -16,7 +16,7 @@ bitflags! {
 
 /// Managed state for application setup.
 #[derive(Default)]
-struct SetupState(
+pub struct SetupState(
     /// Bitmask corresponding to [`Flags`].
     ///
     /// Each set bit means that the corresponding window has completed setup.
@@ -25,11 +25,6 @@ struct SetupState(
 
 /// Extension trait for operations related to application setup.
 pub trait SetupStateExt<R: Runtime>: Manager<R> {
-    /// Initialize state management for application setup.
-    fn manage_setup(&self) {
-        self.manage(SetupState::default());
-    }
-
     /// Mark a window as having completed setup.
     ///
     /// Returns `true` if all windows have completed setup after this call.

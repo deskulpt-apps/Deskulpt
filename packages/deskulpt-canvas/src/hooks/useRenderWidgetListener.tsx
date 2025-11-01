@@ -1,16 +1,16 @@
 import { createElement } from "react";
 import { useWidgetsStore } from "./useWidgetsStore";
 import { createSetupTaskHook, stringifyError } from "@deskulpt/utils";
-import { deskulptCore } from "@deskulpt/bindings";
+import { deskulptWidgets } from "@deskulpt/bindings";
 import ErrorDisplay from "../components/ErrorDisplay";
 
 const BASE_URL = new URL(import.meta.url).origin;
 const RAW_APIS_URL = new URL("/gen/raw-apis.js", BASE_URL).href;
 
 export const useRenderWidgetListener = createSetupTaskHook({
-  task: `event:${deskulptCore.events.renderWidget.name}`,
+  task: `event:${deskulptWidgets.events.render.name}`,
   onMount: () =>
-    deskulptCore.events.renderWidget.listen(async (event) => {
+    deskulptWidgets.events.render.listen(async (event) => {
       const { id, code } = event.payload;
       const widgets = useWidgetsStore.getState();
 

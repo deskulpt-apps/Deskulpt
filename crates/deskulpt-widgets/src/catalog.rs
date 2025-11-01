@@ -1,4 +1,4 @@
-//! Configuration of Deskulpt widgets.
+//! Deskulpt widgets catalog.
 
 use std::collections::{BTreeMap, HashMap};
 use std::fs::File;
@@ -6,12 +6,17 @@ use std::io::BufReader;
 use std::path::Path;
 
 use anyhow::{Context, Result};
+use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
+use deskulpt_core::path::PathExt;
+use deskulpt_core::settings::{Settings, SettingsPatch};
+use deskulpt_core::states::SettingsStateExt;
 use serde::de::DeserializeOwned;
 use serde::{Deserialize, Serialize};
+use tauri::Runtime;
 
-use crate::schema::Settings;
-use crate::settings::SettingsPatch;
+use crate::Widgets;
+use crate::events::UpdateEvent;
 
 /// The Deskulpt widget manifest.
 #[derive(Debug, Deserialize)]
@@ -73,7 +78,7 @@ impl LoadManifest for PackageManifest {
 }
 
 /// Full configuration of a Deskulpt widget.
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct WidgetConfig {
     /// The name of the widget.
@@ -115,10 +120,10 @@ impl WidgetConfig {
 /// This is a collection of all widgets discovered locally, mapped from their
 /// widget IDs to their configurations. Invalid widgets are also included with
 /// their error messages.
-#[derive(Debug, Default, Serialize, Deserialize, specta::Type)]
-pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetConfig>>);
+#[derive(Debug, Default, Serialize, specta::Type)]
+pub struct Catalog(pub BTreeMap<String, Outcome<WidgetConfig>>);
 
-impl WidgetCatalog {
+impl Catalog {
     /// Load the widget catalog from the given directory.
     ///
     /// This scans all top-level subdirectories and attempts to load them as
@@ -185,5 +190,25 @@ impl WidgetCatalog {
             widgets: Some(patches),
             ..Default::default()
         }
+    }
+}
+
+impl<R: Runtime> Widgets<R> {
+    /// Reload all widgets.
+    ///
+    /// This function loads a new widget catalog from the widgets directory and
+    /// replaces the existing catalog. It then syncs the settings with the
+    /// updated catalog. If any step fails, an error is returned.
+    pub fn reload_all(&self) -> Result<()> {
+        let widgets_dir = self.app_handle.widgets_dir()?;
+        let new_catalog = Catalog::load(widgets_dir)?;
+
+        let mut catalog = self.catalog.write().unwrap();
+        *catalog = new_catalog;
+        UpdateEvent(&catalog).emit(&self.app_handle)?;
+
+        self.app_handle
+            .update_settings(|settings| catalog.compute_settings_patch(settings))?;
+        Ok(())
     }
 }
