@@ -58,9 +58,9 @@ impl WidgetDescriptor {
 /// This keeps a mapping from widget IDs to their descriptors (if valid) or
 /// error messages (if invalid).
 #[derive(Debug, Default, Serialize, specta::Type)]
-pub struct Catalog(pub BTreeMap<String, Outcome<WidgetDescriptor>>);
+pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetDescriptor>>);
 
-impl Catalog {
+impl WidgetCatalog {
     /// Load the widget catalog from a directory.
     ///
     /// This scans all top-level subdirectories and attempts to load them as

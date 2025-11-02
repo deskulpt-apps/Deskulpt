@@ -8,14 +8,6 @@ import * as tauriEvent from "@tauri-apps/api/event";
 // =============================================================================
 
 /**
- * The catalog of Deskulpt widgets.
- * 
- * This keeps a mapping from widget IDs to their descriptors (if valid) or
- * error messages (if invalid).
- */
-export type Catalog = { [key in string]: Outcome<WidgetDescriptor> }
-
-/**
  * Deskulpt window enum.
  */
 export type DeskulptWindow = 
@@ -37,10 +29,7 @@ export type DeskulptWindow =
 export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
 
 /**
- * Event for rendering a widget.
- * 
- * This event is emitted from the backend to the canvas window to instruct it
- * to render the specified widget.
+ * Event for reporting the rendering result of a widget to the canvas.
  */
 export type RenderEvent = { 
 /**
@@ -53,12 +42,17 @@ id: string;
 report: Outcome<string> }
 
 /**
- * Event for updating the widget catalog.
- * 
- * This event is emitted from the backend to all frontend windows whenever
- * there is a change in the widget catalog.
+ * Event for notifying frontend windows of a widget catalog update.
  */
-export type UpdateEvent = Catalog
+export type UpdateEvent = WidgetCatalog
+
+/**
+ * The catalog of Deskulpt widgets.
+ * 
+ * This keeps a mapping from widget IDs to their descriptors (if valid) or
+ * error messages (if invalid).
+ */
+export type WidgetCatalog = { [key in string]: Outcome<WidgetDescriptor> }
 
 /**
  * Deskulpt widget descriptor.

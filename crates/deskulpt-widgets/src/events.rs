@@ -4,12 +4,9 @@ use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use serde::Serialize;
 
-use crate::catalog::Catalog;
+use crate::catalog::WidgetCatalog;
 
-/// Event for rendering a widget.
-///
-/// This event is emitted from the backend to the canvas window to instruct it
-/// to render the specified widget.
+/// Event for reporting the rendering result of a widget to the canvas.
 #[derive(Debug, Serialize, specta::Type, Event)]
 pub struct RenderEvent<'a> {
     /// The ID of the widget.
@@ -18,9 +15,6 @@ pub struct RenderEvent<'a> {
     pub report: Outcome<String>,
 }
 
-/// Event for updating the widget catalog.
-///
-/// This event is emitted from the backend to all frontend windows whenever
-/// there is a change in the widget catalog.
+/// Event for notifying frontend windows of a widget catalog update.
 #[derive(Debug, Serialize, specta::Type, Event)]
-pub struct UpdateEvent<'a>(pub &'a Catalog);
+pub struct UpdateEvent<'a>(pub &'a WidgetCatalog);
