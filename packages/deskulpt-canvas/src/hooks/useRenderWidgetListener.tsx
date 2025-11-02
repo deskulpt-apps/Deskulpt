@@ -11,7 +11,7 @@ export const useRenderWidgetListener = createSetupTaskHook({
   task: `event:${deskulptWidgets.events.render.name}`,
   onMount: () =>
     deskulptWidgets.events.render.listen(async (event) => {
-      const { id, code } = event.payload;
+      const { id, report } = event.payload;
       const widgets = useWidgetsStore.getState();
 
       let apisBlobUrl: string;
@@ -34,7 +34,7 @@ export const useRenderWidgetListener = createSetupTaskHook({
         apisBlobUrl = URL.createObjectURL(apisBlob);
       }
 
-      if (code.type === "err") {
+      if (report.type === "err") {
         useWidgetsStore.setState(
           (state) => ({
             ...state,
@@ -43,7 +43,7 @@ export const useRenderWidgetListener = createSetupTaskHook({
                 createElement(ErrorDisplay, {
                   id,
                   error: "Error bundling the widget",
-                  message: code.content,
+                  message: report.content,
                 }),
               apisBlobUrl,
             },
@@ -53,7 +53,7 @@ export const useRenderWidgetListener = createSetupTaskHook({
         return;
       }
 
-      let moduleCode = code.content
+      let moduleCode = report.content
         .replaceAll("__DESKULPT_BASE_URL__", BASE_URL)
         .replaceAll("__DESKULPT_APIS_BLOB_URL__", apisBlobUrl);
       const moduleBlob = new Blob([moduleCode], {

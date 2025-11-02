@@ -18,7 +18,7 @@ use deskulpt_common::outcome::Outcome;
 use deskulpt_core::path::PathExt;
 use deskulpt_core::states::SettingsStateExt;
 use tauri::plugin::TauriPlugin;
-use tauri::{AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
 
 use crate::catalog::Catalog;
 use crate::events::UpdateEvent;
@@ -58,16 +58,20 @@ pub struct Widgets<R: Runtime> {
     catalog: RwLock<Catalog>,
     /// The handle for the render worker.
     render_handle: RenderWorkerHandle,
+    /// The setup state for frontend windows.
+    setup_state: SetupState,
 }
 
 impl<R: Runtime> Widgets<R> {
     /// Initialize the [`Widgets`] state.
     fn new(app_handle: AppHandle<R>) -> Self {
         let render_handle = RenderWorkerHandle::new(app_handle.clone());
+
         Self {
             app_handle,
             catalog: Default::default(),
             render_handle,
+            setup_state: Default::default(),
         }
     }
 
@@ -76,7 +80,7 @@ impl<R: Runtime> Widgets<R> {
     /// This method loads a new widget catalog from the widgets directory and
     /// replaces the existing catalog. It then syncs the settings with the
     /// updated catalog. If any step fails, an error is returned.
-    pub fn reload_all(&self) -> Result<()> {
+    fn reload_all(&self) -> Result<()> {
         let widgets_dir = self.app_handle.widgets_dir()?;
         let new_catalog = Catalog::load(widgets_dir)?;
 
@@ -95,7 +99,7 @@ impl<R: Runtime> Widgets<R> {
     /// worker. If the widget does not exist in the catalog or if task
     /// submission fails, an error is returned. This method is non-blocking and
     /// does not wait for the task to complete.
-    pub fn render(&self, id: String) -> Result<()> {
+    fn render(&self, id: String) -> Result<()> {
         let catalog = self.catalog.read().unwrap();
         let config = catalog
             .0
@@ -117,7 +121,7 @@ impl<R: Runtime> Widgets<R> {
     /// render worker. If any task submission fails, an error containing all
     /// accumulated errors is returned. This method is non-blocking and does not
     /// wait for the tasks to complete.
-    pub fn render_all(&self) -> Result<()> {
+    fn render_all(&self) -> Result<()> {
         let catalog = self.catalog.read().unwrap();
 
         let mut errors = vec![];
@@ -147,7 +151,7 @@ impl<R: Runtime> Widgets<R> {
     /// Rescan all widgets.
     ///
     /// This is equivalent to [`Self::reload_all`] then [`Self::render_all`].
-    pub fn rescan(&self) -> Result<()> {
+    fn rescan(&self) -> Result<()> {
         self.reload_all()?;
         self.render_all()?;
         Ok(())
@@ -158,10 +162,23 @@ impl<R: Runtime> Widgets<R> {
     /// If an ID is provided, the specified widget is bundled with
     /// [`Self::render`]. If no ID is provided, all widgets are bundled with
     /// [`Self::render_all`].
-    pub fn bundle(&self, id: Option<String>) -> Result<()> {
+    fn bundle(&self, id: Option<String>) -> Result<()> {
         match id {
             Some(id) => self.render(id)?,
             None => self.render_all()?,
+        }
+        Ok(())
+    }
+
+    /// Mark a window as having completed setup.
+    ///
+    /// If all windows have completed setup after this call, an initial rescan
+    /// is trigger via [`Self::rescan`].
+    fn complete_setup(&self, window: WebviewWindow<R>) -> Result<()> {
+        let window = window.label().try_into().unwrap();
+        let complete = self.setup_state.complete(window);
+        if complete {
+            self.rescan()?;
         }
         Ok(())
     }
