@@ -6,9 +6,9 @@
   "permissions": [
     "deskulpt-core:allow-open-widget",
     "deskulpt-core:allow-update-settings",
-    "deskulpt-widgets:allow-bundle",
     "deskulpt-widgets:allow-complete-setup",
-    "deskulpt-widgets:allow-rescan",
+    "deskulpt-widgets:allow-refresh",
+    "deskulpt-widgets:allow-refresh-all",
     "core:event:default",
     "clipboard-manager:allow-write-text",
     "opener:allow-open-url",

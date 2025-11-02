@@ -5,19 +5,19 @@ use tauri::{AppHandle, Runtime, WebviewWindow};
 
 use crate::WidgetsExt;
 
-/// Wrapper of [`crate::Widgets::bundle`].
+/// Wrapper of [`crate::Widgets::refresh`].
 #[tauri::command]
 #[specta::specta]
-pub async fn bundle<R: Runtime>(app_handle: AppHandle<R>, id: Option<String>) -> SerResult<()> {
-    app_handle.widgets().bundle(id)?;
+pub async fn refresh<R: Runtime>(app_handle: AppHandle<R>, id: String) -> SerResult<()> {
+    app_handle.widgets().refresh(&id)?;
     Ok(())
 }
 
-/// Wrapper of [`crate::Widgets::rescan`].
+/// Wrapper of [`crate::Widgets::refresh_all`].
 #[tauri::command]
 #[specta::specta]
-pub async fn rescan<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
-    app_handle.widgets().rescan()?;
+pub async fn refresh_all<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
+    app_handle.widgets().refresh_all()?;
     Ok(())
 }
 
