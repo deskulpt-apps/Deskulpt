@@ -11,6 +11,7 @@ mod bundler;
 mod commands;
 mod config;
 pub mod events;
+pub mod logging;
 pub mod path;
 mod settings;
 pub mod states;

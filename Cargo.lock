@@ -1159,19 +1159,12 @@ dependencies = [
 name = "deskulpt"
 version = "0.1.0"
 dependencies = [
- "anyhow",
  "deskulpt-core",
- "once_cell",
- "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-clipboard-manager",
  "tauri-plugin-global-shortcut",
  "tauri-plugin-opener",
- "time",
- "tracing",
- "tracing-appender",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -1222,7 +1215,11 @@ dependencies = [
  "specta",
  "tauri",
  "tauri-plugin-global-shortcut",
+ "time",
  "tokio",
+ "tracing",
+ "tracing-appender",
+ "tracing-subscriber",
 ]
 
 [[package]]

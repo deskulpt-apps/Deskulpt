@@ -13,6 +13,8 @@ static WIDGETS_DIR: OnceCell<Arc<PathBuf>> = OnceCell::new();
 
 /// Thread-safe lazily-initialized static for the persistence directory.
 static PERSIST_DIR: OnceCell<Arc<PathBuf>> = OnceCell::new();
+/// Thread-safe lazily-initialized static for the logs directory.
+static LOGS_DIR: OnceCell<Arc<PathBuf>> = OnceCell::new();
 
 /// Extension trait for path-related operations.
 pub trait PathExt<R: Runtime>: Manager<R> {
@@ -93,6 +95,35 @@ pub trait PathExt<R: Runtime>: Manager<R> {
             create_dir_all(persist_dir)?;
         }
         Ok(persist_dir)
+    }
+
+    /// Initialize the logs directory.
+    fn init_logs_dir(&self) -> Result<()> {
+        let logs_dir = LOGS_DIR.get_or_init(|| {
+            let base_dir = self
+                .path()
+                .app_log_dir()
+                .unwrap_or_else(|_| self.path().app_local_data_dir().unwrap().join("logs"));
+            Arc::new(dunce::simplified(&base_dir).to_path_buf())
+        });
+
+        if !logs_dir.exists() {
+            create_dir_all(logs_dir.as_ref())?;
+        }
+        Ok(())
+    }
+
+    /// Get a reference to the logs directory.
+    fn logs_dir(&self) -> Result<&Path> {
+        let logs_dir = LOGS_DIR
+            .get()
+            .ok_or_else(|| anyhow!("`init_logs_dir` must be called first"))?
+            .as_path();
+
+        if !logs_dir.exists() {
+            create_dir_all(logs_dir)?;
+        }
+        Ok(logs_dir)
     }
 }
 

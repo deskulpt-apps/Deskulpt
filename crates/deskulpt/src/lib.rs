@@ -4,8 +4,7 @@
     html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg"
 )]
 
-mod logging;
-
+use deskulpt_core::logging;
 use deskulpt_core::path::PathExt;
 use deskulpt_core::states::{
     CanvasImodeStateExt, SettingsStateExt, SetupStateExt, WidgetsStateExt,
