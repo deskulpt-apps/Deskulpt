@@ -127,14 +127,7 @@ export const commands = {
   rescan: () => invoke<null>("plugin:deskulpt-widgets|rescan"),
 
   /**
-   * Mark the window to have completed its setup.
-   * 
-   * If all setup has been completed after marking this window as completed, this
-   * command will automatically trigger an initial rescan of the widgets.
-   * 
-   * ### Errors
-   * 
-   * - Error rescanning the widgets (if applicable).
+   * Wrapper of [`crate::Widgets::complete_setup`].
    */
   completeSetup: () => invoke<null>("plugin:deskulpt-widgets|complete_setup"),
 };
