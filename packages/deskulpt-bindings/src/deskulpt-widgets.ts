@@ -8,13 +8,12 @@ import * as tauriEvent from "@tauri-apps/api/event";
 // =============================================================================
 
 /**
- * The widget catalog.
+ * The catalog of Deskulpt widgets.
  * 
- * This is a collection of all widgets discovered locally, mapped from their
- * widget IDs to their configurations. Invalid widgets are also included with
- * their error messages.
+ * This keeps a mapping from widget IDs to their descriptors (if valid) or
+ * error messages (if invalid).
  */
-export type Catalog = { [key in string]: Outcome<WidgetConfig> }
+export type Catalog = { [key in string]: Outcome<WidgetDescriptor> }
 
 /**
  * Deskulpt window enum.
@@ -51,7 +50,7 @@ id: string;
 /**
  * Either the code string to render or a bundling error message.
  */
-code: Outcome<string> }
+report: Outcome<string> }
 
 /**
  * Event for updating the widget catalog.
@@ -62,9 +61,12 @@ code: Outcome<string> }
 export type UpdateEvent = Catalog
 
 /**
- * Full configuration of a Deskulpt widget.
+ * Deskulpt widget descriptor.
+ * 
+ * This contains widget metadata obtained from manifest files necessary for
+ * bundling and rendering the widget.
  */
-export type WidgetConfig = { 
+export type WidgetDescriptor = { 
 /**
  * The name of the widget.
  */
@@ -111,17 +113,7 @@ export const events = {
 
 export const commands = {
   /**
-   * Bundle widget(s).
-   * 
-   * This command bundles the specified widget(s) that exist in the catalog. If
-   * `id` is not provided, all widgets in the catalog are bundled. This only
-   * notifies the bundler to process the widgets and does not wait for the
-   * bundling to complete. Bundling results are communicated back to the canvas
-   * window asynchronously.
-   * 
-   * ### Errors
-   * 
-   * - Error sending any bundling task to the bundler.
+   * Wrapper of [`crate::Widgets::bundle`].
    */
   bundle: (
     id: string | null,
@@ -130,18 +122,7 @@ export const commands = {
   }),
 
   /**
-   * Rescan the widgets directory to discover widgets.
-   * 
-   * This command scans the widgets directory for available widgets and updates
-   * the widget catalog and settings accordingly. It then emits events to notify
-   * the frontend of these changes. Finally, it triggers the bundling of all
-   * widgets in the updated catalog with `bundle_widgets` to ensure they are
-   * ready for use.
-   * 
-   * ### Errors
-   * 
-   * - Error reloading all widgets.
-   * - Error rendering all widgets.
+   * Wrapper of [`crate::Widgets::rescan`].
    */
   rescan: () => invoke<null>("plugin:deskulpt-widgets|rescan"),
 

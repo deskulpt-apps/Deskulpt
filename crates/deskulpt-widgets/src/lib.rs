@@ -4,19 +4,25 @@
     html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg"
 )]
 
-mod bundler;
 mod catalog;
 mod commands;
 mod events;
+mod render;
 mod setup;
 
 use std::sync::RwLock;
 
+use anyhow::{Result, anyhow, bail};
+use deskulpt_common::event::Event;
+use deskulpt_common::outcome::Outcome;
+use deskulpt_core::path::PathExt;
+use deskulpt_core::states::SettingsStateExt;
 use tauri::plugin::TauriPlugin;
 use tauri::{AppHandle, Manager, Runtime};
 
-use crate::bundler::RenderWorkerHandle;
 use crate::catalog::Catalog;
+use crate::events::UpdateEvent;
+use crate::render::{RenderWorkerHandle, RenderWorkerTask};
 use crate::setup::SetupState;
 
 deskulpt_common::bindings::build_bindings!();
@@ -32,28 +38,6 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         .build()
 }
 
-/// Managed state for Deskulpt widgets.
-pub struct Widgets<R: Runtime> {
-    /// An app handle embedded for convenience.
-    app_handle: AppHandle<R>,
-    /// The widget catalog.
-    catalog: RwLock<Catalog>,
-    /// The handle for the render worker.
-    render_handle: RenderWorkerHandle,
-}
-
-impl<R: Runtime> Widgets<R> {
-    /// Initialize the [`Widgets`] state.
-    pub fn new(app_handle: AppHandle<R>) -> Self {
-        let render_handle = RenderWorkerHandle::new(app_handle.clone());
-        Self {
-            app_handle,
-            catalog: Default::default(),
-            render_handle,
-        }
-    }
-}
-
 /// Extension to [`Manager`] for accessing Deskulpt widgets APIs.
 pub trait WidgetsExt<R: Runtime> {
     /// Get a reference to the managed [`Widgets`] state.
@@ -63,5 +47,122 @@ pub trait WidgetsExt<R: Runtime> {
 impl<R: Runtime, M: Manager<R>> WidgetsExt<R> for M {
     fn widgets(&self) -> &Widgets<R> {
         self.state::<Widgets<R>>().inner()
+    }
+}
+
+/// Managed state for Deskulpt widgets.
+pub struct Widgets<R: Runtime> {
+    /// The Tauri app handle.
+    app_handle: AppHandle<R>,
+    /// The widget catalog.
+    catalog: RwLock<Catalog>,
+    /// The handle for the render worker.
+    render_handle: RenderWorkerHandle,
+}
+
+impl<R: Runtime> Widgets<R> {
+    /// Initialize the [`Widgets`] state.
+    fn new(app_handle: AppHandle<R>) -> Self {
+        let render_handle = RenderWorkerHandle::new(app_handle.clone());
+        Self {
+            app_handle,
+            catalog: Default::default(),
+            render_handle,
+        }
+    }
+
+    /// Reload all widgets.
+    ///
+    /// This method loads a new widget catalog from the widgets directory and
+    /// replaces the existing catalog. It then syncs the settings with the
+    /// updated catalog. If any step fails, an error is returned.
+    pub fn reload_all(&self) -> Result<()> {
+        let widgets_dir = self.app_handle.widgets_dir()?;
+        let new_catalog = Catalog::load(widgets_dir)?;
+
+        let mut catalog = self.catalog.write().unwrap();
+        *catalog = new_catalog;
+        UpdateEvent(&catalog).emit(&self.app_handle)?;
+
+        self.app_handle
+            .update_settings(|settings| catalog.compute_settings_patch(settings))?;
+        Ok(())
+    }
+
+    /// Render a specific widget by its ID.
+    ///
+    /// This method submits a render task for the specified widget to the render
+    /// worker. If the widget does not exist in the catalog or if task
+    /// submission fails, an error is returned. This method is non-blocking and
+    /// does not wait for the task to complete.
+    pub fn render(&self, id: String) -> Result<()> {
+        let catalog = self.catalog.read().unwrap();
+        let config = catalog
+            .0
+            .get(&id)
+            .ok_or_else(|| anyhow!("Widget {id} does not exist in the catalog"))?;
+
+        if let Outcome::Ok(config) = config {
+            self.render_handle.process(RenderWorkerTask::Render {
+                id,
+                entry: config.entry.clone(),
+            })?;
+        }
+        Ok(())
+    }
+
+    /// Render all widgets in the catalog.
+    ///
+    /// This method submits render tasks for all widgets in the catalog to the
+    /// render worker. If any task submission fails, an error containing all
+    /// accumulated errors is returned. This method is non-blocking and does not
+    /// wait for the tasks to complete.
+    pub fn render_all(&self) -> Result<()> {
+        let catalog = self.catalog.read().unwrap();
+
+        let mut errors = vec![];
+        for (id, config) in catalog.0.iter() {
+            if let Outcome::Ok(config) = config
+                && let Err(e) = self.render_handle.process(RenderWorkerTask::Render {
+                    id: id.clone(),
+                    entry: config.entry.clone(),
+                })
+            {
+                errors.push(e.context(format!("Failed to send render task for widget {id}")));
+            }
+        }
+
+        if !errors.is_empty() {
+            let message = errors
+                .into_iter()
+                .map(|e| format!("{e:?}"))
+                .collect::<Vec<_>>()
+                .join("\n");
+            bail!(message);
+        }
+
+        Ok(())
+    }
+
+    /// Rescan all widgets.
+    ///
+    /// This is equivalent to [`Self::reload_all`] then [`Self::render_all`].
+    pub fn rescan(&self) -> Result<()> {
+        self.reload_all()?;
+        self.render_all()?;
+        Ok(())
+    }
+
+    /// Bundle widget(s).
+    ///
+    /// If an ID is provided, the specified widget is bundled with
+    /// [`Self::render`]. If no ID is provided, all widgets are bundled with
+    /// [`Self::render_all`].
+    pub fn bundle(&self, id: Option<String>) -> Result<()> {
+        match id {
+            Some(id) => self.render(id)?,
+            None => self.render_all()?,
+        }
+        Ok(())
     }
 }

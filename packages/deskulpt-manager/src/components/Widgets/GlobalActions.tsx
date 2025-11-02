@@ -9,7 +9,7 @@ interface GlobalActionsProps {
 
 const GlobalActions = memo(({ length }: GlobalActionsProps) => {
   const refreshAction = useCallback(() => {
-    deskulptWidgets.commands.bundle(null).catch(console.error);
+    deskulptWidgets.commands.render(null).catch(console.error);
   }, []);
 
   const rescanAction = useCallback(() => {

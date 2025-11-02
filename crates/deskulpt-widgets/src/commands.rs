@@ -1,47 +1,24 @@
+//! Tauri commands.
+
 use deskulpt_common::SerResult;
 use tauri::{AppHandle, Runtime, WebviewWindow};
 
 use crate::WidgetsExt;
 use crate::setup::SetupStateExt;
 
-/// Bundle widget(s).
-///
-/// This command bundles the specified widget(s) that exist in the catalog. If
-/// `id` is not provided, all widgets in the catalog are bundled. This only
-/// notifies the bundler to process the widgets and does not wait for the
-/// bundling to complete. Bundling results are communicated back to the canvas
-/// window asynchronously.
-///
-/// ### Errors
-///
-/// - Error sending any bundling task to the bundler.
+/// Wrapper of [`crate::Widgets::bundle`].
 #[tauri::command]
 #[specta::specta]
 pub async fn bundle<R: Runtime>(app_handle: AppHandle<R>, id: Option<String>) -> SerResult<()> {
-    match id {
-        Some(id) => app_handle.widgets().render(id)?,
-        None => app_handle.widgets().render_all()?,
-    }
+    app_handle.widgets().bundle(id)?;
     Ok(())
 }
 
-/// Rescan the widgets directory to discover widgets.
-///
-/// This command scans the widgets directory for available widgets and updates
-/// the widget catalog and settings accordingly. It then emits events to notify
-/// the frontend of these changes. Finally, it triggers the bundling of all
-/// widgets in the updated catalog with `bundle_widgets` to ensure they are
-/// ready for use.
-///
-/// ### Errors
-///
-/// - Error reloading all widgets.
-/// - Error rendering all widgets.
+/// Wrapper of [`crate::Widgets::rescan`].
 #[tauri::command]
 #[specta::specta]
 pub async fn rescan<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
-    app_handle.widgets().reload_all()?;
-    bundle(app_handle, None).await?;
+    app_handle.widgets().rescan()?;
     Ok(())
 }
 

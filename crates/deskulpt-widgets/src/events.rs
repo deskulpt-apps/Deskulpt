@@ -1,3 +1,5 @@
+//! Tauri events.
+
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use serde::Serialize;
@@ -13,7 +15,7 @@ pub struct RenderEvent<'a> {
     /// The ID of the widget.
     pub id: &'a str,
     /// Either the code string to render or a bundling error message.
-    pub code: Outcome<String>,
+    pub report: Outcome<String>,
 }
 
 /// Event for updating the widget catalog.
