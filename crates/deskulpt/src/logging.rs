@@ -119,7 +119,7 @@ fn install_subscriber(writer: NonBlocking) -> Result<()> {
 
     let fmt_layer = tracing_fmt::layer()
         .with_ansi(false)
-        .event_format(NdjsonFormatter::default())
+        .event_format(NdjsonFormatter)
         .with_writer(writer);
 
     let subscriber = Registry::default().with(env_filter).with(fmt_layer);
