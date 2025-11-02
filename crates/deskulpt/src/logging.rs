@@ -1,7 +1,7 @@
 use std::cmp::Ordering;
 use std::collections::BTreeMap;
 use std::fs::{self, OpenOptions, create_dir_all};
-use std::panic::PanicInfo;
+use std::panic::PanicHookInfo;
 use std::path::{Path, PathBuf};
 use std::time::{Duration, SystemTime};
 use std::{fmt, thread};
@@ -9,16 +9,17 @@ use std::{fmt, thread};
 use anyhow::{Context, Result};
 use deskulpt_core::path::PathExt;
 use once_cell::sync::OnceCell;
-use serde_json::{Map as JsonMap, Value as JsonValue};
+use serde_json::{Map as JsonMap, Number as JsonNumber, Value as JsonValue};
 use tauri::{App, Runtime};
+use time::OffsetDateTime;
+use time::format_description::well_known::Rfc3339;
 use tracing::field::{Field, Visit};
 use tracing::{Event, Subscriber};
 use tracing_appender::non_blocking::{self, NonBlocking, WorkerGuard};
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::EnvFilter;
-use tracing_subscriber::fmt::format::{FormatEvent, FormatFields, Writer as FormatWriter};
-use tracing_subscriber::fmt::time::UtcTime;
-use tracing_subscriber::fmt::{self, FmtContext};
+use tracing_subscriber::fmt::format::{FormatEvent, FormatFields, Writer};
+use tracing_subscriber::fmt::{self as tracing_fmt, FmtContext};
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::registry::{LookupSpan, Registry};
 
@@ -116,7 +117,7 @@ fn build_writer(logs_dir: &Path) -> Result<(NonBlocking, WorkerGuard)> {
 fn install_subscriber(writer: NonBlocking) -> Result<()> {
     let env_filter = EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new("info"));
 
-    let fmt_layer = fmt::layer()
+    let fmt_layer = tracing_fmt::layer()
         .with_ansi(false)
         .event_format(NdjsonFormatter::default())
         .with_writer(writer);
@@ -146,7 +147,7 @@ fn install_panic_hook() {
     PANIC_HOOK.set(()).ok();
 }
 
-fn log_panic(panic_info: &PanicInfo<'_>) {
+fn log_panic(panic_info: &PanicHookInfo) {
     let backtrace = std::backtrace::Backtrace::force_capture();
     let message = panic_message(panic_info);
 
@@ -163,7 +164,7 @@ fn log_panic(panic_info: &PanicInfo<'_>) {
     }
 }
 
-fn panic_message(panic_info: &PanicInfo<'_>) -> String {
+fn panic_message(panic_info: &PanicHookInfo) -> String {
     if let Some(message) = panic_info.payload().downcast_ref::<&str>() {
         (*message).to_owned()
     } else if let Some(message) = panic_info.payload().downcast_ref::<String>() {
@@ -308,8 +309,9 @@ fn collect_rotated_logs(logs_dir: &Path) -> Result<Vec<LogInfo>> {
             continue;
         }
 
-        let Ok(file_name) = entry.file_name().into_string() else {
-            continue;
+        let file_name = match entry.file_name().into_string() {
+            Ok(name) => name,
+            Err(_) => continue,
         };
 
         let Some((date, sequence)) = parse_log_components(&file_name) else {
@@ -369,22 +371,14 @@ fn prune_sequence(mut logs: Vec<LogInfo>) -> Result<()> {
     Ok(())
 }
 
-#[derive(Clone)]
-struct NdjsonFormatter {
-    timer: UtcTime,
-}
+#[derive(Clone, Default)]
+struct NdjsonFormatter;
 
 impl NdjsonFormatter {
-    const fn new() -> Self {
-        Self {
-            timer: UtcTime::rfc3339(),
-        }
-    }
-}
-
-impl Default for NdjsonFormatter {
-    fn default() -> Self {
-        Self::new()
+    fn timestamp() -> String {
+        let now = OffsetDateTime::now_utc();
+        now.format(&Rfc3339)
+            .unwrap_or_else(|_| now.unix_timestamp().to_string())
     }
 }
 
@@ -396,11 +390,11 @@ where
     fn format_event(
         &self,
         _: &FmtContext<'_, S, N>,
-        writer: &mut FormatWriter<'_>,
+        writer: Writer<'_>,
         event: &Event<'_>,
     ) -> fmt::Result {
-        let mut timestamp = String::new();
-        self.timer.format_time(&mut timestamp)?;
+        let mut writer = writer;
+        let timestamp = Self::timestamp();
 
         let metadata = event.metadata();
         let mut json = JsonMap::new();
@@ -429,7 +423,7 @@ where
         let mut visitor = JsonVisitor::new(&mut json);
         event.record(&mut visitor);
 
-        json.entry("message".into())
+        json.entry(String::from("message"))
             .or_insert_with(|| JsonValue::String(String::new()));
 
         let line = serde_json::to_string(&JsonValue::Object(json)).map_err(|_| fmt::Error)?;
@@ -470,7 +464,7 @@ impl<'a> Visit for JsonVisitor<'a> {
     }
 
     fn record_f64(&mut self, field: &Field, value: f64) {
-        if let Some(number) = serde_json::Number::from_f64(value) {
+        if let Some(number) = JsonNumber::from_f64(value) {
             self.insert(field, JsonValue::Number(number));
         } else {
             self.record_debug(field, &value);
