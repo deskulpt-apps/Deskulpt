@@ -1,81 +1,24 @@
-//! Configuration of Deskulpt widgets.
+//! Catalog for Deskulpt widgets.
 
 use std::collections::{BTreeMap, HashMap};
-use std::fs::File;
-use std::io::BufReader;
 use std::path::Path;
 
 use anyhow::{Context, Result};
 use deskulpt_common::outcome::Outcome;
-use serde::de::DeserializeOwned;
-use serde::{Deserialize, Serialize};
+use deskulpt_core::settings::{Settings, SettingsPatch};
+use serde::Serialize;
 
-use crate::schema::Settings;
-use crate::settings::SettingsPatch;
+use crate::catalog::manifests::{LoadManifest, PackageManifest, WidgetManifest};
 
-/// The Deskulpt widget manifest.
-#[derive(Debug, Deserialize)]
+mod manifests;
+
+/// Deskulpt widget descriptor.
+///
+/// This contains widget metadata obtained from manifest files necessary for
+/// bundling and rendering the widget.
+#[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct WidgetManifest {
-    /// The name of the widget.
-    ///
-    /// This is purely used for display purposes. It does not need to be related
-    /// to the widget directory name, and it does not need to be unique.
-    pub name: String,
-    /// The entry point of the widget.
-    ///
-    /// This is the path to the file that exports the widget component. The path
-    /// should be relative to the widget directory.
-    pub entry: String,
-    /// Whether to ignore the widget.
-    ///
-    /// If set to true, the widget will not be discovered by the application.
-    /// This is useful for temporarily disabling a widget without removing it.
-    #[serde(default, skip_serializing)]
-    ignore: bool,
-}
-
-/// The Node.js package manifest.
-#[derive(Debug, Default, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct PackageManifest {
-    #[serde(default)]
-    pub dependencies: HashMap<String, String>,
-}
-
-/// Helper trait for loading manifest files from a directory.
-trait LoadManifest: Sized + DeserializeOwned {
-    /// The name of the manifest file.
-    const FILE_NAME: &'static str;
-
-    /// Load the manifest file from the given directory.
-    ///
-    /// Specially, this method returns `Ok(None)` if the target file does not
-    /// exist and does not treat it as an error.
-    fn load(dir: &Path) -> Result<Option<Self>> {
-        let path = dir.join(Self::FILE_NAME);
-        if !path.exists() {
-            return Ok(None);
-        }
-        let file = File::open(path)?;
-        let reader = BufReader::new(file);
-        let config = serde_json::from_reader(reader)?;
-        Ok(Some(config))
-    }
-}
-
-impl LoadManifest for WidgetManifest {
-    const FILE_NAME: &'static str = "deskulpt.widget.json";
-}
-
-impl LoadManifest for PackageManifest {
-    const FILE_NAME: &'static str = "package.json";
-}
-
-/// Full configuration of a Deskulpt widget.
-#[derive(Debug, Serialize, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct WidgetConfig {
+pub struct WidgetDescriptor {
     /// The name of the widget.
     pub name: String,
     /// The entry point of the widget.
@@ -84,12 +27,12 @@ pub struct WidgetConfig {
     pub dependencies: HashMap<String, String>,
 }
 
-impl WidgetConfig {
-    /// Read full widget configuration from a directory.
+impl WidgetDescriptor {
+    /// Load the widget descriptor from a directory.
     ///
     /// Specially, this method returns `Ok(None)` if the directory does not
-    /// contain a widget configuration file or if the widget is explicitly
-    /// marked as ignored in the configuration file.
+    /// contain a widget descriptor file or if the widget is explicitly marked
+    /// as ignored in the widget manifest.
     pub fn load(dir: &Path) -> Result<Option<Self>> {
         let widget_manifest = match WidgetManifest::load(dir)
             .with_context(|| format!("Failed to load {}", WidgetManifest::FILE_NAME))?
@@ -102,7 +45,7 @@ impl WidgetConfig {
             .with_context(|| format!("Failed to load {}", PackageManifest::FILE_NAME))?
             .unwrap_or_default();
 
-        Ok(Some(WidgetConfig {
+        Ok(Some(WidgetDescriptor {
             name: widget_manifest.name,
             entry: widget_manifest.entry,
             dependencies: package_manifest.dependencies,
@@ -110,20 +53,21 @@ impl WidgetConfig {
     }
 }
 
-/// The widget catalog.
+/// The catalog of Deskulpt widgets.
 ///
-/// This is a collection of all widgets discovered locally, mapped from their
-/// widget IDs to their configurations. Invalid widgets are also included with
-/// their error messages.
-#[derive(Debug, Default, Serialize, Deserialize, specta::Type)]
-pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetConfig>>);
+/// This keeps a mapping from widget IDs to their descriptors (if valid) or
+/// error messages (if invalid).
+#[derive(Debug, Default, Serialize, specta::Type)]
+pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetDescriptor>>);
 
 impl WidgetCatalog {
-    /// Load the widget catalog from the given directory.
+    /// Load the widget catalog from a directory.
     ///
     /// This scans all top-level subdirectories and attempts to load them as
-    /// widgets. Non-widget directories are simply ignored. See
-    /// [`WidgetConfig::load`] for more details.
+    /// widgets. Widget IDs are derived from the directory names. Widget
+    /// descriptors or error messages are stored accordingly, depending on
+    /// whether the directory is successfully loaded as a widget. Non-widget
+    /// directories are not included in the catalog.
     pub fn load(dir: &Path) -> Result<Self> {
         let mut catalog = Self::default();
 
@@ -136,7 +80,7 @@ impl WidgetCatalog {
                 continue; // Non-directory entries are not widgets, skip
             }
 
-            if let Some(config) = WidgetConfig::load(&path)
+            if let Some(descriptor) = WidgetDescriptor::load(&path)
                 .map(|opt| opt.map(Outcome::Ok))
                 .unwrap_or_else(|e| Some(Outcome::Err(format!("{e:?}"))))
             {
@@ -144,7 +88,7 @@ impl WidgetCatalog {
                 // directory, the directory names must be unique and we can use
                 // them as widget IDs
                 let id = entry.file_name().to_string_lossy().to_string();
-                catalog.0.insert(id, config);
+                catalog.0.insert(id, descriptor);
             }
         }
 
