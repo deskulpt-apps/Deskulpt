@@ -39,7 +39,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 }
 
 /// Extension to [`Manager`] for accessing Deskulpt widgets APIs.
-pub trait WidgetsExt<R: Runtime> {
+trait WidgetsExt<R: Runtime> {
     /// Get a reference to the managed [`Widgets`] state.
     fn widgets(&self) -> &Widgets<R>;
 }
@@ -51,7 +51,7 @@ impl<R: Runtime, M: Manager<R>> WidgetsExt<R> for M {
 }
 
 /// Managed state for Deskulpt widgets.
-pub struct Widgets<R: Runtime> {
+struct Widgets<R: Runtime> {
     /// The Tauri app handle.
     app_handle: AppHandle<R>,
     /// The widget catalog.
