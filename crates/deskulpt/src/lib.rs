@@ -4,6 +4,8 @@
     html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg"
 )]
 
+mod logging;
+
 use deskulpt_core::path::PathExt;
 use deskulpt_core::states::{
     CanvasImodeStateExt, SettingsStateExt, SetupStateExt, WidgetsStateExt,
@@ -22,6 +24,7 @@ pub fn run() {
         .setup(move |app| {
             app.init_widgets_dir()?;
             app.init_persist_dir()?;
+            logging::init(app)?;
 
             app.manage_settings();
             app.manage_setup();
