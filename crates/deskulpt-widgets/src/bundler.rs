@@ -207,13 +207,13 @@ impl<R: Runtime> Widgets<R> {
 
         let mut errors = vec![];
         for (id, config) in catalog.0.iter() {
-            if let Outcome::Ok(config) = config {
-                if let Err(e) = self.render_handle.send(RenderWidgetTask {
+            if let Outcome::Ok(config) = config
+                && let Err(e) = self.render_handle.send(RenderWidgetTask {
                     id: id.clone(),
                     entry: config.entry.clone(),
-                }) {
-                    errors.push(e.context(format!("Failed to send render task for widget {id}")));
-                }
+                })
+            {
+                errors.push(e.context(format!("Failed to send render task for widget {id}")));
             }
         }
 
