@@ -53,3 +53,6 @@ deskulpt-build = { workspace = true }
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--extend-css", "../rustdoc.css"]
+
+[package.metadata.cargo-shear]
+ignored = ["time"]

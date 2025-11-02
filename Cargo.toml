@@ -78,3 +78,6 @@ lto           = "fat"
 opt-level     = "s"
 panic         = "abort"
 strip         = true
+
+[workspace.metadata.cargo-shear]
+ignored = ["time"]
