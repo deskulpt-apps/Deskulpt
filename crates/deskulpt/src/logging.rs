@@ -1,3 +1,5 @@
+use std::cmp::Ordering;
+use std::collections::BTreeMap;
 use std::fs::{self, OpenOptions, create_dir_all};
 use std::panic::PanicInfo;
 use std::path::{Path, PathBuf};
@@ -24,9 +26,15 @@ use tracing_subscriber::registry::{LookupSpan, Registry};
 const LOG_FILE_PREFIX: &str = "app";
 /// File suffix (extension) for the rolling log files.
 const LOG_FILE_SUFFIX: &str = "log";
+/// Prefix used once a log file has been rotated and renamed.
+const PRIMARY_ROTATED_PREFIX: &str = "app.log.";
+/// Legacy prefix created by `RollingFileAppender` before we normalise names.
+const LEGACY_ROTATED_PREFIX: &str = "app.";
+/// Legacy suffix created by `RollingFileAppender` before we normalise names.
+const LEGACY_ROTATED_SUFFIX: &str = ".log";
 /// The canonical log file consumers will tail.
 const PRIMARY_LOG_BASENAME: &str = "app.log";
-/// Maximum number of rotated log files we keep.
+/// Maximum number of rotated log files, not counting the live `app.log`.
 const MAX_LOG_FILES: usize = 10;
 /// How often we update the `app.log` hard link to the active file.
 const PRIMARY_LINK_REFRESH: Duration = Duration::from_secs(30);
@@ -39,6 +47,15 @@ static INIT: OnceCell<()> = OnceCell::new();
 static PANIC_HOOK: OnceCell<()> = OnceCell::new();
 /// Ensures we only spawn the maintenance task once.
 static LINK_TASK: OnceCell<()> = OnceCell::new();
+
+/// Snapshot of a rotated log file used to normalise naming and prune history.
+#[derive(Clone)]
+struct LogInfo {
+    path: PathBuf,
+    created: SystemTime,
+    date: String,
+    sequence: Option<usize>,
+}
 
 /// Initialize tracing with JSON output and panic logging.
 pub fn init<R: Runtime>(app: &mut App<R>) -> Result<()> {
@@ -68,7 +85,9 @@ fn prepare_logs_dir<R: Runtime>(app: &App<R>) -> Result<PathBuf> {
 fn build_writer(logs_dir: &Path) -> Result<(NonBlocking, WorkerGuard)> {
     let appender = RollingFileAppender::builder()
         .rotation(Rotation::DAILY)
-        .max_log_files(MAX_LOG_FILES)
+        // Keep extra headroom here; we normalise names and prune to exactly
+        // `MAX_LOG_FILES` ourselves once the files land on disk.
+        .max_log_files(MAX_LOG_FILES * 5)
         .filename_prefix(LOG_FILE_PREFIX)
         .filename_suffix(LOG_FILE_SUFFIX)
         .build(logs_dir)
@@ -80,6 +99,12 @@ fn build_writer(logs_dir: &Path) -> Result<(NonBlocking, WorkerGuard)> {
 
     // Ensure an `app.log` placeholder exists immediately.
     let _ = create_primary_placeholder(logs_dir);
+    if let Err(error) = refresh_primary_log_link(logs_dir) {
+        eprintln!("deskulpt logging: unable to link app.log to active log: {error:?}");
+    }
+    if let Err(error) = apply_sequence_suffixes(logs_dir) {
+        eprintln!("deskulpt logging: unable to apply log sequence suffix: {error:?}");
+    }
     if let Err(error) = refresh_primary_log_link(logs_dir) {
         eprintln!("deskulpt logging: unable to link app.log to active log: {error:?}");
     }
@@ -166,6 +191,9 @@ fn start_primary_link_task(logs_dir: PathBuf) {
         .name("deskulpt-log-link".into())
         .spawn(move || {
             loop {
+                if let Err(error) = apply_sequence_suffixes(&logs_dir) {
+                    eprintln!("deskulpt logging: unable to refresh log sequences: {error:?}");
+                }
                 if let Err(error) = refresh_primary_log_link(&logs_dir) {
                     eprintln!("deskulpt logging: unable to refresh app.log link: {error:?}");
                 }
@@ -226,16 +254,119 @@ fn refresh_primary_log_link(logs_dir: &Path) -> Result<()> {
 }
 
 fn is_rotated_log(name: &str) -> bool {
-    let Some(rest) = name.strip_prefix(LOG_FILE_PREFIX) else {
-        return false;
-    };
+    parse_log_components(name).is_some()
+}
 
-    if !rest.starts_with('.') || !name.ends_with(LOG_FILE_SUFFIX) {
-        return false;
+/// Renames legacy `app.YYYY-MM-DD.log` files into `app.log.YYYY-MM-DD.N` and
+/// keeps the most recent `MAX_LOG_FILES` historical logs.
+fn apply_sequence_suffixes(logs_dir: &Path) -> Result<()> {
+    let mut groups: BTreeMap<String, Vec<LogInfo>> = BTreeMap::new();
+    for info in collect_rotated_logs(logs_dir)? {
+        groups.entry(info.date.clone()).or_default().push(info);
     }
 
-    // Rotated logs include a date component (`YYYY-MM-DD`).
-    name.chars().filter(|c| *c == '-').count() >= 2
+    let mut all_logs = Vec::new();
+
+    for (date, mut infos) in groups {
+        infos.sort_by(|a, b| match a.created.cmp(&b.created) {
+            Ordering::Equal => a.sequence.cmp(&b.sequence),
+            ordering => ordering,
+        });
+
+        for (idx, mut info) in infos.into_iter().enumerate() {
+            let sequence = idx + 1;
+            let target = logs_dir.join(format!("{PRIMARY_LOG_BASENAME}.{date}.{sequence}"));
+            if info.path != target {
+                if target.exists() {
+                    fs::remove_file(&target).ok();
+                }
+                fs::rename(&info.path, &target).with_context(|| {
+                    format!(
+                        "failed to rename {} to {}",
+                        info.path.display(),
+                        target.display()
+                    )
+                })?;
+                info.path = target;
+            }
+            info.sequence = Some(sequence);
+            all_logs.push(info);
+        }
+    }
+
+    prune_sequence(all_logs)?;
+
+    Ok(())
+}
+
+fn collect_rotated_logs(logs_dir: &Path) -> Result<Vec<LogInfo>> {
+    let mut infos = Vec::new();
+
+    for entry in fs::read_dir(logs_dir).context("failed to read logs directory for sequencing")? {
+        let entry = entry.context("failed to read log directory entry")?;
+        if !entry.file_type().map(|ft| ft.is_file()).unwrap_or(false) {
+            continue;
+        }
+
+        let Ok(file_name) = entry.file_name().into_string() else {
+            continue;
+        };
+
+        let Some((date, sequence)) = parse_log_components(&file_name) else {
+            continue;
+        };
+
+        let metadata = entry.metadata().context("failed to read log metadata")?;
+        let created = metadata
+            .created()
+            .or_else(|_| metadata.modified())
+            .unwrap_or(SystemTime::UNIX_EPOCH);
+
+        infos.push(LogInfo {
+            path: entry.path(),
+            created,
+            date,
+            sequence,
+        });
+    }
+
+    Ok(infos)
+}
+
+fn parse_log_components(name: &str) -> Option<(String, Option<usize>)> {
+    if let Some(rest) = name.strip_prefix(PRIMARY_ROTATED_PREFIX) {
+        let mut parts = rest.split('.');
+        let date = parts.next()?.to_owned();
+        let sequence = parts.next().and_then(|value| value.parse().ok());
+        return Some((date, sequence));
+    }
+
+    if let Some(rest) = name.strip_prefix(LEGACY_ROTATED_PREFIX) {
+        let rest = rest.strip_suffix(LEGACY_ROTATED_SUFFIX)?;
+        return Some((rest.to_owned(), None));
+    }
+
+    None
+}
+
+/// Drops the oldest log files so only `MAX_LOG_FILES` rotated logs remain.
+fn prune_sequence(mut logs: Vec<LogInfo>) -> Result<()> {
+    if logs.len() <= MAX_LOG_FILES {
+        return Ok(());
+    }
+
+    logs.sort_by(|a, b| b.created.cmp(&a.created));
+
+    for info in logs.into_iter().skip(MAX_LOG_FILES) {
+        if let Err(error) = fs::remove_file(&info.path) {
+            eprintln!(
+                "deskulpt logging: failed to remove old log file {}: {error:?}",
+                info.path.display()
+            );
+        }
+    }
+
+    Ok(())
 }
 
 #[derive(Clone)]
