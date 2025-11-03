@@ -1215,7 +1215,6 @@ dependencies = [
  "specta",
  "tauri",
  "tauri-plugin-global-shortcut",
- "time",
  "tokio",
  "tracing",
  "tracing-appender",
