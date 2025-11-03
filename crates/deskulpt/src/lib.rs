@@ -23,6 +23,7 @@ pub fn run() {
         .setup(move |app| {
             app.init_widgets_dir()?;
             app.init_persist_dir()?;
+            app.init_logs_dir()?;
             logging::init(app)?;
 
             app.manage_settings();

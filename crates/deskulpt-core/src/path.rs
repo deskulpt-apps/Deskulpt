@@ -104,7 +104,7 @@ pub trait PathExt<R: Runtime>: Manager<R> {
                 .path()
                 .app_log_dir()
                 .unwrap_or_else(|_| self.path().app_local_data_dir().unwrap().join("logs"));
-            Arc::new(dunce::simplified(&base_dir).to_path_buf())
+            Arc::new(base_dir)
         });
 
         if !logs_dir.exists() {
