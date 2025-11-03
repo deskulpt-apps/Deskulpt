@@ -13,6 +13,7 @@ static WIDGETS_DIR: OnceCell<Arc<PathBuf>> = OnceCell::new();
 
 /// Thread-safe lazily-initialized static for the persistence directory.
 static PERSIST_DIR: OnceCell<Arc<PathBuf>> = OnceCell::new();
+
 /// Thread-safe lazily-initialized static for the logs directory.
 static LOGS_DIR: OnceCell<Arc<PathBuf>> = OnceCell::new();
 
@@ -98,13 +99,13 @@ pub trait PathExt<R: Runtime>: Manager<R> {
     }
 
     /// Initialize the logs directory.
+    ///
+    /// This will create the logs directory if it does not exist. It must be
+    /// called before calling the [`logs_dir`](PathExt::logs_dir) method.
     fn init_logs_dir(&self) -> Result<()> {
         let logs_dir = LOGS_DIR.get_or_init(|| {
-            let base_dir = self
-                .path()
-                .app_log_dir()
-                .unwrap_or_else(|_| self.path().app_local_data_dir().unwrap().join("logs"));
-            Arc::new(base_dir)
+            let logs_dir = self.path().app_log_dir().unwrap();
+            Arc::new(logs_dir)
         });
 
         if !logs_dir.exists() {
@@ -114,6 +115,11 @@ pub trait PathExt<R: Runtime>: Manager<R> {
     }
 
     /// Get a reference to the logs directory.
+    ///
+    /// This will create the logs directory if it does not exist, which can
+    /// happen if one removes that directory during the application. This will
+    /// error if the [`init_logs_dir`](PathExt::init_logs_dir) method has not
+    /// been called.
     fn logs_dir(&self) -> Result<&Path> {
         let logs_dir = LOGS_DIR
             .get()

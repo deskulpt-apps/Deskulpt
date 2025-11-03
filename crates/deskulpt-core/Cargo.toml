@@ -27,7 +27,7 @@ tokio                        = { workspace = true }
 tracing                      = { workspace = true }
 tracing-appender             = { workspace = true }
 tracing-panic                = { workspace = true }
-tracing-subscriber           = { workspace = true, features = ["env-filter", "time"] }
+tracing-subscriber           = { workspace = true, features = ["time"] }
 
 tauri = { workspace = true, features = [
   "specta",

@@ -9,7 +9,6 @@ use tauri::plugin::TauriPlugin;
 
 mod commands;
 pub mod events;
-pub mod logging;
 pub mod path;
 pub mod settings;
 pub mod states;
