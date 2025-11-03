@@ -44,13 +44,7 @@ time                           = "0.3.36"
 tokio                          = "1.48.0"
 tracing                        = "0.1.40"
 tracing-appender               = "0.2.3"
-
-tracing-subscriber = { version = "0.3.20", features = [
-  "env-filter",
-  "fmt",
-  "json",
-  "time",
-] }
+tracing-subscriber             = "0.3.20"
 
 # Deskulpt crates
 deskulpt-build         = { version = "0.1.0", path = "crates/deskulpt-build" }
