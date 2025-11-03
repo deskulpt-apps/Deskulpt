@@ -13,13 +13,13 @@ use rolldown::plugin::{
 ///
 /// This is a simplified version of the rolldown built-in alias plugin since we
 /// only need a subset of its functionalities.
-///
-/// Based on the given alias mapping, this plugin will replace the original
-/// imports with the aliased imports. Note that the aliased imports need to be
-/// either resolvable or externalized to avoid bundling errors.
 #[derive(Debug)]
 pub struct AliasPlugin(
     /// The alias mapping from original imports to aliased imports.
+    ///
+    /// The plugin will replace any import that matches a key in this map with
+    /// the corresponding value. Note that the aliased imports need to be either
+    /// resolvable or externalized to avoid bundling errors.
     pub HashMap<String, String>,
 );
 

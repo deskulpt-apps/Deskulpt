@@ -1,35 +1,26 @@
-//! Bundler for Deskulpt widgets.
-
-mod alias;
+//! Rolldown-based bundler for Deskulpt widgets.
 
 use std::path::PathBuf;
 use std::sync::Arc;
 
-use alias::AliasPlugin;
 use anyhow::{Result, anyhow, bail};
 use either::Either;
 use rolldown::{
-    Bundler, BundlerOptions, BundlerTransformOptions, JsxOptions, OutputFormat, Platform,
-    RawMinifyOptions,
+    BundlerOptions, BundlerTransformOptions, JsxOptions, OutputFormat, Platform, RawMinifyOptions,
 };
 use rolldown_common::Output;
 
-/// Builder for the Deskulpt widget bundler.
-pub struct WidgetBundlerBuilder {
-    /// Absolute path to the widget directory.
-    root: PathBuf,
-    /// Entry file relative to the widget directory.
-    entry: String,
-}
+use crate::render::alias_plugin::AliasPlugin;
 
-impl WidgetBundlerBuilder {
-    /// Create a new widget bundler builder instance.
-    pub fn new(root: PathBuf, entry: String) -> Self {
-        Self { root, entry }
-    }
+/// The Deskulpt widget bundler.
+pub struct Bundler(rolldown::Bundler);
 
-    /// Build the Deskulpt widget bundler.
-    pub fn build(self) -> Result<WidgetBundler> {
+impl Bundler {
+    /// Create a new [`Bundler`] instance.
+    ///
+    /// This takes the root directory of the widget and the entry file path
+    /// relative to the root directory.
+    pub fn new(root: PathBuf, entry: String) -> Result<Self> {
         const JSX_RUNTIME_URL: &str = "__DESKULPT_BASE_URL__/gen/jsx-runtime.js";
         const RAW_APIS_URL: &str = "__DESKULPT_BASE_URL__/gen/raw-apis.js";
         const REACT_URL: &str = "__DESKULPT_BASE_URL__/gen/react.js";
@@ -37,8 +28,8 @@ impl WidgetBundlerBuilder {
         const APIS_BLOB_URL: &str = "__DESKULPT_APIS_BLOB_URL__";
 
         let bundler_options = BundlerOptions {
-            input: Some(vec![self.entry.into()]),
-            cwd: Some(self.root),
+            input: Some(vec![entry.into()]),
+            cwd: Some(root),
             format: Some(OutputFormat::Esm),
             platform: Some(Platform::Browser),
             minify: Some(RawMinifyOptions::Bool(true)),
@@ -84,20 +75,13 @@ impl WidgetBundlerBuilder {
             .into(),
         );
 
-        let bundler = Bundler::with_plugins(bundler_options, vec![Arc::new(alias_plugin)])?;
-        Ok(WidgetBundler { bundler })
+        let inner = rolldown::Bundler::with_plugins(bundler_options, vec![Arc::new(alias_plugin)])?;
+        Ok(Self(inner))
     }
-}
 
-/// The Deskulpt widget bundler.
-pub struct WidgetBundler {
-    bundler: Bundler,
-}
-
-impl WidgetBundler {
     /// Bundle the widget into a single ESM code string.
     pub async fn bundle(&mut self) -> Result<String> {
-        let result = self.bundler.generate().await.map_err(|e| {
+        let result = self.0.generate().await.map_err(|e| {
             anyhow!(
                 e.into_vec()
                     .iter()

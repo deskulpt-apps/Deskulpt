@@ -12,15 +12,10 @@ version    = { workspace = true }
 
 [dependencies]
 anyhow                       = { workspace = true }
-bitflags                     = { workspace = true }
 deskulpt-common              = { workspace = true }
 dunce                        = { workspace = true }
-either                       = { workspace = true }
-itertools                    = { workspace = true }
 once_cell                    = { workspace = true }
 open                         = { workspace = true, features = ["shellexecute-on-windows"] }
-rolldown                     = { workspace = true }
-rolldown_common              = { workspace = true }
 schemars                     = { workspace = true }
 serde                        = { workspace = true, features = ["derive"] }
 serde_json                   = { workspace = true }

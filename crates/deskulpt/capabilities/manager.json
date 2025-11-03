@@ -5,10 +5,10 @@
   "windows": ["manager"],
   "permissions": [
     "deskulpt-core:allow-open-widget",
-    "deskulpt-core:allow-complete-setup",
-    "deskulpt-core:allow-rescan-widgets",
-    "deskulpt-core:allow-bundle-widgets",
     "deskulpt-core:allow-update-settings",
+    "deskulpt-widgets:allow-bundle",
+    "deskulpt-widgets:allow-complete-setup",
+    "deskulpt-widgets:allow-rescan",
     "core:event:default",
     "clipboard-manager:allow-write-text",
     "opener:allow-open-url",

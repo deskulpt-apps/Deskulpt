@@ -23,30 +23,6 @@ export type DeskulptWindow =
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key in string]: JsonValue }
 
 /**
- * A result-like binary outcome.
- * 
- * This represents the outcome of an operation that can either succeed with a
- * value of type `T` or fail with an error message.
- */
-export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
-
-/**
- * Event for rendering a widget.
- * 
- * This event is emitted from the backend to the canvas window to instruct it
- * to render the specified widget.
- */
-export type RenderWidgetEvent = { 
-/**
- * The ID of the widget.
- */
-id: string; 
-/**
- * Either the code string to render or a bundling error message.
- */
-code: Outcome<string> }
-
-/**
  * Full settings of the Deskulpt application.
  */
 export type Settings = { 
@@ -134,40 +110,6 @@ export type Theme = "light" | "dark"
 export type UpdateSettingsEvent = Settings
 
 /**
- * Event for updating the widget catalog.
- * 
- * This event is emitted from the backend to all frontend windows whenever
- * there is a change in the widget catalog.
- */
-export type UpdateWidgetCatalogEvent = WidgetCatalog
-
-/**
- * The widget catalog.
- * 
- * This is a collection of all widgets discovered locally, mapped from their
- * widget IDs to their configurations. Invalid widgets are also included with
- * their error messages.
- */
-export type WidgetCatalog = { [key in string]: Outcome<WidgetConfig> }
-
-/**
- * Full configuration of a Deskulpt widget.
- */
-export type WidgetConfig = { 
-/**
- * The name of the widget.
- */
-name: string; 
-/**
- * The entry point of the widget.
- */
-entry: string; 
-/**
- * The dependencies of the widget.
- */
-dependencies: { [key in string]: string } }
-
-/**
  * Per-widget settings.
  * 
  * Different from widget configurations, these are independent of the widget
@@ -243,10 +185,8 @@ function makeEvent<T>(name: string) {
 }
 
 export const events = {
-  renderWidget: makeEvent<RenderWidgetEvent>("deskulpt-core://render-widget"),
   showToast: makeEvent<ShowToastEvent>("deskulpt-core://show-toast"),
   updateSettings: makeEvent<UpdateSettingsEvent>("deskulpt-core://update-settings"),
-  updateWidgetCatalog: makeEvent<UpdateWidgetCatalogEvent>("deskulpt-core://update-widget-catalog"),
 };
 
 // =============================================================================
@@ -254,37 +194,6 @@ export const events = {
 // =============================================================================
 
 export const commands = {
-  /**
-   * Bundle widget(s).
-   * 
-   * This command bundles the specified widget(s) that exist in the catalog. If
-   * `id` is not provided, all widgets in the catalog are bundled. This only
-   * notifies the bundler to process the widgets and does not wait for the
-   * bundling to complete. Bundling results are communicated back to the canvas
-   * window asynchronously.
-   * 
-   * ### Errors
-   * 
-   * - Error sending any bundling task to the bundler.
-   */
-  bundleWidgets: (
-    id: string | null,
-  ) => invoke<null>("plugin:deskulpt-core|bundle_widgets", {
-    id,
-  }),
-
-  /**
-   * Mark the window to have completed its setup.
-   * 
-   * If all setup has been completed after marking this window as completed, this
-   * command will automatically trigger an initial rescan of the widgets.
-   * 
-   * ### Errors
-   * 
-   * - Error rescanning the widgets (if applicable).
-   */
-  completeSetup: () => invoke<null>("plugin:deskulpt-core|complete_setup"),
-
   /**
    * Call a plugin command (🚧 TODO 🚧).
    * 
@@ -328,22 +237,6 @@ export const commands = {
   ) => invoke<null>("plugin:deskulpt-core|open_widget", {
     id,
   }),
-
-  /**
-   * Rescan the widgets directory to discover widgets.
-   * 
-   * This command scans the widgets directory for available widgets and updates
-   * the widget catalog and settings accordingly. It then emits events to notify
-   * the frontend of these changes. Finally, it triggers the bundling of all
-   * widgets in the updated catalog with `bundle_widgets` to ensure they are
-   * ready for use.
-   * 
-   * ### Errors
-   * 
-   * - Error reloading all widgets.
-   * - Error rendering all widgets.
-   */
-  rescanWidgets: () => invoke<null>("plugin:deskulpt-core|rescan_widgets"),
 
   /**
    * Wrapper of [`SettingsStateExt::update_settings`].

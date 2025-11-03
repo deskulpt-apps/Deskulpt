@@ -1,7 +1,7 @@
 import { Flex, IconButton } from "@radix-ui/themes";
 import { memo, useCallback } from "react";
 import { LuFileScan, LuFolderOpen, LuRepeat } from "react-icons/lu";
-import { deskulptCore } from "@deskulpt/bindings";
+import { deskulptCore, deskulptWidgets } from "@deskulpt/bindings";
 
 interface GlobalActionsProps {
   length: number;
@@ -9,11 +9,11 @@ interface GlobalActionsProps {
 
 const GlobalActions = memo(({ length }: GlobalActionsProps) => {
   const refreshAction = useCallback(() => {
-    deskulptCore.commands.bundleWidgets(null).catch(console.error);
+    deskulptWidgets.commands.bundle(null).catch(console.error);
   }, []);
 
   const rescanAction = useCallback(() => {
-    deskulptCore.commands.rescanWidgets().catch(console.error);
+    deskulptWidgets.commands.rescan().catch(console.error);
   }, []);
 
   const openAction = useCallback(() => {

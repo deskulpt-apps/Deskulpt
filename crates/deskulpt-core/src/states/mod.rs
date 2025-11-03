@@ -3,8 +3,6 @@
 mod canvas_imode;
 mod logging;
 mod settings;
-mod setup;
-mod widgets;
 
 #[doc(hidden)]
 pub use canvas_imode::CanvasImodeStateExt;
@@ -12,7 +10,3 @@ pub use canvas_imode::CanvasImodeStateExt;
 pub use logging::LoggingStateExt;
 #[doc(hidden)]
 pub use settings::SettingsStateExt;
-#[doc(hidden)]
-pub use setup::SetupStateExt;
-#[doc(hidden)]
-pub use widgets::WidgetsStateExt;
