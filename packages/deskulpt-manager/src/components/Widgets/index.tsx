@@ -30,7 +30,7 @@ const WidgetsTab = memo(() => {
               </Flex>
             </ScrollArea>
             <Separator size="4" />
-            <GlobalActions length={ids.length} />
+            <GlobalActions />
           </Flex>
         </Tabs.List>
         {ids.length === 0 ? (

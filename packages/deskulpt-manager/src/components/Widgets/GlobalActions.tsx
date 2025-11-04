@@ -3,11 +3,7 @@ import { memo, useCallback } from "react";
 import { LuFolderOpen, LuRepeat } from "react-icons/lu";
 import { deskulptCore, deskulptWidgets } from "@deskulpt/bindings";
 
-interface GlobalActionsProps {
-  length: number;
-}
-
-const GlobalActions = memo(({ length }: GlobalActionsProps) => {
+const GlobalActions = memo(() => {
   const refreshAction = useCallback(() => {
     deskulptWidgets.commands.refreshAll().catch(console.error);
   }, []);
@@ -23,7 +19,6 @@ const GlobalActions = memo(({ length }: GlobalActionsProps) => {
         size="1"
         variant="ghost"
         onClick={refreshAction}
-        disabled={length === 0}
       >
         <LuRepeat size="16" />
       </IconButton>
