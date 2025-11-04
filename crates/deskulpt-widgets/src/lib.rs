@@ -20,7 +20,7 @@ use deskulpt_core::states::SettingsStateExt;
 use tauri::plugin::TauriPlugin;
 use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
 
-use crate::catalog::WidgetCatalog;
+use crate::catalog::{WidgetCatalog, WidgetDescriptor};
 use crate::events::UpdateEvent;
 use crate::render::{RenderWorkerHandle, RenderWorkerTask};
 use crate::setup::SetupState;
@@ -75,6 +75,35 @@ impl<R: Runtime> Widgets<R> {
         }
     }
 
+    /// Reload a specific widget by its ID.
+    ///
+    /// This method loads the widget descriptor from the corresponding widget
+    /// directory and updates the catalog entry for that widget. This could be
+    /// an addition, removal, or modification. It then syncs the settings with
+    /// the updated catalog. If any step fails, an error is returned.
+    fn reload(&self, id: &str) -> Result<()> {
+        let widget_dir = self.app_handle.widgets_dir()?.join(id);
+        let descriptor = WidgetDescriptor::load(&widget_dir);
+
+        let mut catalog = self.catalog.write().unwrap();
+        match descriptor {
+            Ok(Some(descriptor)) => {
+                catalog.0.insert(id.to_string(), Outcome::Ok(descriptor));
+            },
+            Ok(None) => {
+                catalog.0.remove(id);
+            },
+            Err(e) => {
+                catalog.0.insert(id.to_string(), Err(e).into());
+            },
+        };
+        UpdateEvent(&catalog).emit(&self.app_handle)?;
+
+        self.app_handle
+            .update_settings(|settings| catalog.compute_settings_patch(settings))?;
+        Ok(())
+    }
+
     /// Reload all widgets.
     ///
     /// This method loads a new widget catalog from the widgets directory and
@@ -99,16 +128,16 @@ impl<R: Runtime> Widgets<R> {
     /// worker. If the widget does not exist in the catalog or if task
     /// submission fails, an error is returned. This method is non-blocking and
     /// does not wait for the task to complete.
-    fn render(&self, id: String) -> Result<()> {
+    fn render(&self, id: &str) -> Result<()> {
         let catalog = self.catalog.read().unwrap();
         let config = catalog
             .0
-            .get(&id)
+            .get(id)
             .ok_or_else(|| anyhow!("Widget {id} does not exist in the catalog"))?;
 
         if let Outcome::Ok(config) = config {
             self.render_handle.process(RenderWorkerTask::Render {
-                id,
+                id: id.to_string(),
                 entry: config.entry.clone(),
             })?;
         }
@@ -148,37 +177,33 @@ impl<R: Runtime> Widgets<R> {
         Ok(())
     }
 
-    /// Rescan all widgets.
+    /// Refresh a specific widget by its ID.
+    ///
+    /// This is equivalent to [`Self::reload`] then [`Self::render`].
+    fn refresh(&self, id: &str) -> Result<()> {
+        self.reload(id)?;
+        self.render(id)?;
+        Ok(())
+    }
+
+    /// Refresh all widgets.
     ///
     /// This is equivalent to [`Self::reload_all`] then [`Self::render_all`].
-    fn rescan(&self) -> Result<()> {
+    fn refresh_all(&self) -> Result<()> {
         self.reload_all()?;
         self.render_all()?;
         Ok(())
     }
 
-    /// Bundle widget(s).
-    ///
-    /// If an ID is provided, the specified widget is bundled with
-    /// [`Self::render`]. If no ID is provided, all widgets are bundled with
-    /// [`Self::render_all`].
-    fn bundle(&self, id: Option<String>) -> Result<()> {
-        match id {
-            Some(id) => self.render(id)?,
-            None => self.render_all()?,
-        }
-        Ok(())
-    }
-
     /// Mark a window as having completed setup.
     ///
-    /// If all windows have completed setup after this call, an initial rescan
-    /// is trigger via [`Self::rescan`].
+    /// If all windows have completed setup after this call, an initial refresh
+    /// of all widgets is trigger via [`Self::refresh_all`].
     fn complete_setup(&self, window: WebviewWindow<R>) -> Result<()> {
         let window = window.label().try_into().unwrap();
         let complete = self.setup_state.complete(window);
         if complete {
-            self.rescan()?;
+            self.refresh_all()?;
         }
         Ok(())
     }

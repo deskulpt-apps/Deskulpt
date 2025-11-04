@@ -1,19 +1,11 @@
 import { Flex, IconButton } from "@radix-ui/themes";
 import { memo, useCallback } from "react";
-import { LuFileScan, LuFolderOpen, LuRepeat } from "react-icons/lu";
+import { LuFolderOpen, LuRepeat } from "react-icons/lu";
 import { deskulptCore, deskulptWidgets } from "@deskulpt/bindings";
 
-interface GlobalActionsProps {
-  length: number;
-}
-
-const GlobalActions = memo(({ length }: GlobalActionsProps) => {
+const GlobalActions = memo(() => {
   const refreshAction = useCallback(() => {
-    deskulptWidgets.commands.bundle(null).catch(console.error);
-  }, []);
-
-  const rescanAction = useCallback(() => {
-    deskulptWidgets.commands.rescan().catch(console.error);
+    deskulptWidgets.commands.refreshAll().catch(console.error);
   }, []);
 
   const openAction = useCallback(() => {
@@ -27,17 +19,8 @@ const GlobalActions = memo(({ length }: GlobalActionsProps) => {
         size="1"
         variant="ghost"
         onClick={refreshAction}
-        disabled={length === 0}
       >
         <LuRepeat size="16" />
-      </IconButton>
-      <IconButton
-        title="Rescan widgets directory"
-        size="1"
-        variant="ghost"
-        onClick={rescanAction}
-      >
-        <LuFileScan size="16" />
       </IconButton>
       <IconButton
         title="Open widgets directory"

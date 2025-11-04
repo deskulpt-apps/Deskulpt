@@ -107,21 +107,21 @@ export const events = {
 
 export const commands = {
   /**
-   * Wrapper of [`crate::Widgets::bundle`].
+   * Wrapper of [`crate::Widgets::complete_setup`].
    */
-  bundle: (
-    id: string | null,
-  ) => invoke<null>("plugin:deskulpt-widgets|bundle", {
+  completeSetup: () => invoke<null>("plugin:deskulpt-widgets|complete_setup"),
+
+  /**
+   * Wrapper of [`crate::Widgets::refresh`].
+   */
+  refresh: (
+    id: string,
+  ) => invoke<null>("plugin:deskulpt-widgets|refresh", {
     id,
   }),
 
   /**
-   * Wrapper of [`crate::Widgets::rescan`].
+   * Wrapper of [`crate::Widgets::refresh_all`].
    */
-  rescan: () => invoke<null>("plugin:deskulpt-widgets|rescan"),
-
-  /**
-   * Wrapper of [`crate::Widgets::complete_setup`].
-   */
-  completeSetup: () => invoke<null>("plugin:deskulpt-widgets|complete_setup"),
+  refreshAll: () => invoke<null>("plugin:deskulpt-widgets|refresh_all"),
 };
