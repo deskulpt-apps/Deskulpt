@@ -5,7 +5,7 @@
 )]
 
 use deskulpt_core::path::PathExt;
-use deskulpt_core::states::{CanvasImodeStateExt, SettingsStateExt};
+use deskulpt_core::states::{CanvasImodeStateExt, LoggingStateExt, SettingsStateExt};
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
 use tauri::image::Image;
@@ -20,7 +20,9 @@ pub fn run() {
         .setup(move |app| {
             app.init_widgets_dir()?;
             app.init_persist_dir()?;
+            app.init_logs_dir()?;
 
+            app.manage_logging()?;
             app.manage_settings();
             app.manage_canvas_imode();
 
