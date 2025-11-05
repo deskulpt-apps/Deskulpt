@@ -5,7 +5,7 @@ use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
 use deskulpt_core::path::PathExt;
 use tauri::{AppHandle, Runtime};
-use tokio::sync::mpsc::UnboundedSender;
+use tokio::sync::mpsc;
 
 use crate::events::RenderEvent;
 use crate::render::bundler::Bundler;
@@ -13,7 +13,7 @@ use crate::render::bundler::Bundler;
 mod alias_plugin;
 mod bundler;
 
-/// Tasks for the render worker.
+/// A task for the render worker.
 pub enum RenderWorkerTask {
     /// Bundle and render a widget.
     Render {
@@ -43,7 +43,7 @@ async fn process_render_task<R: Runtime>(app_handle: &AppHandle<R>, id: String, 
 }
 
 /// Handle for communicating with the render worker.
-pub struct RenderWorkerHandle(UnboundedSender<RenderWorkerTask>);
+pub struct RenderWorkerHandle(mpsc::UnboundedSender<RenderWorkerTask>);
 
 impl RenderWorkerHandle {
     /// Create a new [`RenderWorkerHandle`] instance.
@@ -51,7 +51,7 @@ impl RenderWorkerHandle {
     /// This immediately spawns the render worker on the async runtime that
     /// listens for incoming [`RenderWorkerTask`]s and processes them.
     pub fn new<R: Runtime>(app_handle: AppHandle<R>) -> Self {
-        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel::<RenderWorkerTask>();
+        let (tx, mut rx) = mpsc::unbounded_channel::<RenderWorkerTask>();
 
         tauri::async_runtime::spawn(async move {
             while let Some(task) = rx.recv().await {

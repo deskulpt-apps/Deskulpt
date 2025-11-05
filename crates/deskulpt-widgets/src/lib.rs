@@ -57,7 +57,7 @@ struct Widgets<R: Runtime> {
     /// The widget catalog.
     catalog: RwLock<WidgetCatalog>,
     /// The handle for the render worker.
-    render_handle: RenderWorkerHandle,
+    render_worker: RenderWorkerHandle,
     /// The setup state for frontend windows.
     setup_state: SetupState,
 }
@@ -65,12 +65,12 @@ struct Widgets<R: Runtime> {
 impl<R: Runtime> Widgets<R> {
     /// Initialize the [`Widgets`] state.
     fn new(app_handle: AppHandle<R>) -> Self {
-        let render_handle = RenderWorkerHandle::new(app_handle.clone());
+        let render_worker = RenderWorkerHandle::new(app_handle.clone());
 
         Self {
             app_handle,
             catalog: Default::default(),
-            render_handle,
+            render_worker,
             setup_state: Default::default(),
         }
     }
@@ -136,7 +136,7 @@ impl<R: Runtime> Widgets<R> {
             .ok_or_else(|| anyhow!("Widget {id} does not exist in the catalog"))?;
 
         if let Outcome::Ok(config) = config {
-            self.render_handle.process(RenderWorkerTask::Render {
+            self.render_worker.process(RenderWorkerTask::Render {
                 id: id.to_string(),
                 entry: config.entry.clone(),
             })?;
@@ -156,7 +156,7 @@ impl<R: Runtime> Widgets<R> {
         let mut errors = vec![];
         for (id, config) in catalog.0.iter() {
             if let Outcome::Ok(config) = config
-                && let Err(e) = self.render_handle.process(RenderWorkerTask::Render {
+                && let Err(e) = self.render_worker.process(RenderWorkerTask::Render {
                     id: id.clone(),
                     entry: config.entry.clone(),
                 })
