@@ -8,7 +8,7 @@ Deskulpt is a cross-platform desktop app built with Tauri v2. It allows users to
 
 - `deskulpt/`: The main application binary. It should only wire things up and should not contain heavy logic.
 - `deskulpt-core/`: An internal Tauri plugin for core backend functionalities. This is going to be broken up into smaller crates in the future.
-- `deskulpt-widgets/` - An internal Tauri plugin for Deskulpt widgets management.
+- `deskulpt-widgets/`: An internal Tauri plugin for Deskulpt widgets management.
 - `deskulpt-workspace/`: Workspace utilities.
 - `deskulpt-build/`: Build system utilities.
 
