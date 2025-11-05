@@ -11,11 +11,13 @@ use crate::events::UpdateSettingsEvent;
 use crate::path::PathExt;
 use crate::settings::{Settings, SettingsPatch, ShortcutKey, Theme};
 
+type OnThemeChange = Box<dyn Fn(&Theme, &Theme) + Send + Sync>;
+type OnShortcutChange = Box<dyn Fn(&ShortcutKey, Option<&String>, Option<&String>) + Send + Sync>;
+
 #[derive(Default)]
 struct SettingsHooks {
-    on_theme_change: Vec<Box<dyn Fn(&Theme, &Theme) + Send + Sync>>,
-    on_shortcut_change:
-        Vec<Box<dyn Fn(&ShortcutKey, Option<&String>, Option<&String>) + Send + Sync>>,
+    on_theme_change: Vec<OnThemeChange>,
+    on_shortcut_change: Vec<OnShortcutChange>,
 }
 
 #[derive(Debug)]
