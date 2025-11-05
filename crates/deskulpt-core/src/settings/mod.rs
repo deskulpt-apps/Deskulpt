@@ -7,10 +7,11 @@ use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::{DefaultOnError, MapSkipError, serde_as};
 
 mod persistence;
-mod shortcuts;
 
 /// Light/dark theme of the application.
-#[derive(Debug, Clone, Default, Deserialize, Serialize, JsonSchema, specta::Type)]
+#[derive(
+    Debug, Clone, Default, PartialEq, Eq, Deserialize, Serialize, JsonSchema, specta::Type,
+)]
 #[serde(rename_all = "camelCase")]
 pub enum Theme {
     #[default]
@@ -103,6 +104,33 @@ pub struct WidgetSettingsPatch {
     /// If not `None`, update [`WidgetSettings::opacity`].
     #[specta(optional, type = u8)]
     pub opacity: Option<u8>,
+}
+
+impl WidgetSettings {
+    /// Apply a [`WidgetSettingsPatch`].
+    ///
+    /// This method also returns whether the widget settings is actually changed
+    /// by the patch.
+    pub fn apply_patch(&mut self, patch: WidgetSettingsPatch) -> bool {
+        #[inline]
+        fn set_if_changed<T: PartialEq>(dst: &mut T, src: Option<T>) -> bool {
+            match src {
+                Some(v) if *dst != v => {
+                    *dst = v;
+                    true
+                },
+                _ => false,
+            }
+        }
+
+        let mut dirty = false;
+        dirty |= set_if_changed(&mut self.x, patch.x);
+        dirty |= set_if_changed(&mut self.y, patch.y);
+        dirty |= set_if_changed(&mut self.width, patch.width);
+        dirty |= set_if_changed(&mut self.height, patch.height);
+        dirty |= set_if_changed(&mut self.opacity, patch.opacity);
+        dirty
+    }
 }
 
 /// Full settings of the Deskulpt application.

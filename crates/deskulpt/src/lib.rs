@@ -5,6 +5,7 @@
 )]
 
 use deskulpt_core::path::PathExt;
+use deskulpt_core::shortcuts::ShortcutsExt;
 use deskulpt_core::states::{CanvasImodeStateExt, LoggingStateExt, SettingsStateExt};
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
@@ -31,6 +32,7 @@ pub fn run() {
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
+            app.init_shortcuts();
             app.create_manager()?;
             app.create_canvas()?;
             app.create_tray(DESKULPT_ICON)?;
