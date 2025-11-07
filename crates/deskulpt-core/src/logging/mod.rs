@@ -24,7 +24,7 @@ impl WidgetContext {
     {
         Self {
             widget_id: Arc::<str>::from(widget_id.into()),
-            plugin_id: plugin_id.map(|id| Arc::<str>::from(id)),
+            plugin_id: plugin_id.map(Arc::<str>::from),
         }
     }
 
@@ -74,6 +74,12 @@ impl TriggerContext {
 
 /// Layer that tracks span relationships so we can store metadata externally.
 pub struct SpanContextLayer;
+
+impl Default for SpanContextLayer {
+    fn default() -> Self {
+        Self
+    }
+}
 
 impl SpanContextLayer {
     /// Create a new [`SpanContextLayer`].
