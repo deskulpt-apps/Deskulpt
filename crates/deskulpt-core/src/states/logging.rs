@@ -151,7 +151,7 @@ impl SizeCappedAppender {
     fn file_mut(&mut self) -> io::Result<&mut File> {
         self.file
             .as_mut()
-            .ok_or_else(|| io::Error::new(io::ErrorKind::Other, "log file is not available"))
+            .ok_or_else(|| io::Error::other("log file is not available"))
     }
 }
 
