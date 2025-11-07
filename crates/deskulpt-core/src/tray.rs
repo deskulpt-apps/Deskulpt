@@ -6,6 +6,7 @@ use tauri::image::Image;
 use tauri::menu::{MenuBuilder, MenuEvent, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use tauri::{App, AppHandle, Runtime};
+use tracing::info_span;
 
 use crate::states::CanvasImodeStateExt;
 use crate::window::WindowExt;
@@ -55,31 +56,57 @@ impl<R: Runtime> TrayExt<R> for AppHandle<R> {}
 fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
     match event.id().as_ref() {
         "tray-toggle" => {
-            if let Err(e) = app_handle.toggle_canvas_imode() {
+            let span = info_span!(
+                "tray.menu_action",
+                action = "toggle_canvas_imode",
+                trigger = "tray_menu",
+                status = tracing::field::Empty,
+            );
+            if let Err(e) = span.in_scope(|| app_handle.toggle_canvas_imode()) {
                 tracing::error!(
                     action = "toggle_canvas_imode",
-                    error = %e,
+                    trigger = "tray_menu",
+                    status = "error",
+                    error_kind = %e,
                     "Failed to toggle canvas interaction mode from tray menu",
                 );
-            }
+            };
         },
         "tray-manage" => {
-            if let Err(e) = app_handle.open_manager() {
+            let span = info_span!(
+                "tray.menu_action",
+                action = "open_manager_window",
+                trigger = "tray_menu",
+                status = tracing::field::Empty,
+            );
+            if let Err(e) = span.in_scope(|| app_handle.open_manager()) {
                 tracing::error!(
-                    action = "open_manager",
-                    error = %e,
+                    action = "open_manager_window",
+                    trigger = "tray_menu",
+                    status = "error",
+                    error_kind = %e,
                     "Failed to open manager window from tray menu",
                 );
-            }
+            };
         },
         "tray-exit" => {
-            if let Err(e) = app_handle
-                .persist_dir()
-                .and_then(|dir| app_handle.get_settings().dump(dir))
-            {
+            let span = info_span!(
+                "tray.menu_action",
+                action = "persist_settings",
+                trigger = "tray_menu",
+                status = tracing::field::Empty,
+            );
+            let persist_result = span.in_scope(|| {
+                app_handle
+                    .persist_dir()
+                    .and_then(|dir| app_handle.get_settings().dump(dir))
+            });
+            if let Err(e) = persist_result {
                 tracing::error!(
-                    action = "dump_settings",
-                    error = %e,
+                    action = "persist_settings",
+                    trigger = "tray_menu",
+                    status = "error",
+                    error_kind = %e,
                     "Failed to persist settings before exiting from tray",
                 );
                 app_handle.exit(1);
@@ -102,10 +129,18 @@ fn on_tray_icon_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
         && button_state == MouseButtonState::Down
     {
         // Toggle canvas interaction mode on left-click
-        if let Err(e) = tray.app_handle().toggle_canvas_imode() {
+        let span = info_span!(
+            "tray.icon_action",
+            action = "toggle_canvas_imode",
+            trigger = "tray_icon",
+            status = tracing::field::Empty,
+        );
+        if let Err(e) = span.in_scope(|| tray.app_handle().toggle_canvas_imode()) {
             tracing::error!(
                 action = "toggle_canvas_imode",
-                error = %e,
+                trigger = "tray_icon",
+                status = "error",
+                error_kind = %e,
                 "Failed to toggle canvas interaction mode from tray icon",
             );
         }

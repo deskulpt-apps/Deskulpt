@@ -9,6 +9,7 @@ use script::{CanvasInitJS, ManagerInitJS};
 use tauri::{
     App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, Window, WindowEvent,
 };
+use tracing::info_span;
 
 /// Extention trait for window-related operations.
 pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
@@ -113,10 +114,18 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
         // clicked, but only hide it instead
         if let WindowEvent::CloseRequested { api, .. } = event {
             api.prevent_close();
-            if let Err(e) = window.hide() {
+            let span = info_span!(
+                "window.close_request",
+                window = "manager",
+                operation = "hide_window",
+                status = tracing::field::Empty,
+            );
+            if let Err(e) = span.in_scope(|| window.hide()) {
                 tracing::error!(
                     window = "manager",
-                    error = %e,
+                    operation = "hide_window",
+                    status = "error",
+                    error_kind = %e,
                     "Failed to hide manager window on close request",
                 );
             }

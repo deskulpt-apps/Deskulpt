@@ -1216,6 +1216,7 @@ dependencies = [
  "tracing-appender",
  "tracing-panic",
  "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]
@@ -1300,6 +1301,7 @@ dependencies = [
  "tauri",
  "tokio",
  "tracing",
+ "uuid",
 ]
 
 [[package]]
