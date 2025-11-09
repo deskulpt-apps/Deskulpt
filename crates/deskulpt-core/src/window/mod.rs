@@ -9,7 +9,7 @@ use script::{CanvasInitJS, ManagerInitJS};
 use tauri::{
     App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, Window, WindowEvent,
 };
-use tracing::info_span;
+use tracing::instrument;
 
 /// Extention trait for window-related operations.
 pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
@@ -108,24 +108,16 @@ impl<R: Runtime> WindowExt<R> for App<R> {}
 impl<R: Runtime> WindowExt<R> for AppHandle<R> {}
 
 /// Window event handler for all Deskulpt windows.
+#[instrument(skip(window, event))]
 pub fn on_window_event(window: &Window, event: &WindowEvent) {
     if window.label() == "manager" {
         // Prevent the manager window from closing when the close button is
         // clicked, but only hide it instead
         if let WindowEvent::CloseRequested { api, .. } = event {
             api.prevent_close();
-            let span = info_span!(
-                "window.close_request",
-                window = "manager",
-                operation = "hide_window",
-                status = tracing::field::Empty,
-            );
-            if let Err(e) = span.in_scope(|| window.hide()) {
+            if let Err(e) = window.hide() {
                 tracing::error!(
-                    window = "manager",
-                    operation = "hide_window",
-                    status = "error",
-                    error_kind = %e,
+                    error = %e,
                     "Failed to hide manager window on close request",
                 );
             }

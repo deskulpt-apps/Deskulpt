@@ -2,7 +2,7 @@ use deskulpt_common::{SerResult, ser_bail};
 use once_cell::sync::Lazy;
 use tauri::{AppHandle, Runtime, command};
 use tokio::sync::Mutex;
-use tracing::{Instrument, info_span};
+use tracing::instrument;
 use uuid::Uuid;
 
 use crate::path::PathExt;
@@ -29,6 +29,16 @@ static SYS_PLUGIN: Lazy<Mutex<deskulpt_plugin_sys::SysPlugin>> =
 /// it should be a generic `R: Runtime` parameter in the final implementation.
 #[command]
 #[specta::specta]
+#[instrument(
+    skip(app_handle, payload),
+    fields(
+        plugin = %plugin,
+        widget_id = %id,
+        command = %command,
+        request_id = tracing::field::Empty
+    ),
+    err
+)]
 pub async fn call_plugin<R: Runtime>(
     app_handle: AppHandle<R>,
     plugin: String,
@@ -37,43 +47,33 @@ pub async fn call_plugin<R: Runtime>(
     payload: Option<serde_json::Value>,
 ) -> SerResult<serde_json::Value> {
     let request_id = Uuid::new_v4();
-    let span = info_span!(
-        "widget_command",
-        widget_id = %id,
-        plugin_id = %plugin,
-        request_id = %request_id,
-        plugin_command = %command,
-    );
+    tracing::Span::current().record("request_id", &tracing::field::display(request_id));
 
-    async move {
-        let widget_dir_fn = move |id: &str| app_handle.widget_dir(id);
+    let widget_dir_fn = move |id: &str| app_handle.widget_dir(id);
 
-        match plugin.as_str() {
-            "fs" => {
-                let plugin = FS_PLUGIN.lock().await;
-                let result = deskulpt_plugin::call_plugin(
-                    widget_dir_fn,
-                    &*plugin,
-                    command.as_str(),
-                    id,
-                    payload,
-                )?;
-                Ok(result)
-            },
-            "sys" => {
-                let plugin = SYS_PLUGIN.lock().await;
-                let result = deskulpt_plugin::call_plugin(
-                    widget_dir_fn,
-                    &*plugin,
-                    command.as_str(),
-                    id,
-                    payload,
-                )?;
-                Ok(result)
-            },
-            _ => ser_bail!("Unknown plugin: {}", plugin),
-        }
+    match plugin.as_str() {
+        "fs" => {
+            let plugin = FS_PLUGIN.lock().await;
+            let result = deskulpt_plugin::call_plugin(
+                widget_dir_fn,
+                &*plugin,
+                command.as_str(),
+                id,
+                payload,
+            )?;
+            Ok(result)
+        },
+        "sys" => {
+            let plugin = SYS_PLUGIN.lock().await;
+            let result = deskulpt_plugin::call_plugin(
+                widget_dir_fn,
+                &*plugin,
+                command.as_str(),
+                id,
+                payload,
+            )?;
+            Ok(result)
+        },
+        _ => ser_bail!("Unknown plugin: {}", plugin),
     }
-    .instrument(span)
-    .await
 }

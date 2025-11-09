@@ -6,7 +6,7 @@ use deskulpt_common::window::DeskulptWindow;
 use deskulpt_core::path::PathExt;
 use tauri::{AppHandle, Runtime};
 use tokio::sync::mpsc;
-use tracing::{Instrument, Span, info_span};
+use tracing::instrument;
 
 use crate::events::RenderEvent;
 use crate::render::bundler::Bundler;
@@ -23,8 +23,6 @@ pub enum RenderWorkerTask {
         id: String,
         /// The entry file path, relative to the widget directory.
         entry: String,
-        /// The tracing span associated with this render task.
-        span: Span,
     },
 }
 
@@ -32,31 +30,21 @@ pub enum RenderWorkerTask {
 ///
 /// This bundles the specified widget and emits a [`RenderEvent`] to the canvas
 /// window with the bundling result.
+#[instrument(skip(app_handle, entry), fields(widget_id = %id, entry = %entry), err)]
 async fn process_render_task<R: Runtime>(app_handle: &AppHandle<R>, id: String, entry: String) {
-    let entry_for_span = entry.clone();
     let id_for_task = id.clone();
-    let span = info_span!(
-        "widget.render_task",
-        widget_id = %id,
-        entry = %entry_for_span,
-        task_kind = "render",
-        status = tracing::field::Empty,
-    );
     let report = async move {
         let widget_dir = app_handle.widgets_dir()?.join(&id_for_task);
         let code = Bundler::new(widget_dir, entry)?.bundle().await?;
         Ok::<_, anyhow::Error>(code)
     }
-    .instrument(span)
     .await
     .into();
     let event = RenderEvent { id: &id, report };
     if let Err(e) = event.emit_to(app_handle, DeskulptWindow::Canvas) {
         tracing::error!(
             widget_id = %id,
-            operation = "emit_render_event",
-            status = "error",
-            error_kind = ?e,
+            error = ?e,
             "Failed to emit RenderEvent to canvas",
         );
     };
@@ -76,12 +64,8 @@ impl RenderWorkerHandle {
         tauri::async_runtime::spawn(async move {
             while let Some(task) = rx.recv().await {
                 match task {
-                    RenderWorkerTask::Render { id, entry, span } => {
-                        async {
-                            process_render_task(&app_handle, id, entry).await;
-                        }
-                        .instrument(span)
-                        .await;
+                    RenderWorkerTask::Render { id, entry } => {
+                        process_render_task(&app_handle, id, entry).await;
                     },
                 }
             }

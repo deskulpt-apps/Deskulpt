@@ -4,7 +4,7 @@ use anyhow::Result;
 use deskulpt_settings::{SettingsExt, ShortcutAction};
 use tauri::{App, AppHandle, Manager, Runtime};
 use tauri_plugin_global_shortcut::{GlobalShortcut, GlobalShortcutExt, ShortcutState};
-use tracing::info_span;
+use tracing::instrument;
 
 use crate::states::CanvasImodeStateExt;
 use crate::window::WindowExt;
@@ -12,7 +12,8 @@ use crate::window::WindowExt;
 /// Re-register a shortcut.
 ///
 /// The old shortcut will be unregistered and the new shortcut will be
-/// registered, with the listener determined by the shortcut action.
+/// registered, with the listener determined by the shortcut key.
+#[instrument(skip(gs, old, new), fields(shortcut_key = ?key), err)]
 fn reregister_shortcut<R: Runtime>(
     gs: &GlobalShortcut<R>,
     action: &ShortcutAction,
@@ -25,41 +26,19 @@ fn reregister_shortcut<R: Runtime>(
 
     let handler: fn(&AppHandle<R>) = match key {
         ShortcutKey::ToggleCanvasImode => |app_handle| {
-            let span = info_span!(
-                "shortcut.invoke",
-                shortcut_key = "toggleCanvasImode",
-                operation = "toggle_canvas_imode",
-                trigger = "shortcut",
-                status = tracing::field::Empty,
-            );
-            let result = span.in_scope(|| app_handle.toggle_canvas_imode());
-            if let Err(e) = result {
+            if let Err(e) = app_handle.toggle_canvas_imode() {
                 tracing::error!(
                     shortcut_key = "toggleCanvasImode",
-                    operation = "toggle_canvas_imode",
-                    trigger = "shortcut",
-                    status = "error",
-                    error_kind = %e,
+                    error = %e,
                     "Failed to toggle canvas interaction mode from shortcut",
                 );
             }
         },
         ShortcutKey::OpenManager => |app_handle| {
-            let span = info_span!(
-                "shortcut.invoke",
-                shortcut_key = "openManager",
-                operation = "open_manager_window",
-                trigger = "shortcut",
-                status = tracing::field::Empty,
-            );
-            let result = span.in_scope(|| app_handle.open_manager());
-            if let Err(e) = result {
+            if let Err(e) = app_handle.open_manager() {
                 tracing::error!(
                     shortcut_key = "openManager",
-                    operation = "open_manager_window",
-                    trigger = "shortcut",
-                    status = "error",
-                    error_kind = %e,
+                    error = %e,
                     "Failed to open the manager window from shortcut",
                 );
             }
@@ -92,9 +71,7 @@ pub trait ShortcutsExt<R: Runtime>: Manager<R> + SettingsExt<R> + GlobalShortcut
                     tracing::error!(
                         shortcut_key = ?key,
                         shortcut_binding = %shortcut,
-                        operation = "register_shortcut",
-                        status = "error",
-                        error_kind = ?e,
+                        error = ?e,
                         "Failed to register shortcut",
                     );
                 }
@@ -109,9 +86,7 @@ pub trait ShortcutsExt<R: Runtime>: Manager<R> + SettingsExt<R> + GlobalShortcut
                     shortcut_key = ?key,
                     old_binding = ?old,
                     new_binding = ?new,
-                    operation = "register_shortcut",
-                    status = "error",
-                    error_kind = ?e,
+                    error = ?e,
                     "Failed to re-register shortcut",
                 );
             }

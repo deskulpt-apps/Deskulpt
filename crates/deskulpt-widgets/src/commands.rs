@@ -3,7 +3,7 @@
 
 use deskulpt_common::SerResult;
 use tauri::{AppHandle, Runtime, WebviewWindow};
-use tracing::{Instrument, field, info_span};
+use tracing::instrument;
 use uuid::Uuid;
 
 use crate::WidgetsExt;
@@ -13,22 +13,17 @@ use crate::WidgetsExt;
 /// This command is a wrapper of [`crate::WidgetsManager::refresh`].
 #[tauri::command]
 #[specta::specta]
+#[instrument(
+    skip(app_handle),
+    fields(widget_id = %id, request_id = tracing::field::Empty),
+    err
+)]
 pub async fn refresh<R: Runtime>(app_handle: AppHandle<R>, id: String) -> SerResult<()> {
     let request_id = Uuid::new_v4();
-    let span = info_span!(
-        "widget_command",
-        widget_id = %id,
-        plugin_id = field::Empty,
-        request_id = %request_id,
-        tauri_command = "refresh",
-    );
+    tracing::Span::current().record("request_id", &tracing::field::display(request_id));
 
-    async move {
-        app_handle.widgets().refresh(&id)?;
-        Ok(())
-    }
-    .instrument(span)
-    .await
+    app_handle.widgets().refresh(&id)?;
+    Ok(())
 }
 
 /// Refresh all widgets.

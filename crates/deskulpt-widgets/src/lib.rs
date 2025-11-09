@@ -21,8 +21,6 @@ use deskulpt_core::path::PathExt;
 use deskulpt_core::states::SettingsStateExt;
 use tauri::plugin::TauriPlugin;
 use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
-use tracing::info_span;
-use uuid::Uuid;
 
 use crate::catalog::{WidgetCatalog, WidgetDescriptor};
 use crate::events::UpdateEvent;
@@ -176,19 +174,9 @@ impl<R: Runtime> Widgets<R> {
 
     /// Push a render task to the worker with tracing context attached.
     fn spawn_render_task(&self, id: &str, entry: &str) -> Result<()> {
-        let request_id = Uuid::new_v4();
-        let span = info_span!(
-            "widget_command",
-            widget_id = %id,
-            plugin_id = tracing::field::Empty,
-            request_id = %request_id,
-            command = "render",
-            entry = %entry,
-        );
         self.render_worker.process(RenderWorkerTask::Render {
             id: id.to_string(),
             entry: entry.to_string(),
-            span,
         })?;
         Ok(())
     }

@@ -7,7 +7,7 @@ use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
 use tauri::menu::MenuItem;
 use tauri::{App, AppHandle, Emitter, Manager, Runtime, WebviewWindow};
-use tracing::{info_span, warn};
+use tracing::{instrument, warn};
 
 use crate::events::ShowToastEvent;
 
@@ -98,24 +98,16 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + Emitter<R> {
     ///
     /// This will show a toast message on the canvas window indicating the new
     /// interaction mode.
+    #[instrument(skip(self), err)]
     fn toggle_canvas_imode(&self) -> Result<()>
     where
         Self: Sized,
     {
-        let span = info_span!(
-            "canvas.toggle_imode",
-            window = "canvas",
-            operation = "toggle_canvas_imode",
-            new_mode = tracing::field::Empty,
-        );
-        let _entered = span.enter();
-
         let canvas = DeskulptWindow::Canvas.webview_window(self)?;
 
         let state = self.state::<CanvasImodeState<R>>();
         let mut state = state.0.lock().unwrap();
         state.toggle(&canvas)?;
-        span.record("new_mode", state.mode.as_str());
 
         let toast_message = match state.mode {
             CanvasImode::Float => "Canvas floated.",
