@@ -1,54 +1,61 @@
-//! Catalog for Deskulpt widgets.
+//! Deskulpt widget descriptors and catalog.
 
 use std::collections::{BTreeMap, HashMap};
 use std::path::Path;
 
-use anyhow::{Context, Result};
+use anyhow::Result;
 use deskulpt_common::outcome::Outcome;
 use deskulpt_core::settings::{Settings, SettingsPatch};
 use serde::Serialize;
 
-use crate::catalog::manifests::{LoadManifest, PackageManifest, WidgetManifest};
+use crate::manifest::{LoadManifest, NodeManifest, WidgetManifest};
 
-mod manifests;
-
-/// Deskulpt widget descriptor.
+/// The descriptor for a Deskulpt widget.
 ///
-/// This contains widget metadata obtained from manifest files necessary for
+/// This contains all widget metadata obtained from manifest files necessary for
 /// bundling and rendering the widget.
 #[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct WidgetDescriptor {
     /// The name of the widget.
+    ///
+    /// Obtained from the widget manifest.
     pub name: String,
     /// The entry point of the widget.
+    ///
+    /// Obtained from the widget manifest.
     pub entry: String,
     /// The dependencies of the widget.
+    ///
+    /// Obtained from the node manifest.
     pub dependencies: HashMap<String, String>,
 }
 
 impl WidgetDescriptor {
     /// Load the widget descriptor from a directory.
     ///
-    /// Specially, this method returns `Ok(None)` if the directory does not
-    /// contain a widget descriptor file or if the widget is explicitly marked
-    /// as ignored in the widget manifest.
+    /// This method attempts to load the widget and node manifests. If the
+    /// widget manifest is absent or marks the widget as ignored, this method
+    /// returns `Ok(None)` (meaning this directory is **NOT A WIDGET**). If
+    /// loading or parsing any manifest file fails, an error is returned.
+    /// Otherwise, the manifests are combined to create a full widget descriptor
+    /// which is returned wrapped in `Ok(Some(...))`.
+    ///
+    /// Note that [`Result::transpose`] can bring `Option` out of `Result` for
+    /// the result of this method, so that non-widget directories can be
+    /// filtered out without nested pattern matching.
     pub fn load(dir: &Path) -> Result<Option<Self>> {
-        let widget_manifest = match WidgetManifest::load(dir)
-            .with_context(|| format!("Failed to load {}", WidgetManifest::FILE_NAME))?
-        {
+        let widget_manifest = match WidgetManifest::load(dir)? {
             Some(widget_manifest) if !widget_manifest.ignore => widget_manifest,
             _ => return Ok(None),
         };
 
-        let package_manifest = PackageManifest::load(dir)
-            .with_context(|| format!("Failed to load {}", PackageManifest::FILE_NAME))?
-            .unwrap_or_default();
+        let node_manifest = NodeManifest::load(dir)?.unwrap_or_default();
 
         Ok(Some(WidgetDescriptor {
             name: widget_manifest.name,
             entry: widget_manifest.entry,
-            dependencies: package_manifest.dependencies,
+            dependencies: node_manifest.dependencies,
         }))
     }
 }
@@ -80,15 +87,12 @@ impl WidgetCatalog {
                 continue; // Non-directory entries are not widgets, skip
             }
 
-            if let Some(descriptor) = WidgetDescriptor::load(&path)
-                .map(|opt| opt.map(Outcome::Ok))
-                .unwrap_or_else(|e| Some(Outcome::Err(format!("{e:?}"))))
-            {
+            if let Some(descriptor) = WidgetDescriptor::load(&path).transpose() {
                 // Since each widget must be at the top level of the widgets
                 // directory, the directory names must be unique and we can use
                 // them as widget IDs
                 let id = entry.file_name().to_string_lossy().to_string();
-                catalog.0.insert(id, descriptor);
+                catalog.0.insert(id, descriptor.into());
             }
         }
 
