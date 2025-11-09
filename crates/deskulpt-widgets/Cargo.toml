@@ -14,6 +14,7 @@ version    = { workspace = true }
 anyhow            = { workspace = true }
 bitflags          = { workspace = true }
 deskulpt-common   = { workspace = true }
+deskulpt-core     = { workspace = true }
 deskulpt-settings = { workspace = true }
 either            = { workspace = true }
 itertools         = { workspace = true }

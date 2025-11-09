@@ -1,6 +1,5 @@
 //! Deskulpt settings manager and its APIs.
 
-use std::path::PathBuf;
 use std::sync::{RwLock, RwLockReadGuard};
 
 use anyhow::{Result, bail};
@@ -160,7 +159,7 @@ impl<R: Runtime> SettingsManager<R> {
         Ok(())
     }
 
-    pub fn widgets_dir(&self) -> Result<PathBuf> {
-        todo!()
+    pub fn persist(&self) -> Result<()> {
+        todo!();
     }
 }

@@ -3,7 +3,7 @@
 use anyhow::Result;
 use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
-use deskulpt_settings::SettingsExt;
+use deskulpt_core::path::PathExt;
 use tauri::{AppHandle, Runtime};
 use tokio::sync::mpsc::{self, UnboundedReceiver};
 
@@ -36,7 +36,7 @@ async fn render_worker<R: Runtime>(
         match task {
             RenderWorkerTask::Render { id, entry } => {
                 let report = async {
-                    let widget_dir = app_handle.settings().widgets_dir()?.join(&id);
+                    let widget_dir = app_handle.widgets_dir()?.join(&id);
                     let code = Bundler::new(widget_dir, entry)?.bundle().await?;
                     Ok::<_, anyhow::Error>(code)
                 }

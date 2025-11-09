@@ -20,6 +20,8 @@ pub fn run() {
     Builder::default()
         .setup(move |app| {
             app.init_widgets_dir()?;
+            app.init_persist_dir()?;
+            app.init_logs_dir()?;
 
             app.manage_logging()?;
             app.manage_canvas_imode();

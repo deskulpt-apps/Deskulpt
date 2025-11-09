@@ -10,6 +10,8 @@ use tracing_subscriber::fmt::time::UtcTime;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::{Registry, fmt};
 
+use crate::path::PathExt;
+
 /// Maximum number of log files to retain.
 const MAX_LOG_FILES: usize = 10;
 
@@ -20,14 +22,14 @@ struct LoggingState {
 }
 
 /// Extension trait for operations related to logging.
-pub trait LoggingStateExt<R: Runtime>: Manager<R> {
+pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
     /// Initialize state management for logging.
     ///
     /// This will set up structured logging in newline-delimited JSON format
     /// with daily rotation and maximum [`MAX_LOG_FILES`] log files retained.
     /// A panic hook is also set up to log uncaught panics.
     fn manage_logging(&self) -> Result<()> {
-        let app_log_dir = self.path().app_log_dir()?;
+        let logs_dir = self.logs_dir()?;
 
         // TODO: load proper log level from settings and support dynamically
         // changing at runtime; set to lowest level now for debugging purposes
@@ -38,7 +40,7 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> {
             .max_log_files(MAX_LOG_FILES)
             .filename_prefix("deskulpt")
             .filename_suffix("log")
-            .build(app_log_dir)?;
+            .build(logs_dir)?;
         let (writer, guard) = NonBlockingBuilder::default().finish(appender);
         let fmt_layer = fmt::layer()
             .json()

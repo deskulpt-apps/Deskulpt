@@ -1288,6 +1288,7 @@ dependencies = [
  "bitflags 2.10.0",
  "deskulpt-build",
  "deskulpt-common",
+ "deskulpt-core",
  "deskulpt-settings",
  "either",
  "itertools",
