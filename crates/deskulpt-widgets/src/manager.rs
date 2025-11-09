@@ -74,7 +74,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// updated catalog. If any step fails, an error is returned.
     pub fn reload_all(&self) -> Result<()> {
         let widgets_dir = self.app_handle.widgets_dir()?;
-        let new_catalog = WidgetCatalog::load(&widgets_dir)?;
+        let new_catalog = WidgetCatalog::load(widgets_dir)?;
 
         let mut catalog = self.catalog.write().unwrap();
         *catalog = new_catalog;
