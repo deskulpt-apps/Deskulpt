@@ -17,9 +17,6 @@ use std::sync::RwLock;
 use anyhow::{Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
-use deskulpt_core::logging::{
-    self, TriggerContext, WidgetContext, attach_trigger, attach_widget_context,
-};
 use deskulpt_core::path::PathExt;
 use deskulpt_core::states::SettingsStateExt;
 use tauri::plugin::TauriPlugin;
@@ -179,23 +176,15 @@ impl<R: Runtime> Widgets<R> {
 
     /// Push a render task to the worker with tracing context attached.
     fn spawn_render_task(&self, id: &str, entry: &str) -> Result<()> {
-        let span = if logging::current_widget().is_some() {
-            tracing::Span::current()
-        } else {
-            let request_id = Uuid::new_v4();
-            let span = info_span!(
-                "widget_command",
-                widget_id = %id,
-                plugin_id = tracing::field::Empty,
-                request_id = %request_id,
-                command = "render",
-                entry = %entry,
-            );
-            let widget_ctx = WidgetContext::new(id.to_string(), None);
-            attach_widget_context(&span, widget_ctx.widget_id(), widget_ctx.plugin_id());
-            attach_trigger(&span, TriggerContext::new("render", Some(widget_ctx)));
-            span
-        };
+        let request_id = Uuid::new_v4();
+        let span = info_span!(
+            "widget_command",
+            widget_id = %id,
+            plugin_id = tracing::field::Empty,
+            request_id = %request_id,
+            command = "render",
+            entry = %entry,
+        );
         self.render_worker.process(RenderWorkerTask::Render {
             id: id.to_string(),
             entry: entry.to_string(),

@@ -14,7 +14,6 @@ use tracing_subscriber::layer::{Layer, SubscriberExt};
 use tracing_subscriber::{Registry, fmt};
 use uuid::Uuid;
 
-use crate::logging::SpanContextLayer;
 use crate::path::PathExt;
 
 /// Maximum number of log files (including the active log) to retain.
@@ -71,15 +70,11 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
                 .with_filter(LevelFilter::DEBUG);
             Registry::default()
                 .with(filter)
-                .with(SpanContextLayer::new())
                 .with(fmt_layer)
                 .with(console_layer)
         };
         #[cfg(not(debug_assertions))]
-        let subscriber = Registry::default()
-            .with(filter)
-            .with(SpanContextLayer::new())
-            .with(fmt_layer);
+        let subscriber = Registry::default().with(filter).with(fmt_layer);
         tracing::subscriber::set_global_default(subscriber)?;
 
         let session_id = Uuid::new_v4();

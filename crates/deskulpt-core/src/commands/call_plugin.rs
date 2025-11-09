@@ -5,7 +5,6 @@ use tokio::sync::Mutex;
 use tracing::{Instrument, info_span};
 use uuid::Uuid;
 
-use crate::logging::{self, TriggerContext, WidgetContext};
 use crate::path::PathExt;
 
 // TODO: Remove this temporary implementation
@@ -44,12 +43,6 @@ pub async fn call_plugin<R: Runtime>(
         plugin_id = %plugin,
         request_id = %request_id,
         plugin_command = %command,
-    );
-    let widget_ctx = WidgetContext::new(id.clone(), Some(plugin.clone()));
-    logging::attach_widget_context(&span, widget_ctx.widget_id(), widget_ctx.plugin_id());
-    logging::attach_trigger(
-        &span,
-        TriggerContext::new(command.clone(), Some(widget_ctx)),
     );
 
     async move {
