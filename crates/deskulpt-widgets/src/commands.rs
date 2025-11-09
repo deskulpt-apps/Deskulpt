@@ -16,7 +16,7 @@ use crate::WidgetsExt;
 #[instrument(
     skip(app_handle),
     fields(widget_id = %id, request_id = tracing::field::Empty),
-    err
+    err(Debug)
 )]
 pub async fn refresh<R: Runtime>(app_handle: AppHandle<R>, id: String) -> SerResult<()> {
     let request_id = Uuid::new_v4();

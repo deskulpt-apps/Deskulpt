@@ -30,7 +30,7 @@ pub enum RenderWorkerTask {
 ///
 /// This bundles the specified widget and emits a [`RenderEvent`] to the canvas
 /// window with the bundling result.
-#[instrument(skip(app_handle, entry), fields(widget_id = %id, entry = %entry), err)]
+#[instrument(skip(app_handle, entry), fields(widget_id = %id, entry = %entry), err(Debug))]
 async fn process_render_task<R: Runtime>(app_handle: &AppHandle<R>, id: String, entry: String) {
     let id_for_task = id.clone();
     let report = async move {

@@ -37,7 +37,7 @@ static SYS_PLUGIN: Lazy<Mutex<deskulpt_plugin_sys::SysPlugin>> =
         command = %command,
         request_id = tracing::field::Empty
     ),
-    err
+    err(Debug)
 )]
 pub async fn call_plugin<R: Runtime>(
     app_handle: AppHandle<R>,
