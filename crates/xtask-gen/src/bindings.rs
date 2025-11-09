@@ -6,6 +6,7 @@ mod module;
 pub fn run() -> Result<()> {
     let all_bindings = vec![
         deskulpt_core::build_bindings(),
+        deskulpt_settings::build_bindings(),
         deskulpt_widgets::build_bindings(),
     ];
 

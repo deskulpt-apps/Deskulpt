@@ -7,7 +7,7 @@ use std::path::Path;
 use anyhow::Result;
 use serde::Serialize;
 
-use super::Settings;
+use crate::Settings;
 
 /// The settings file name in the persistence directory.
 static SETTINGS_FILE: &str = "settings.json";

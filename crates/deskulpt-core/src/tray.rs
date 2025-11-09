@@ -1,13 +1,14 @@
 //! Deskulpt system tray.
 
 use anyhow::Result;
+use deskulpt_settings::SettingsExt;
 use tauri::image::Image;
 use tauri::menu::{MenuBuilder, MenuEvent, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use tauri::{App, AppHandle, Runtime};
 
 use crate::path::PathExt;
-use crate::states::{CanvasImodeStateExt, SettingsStateExt};
+use crate::states::CanvasImodeStateExt;
 use crate::window::WindowExt;
 
 /// Extention trait for system tray-related operations.
@@ -67,7 +68,7 @@ fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
         "tray-exit" => {
             if let Err(e) = app_handle
                 .persist_dir()
-                .and_then(|dir| app_handle.get_settings().dump(dir))
+                .and_then(|dir| app_handle.settings().read().dump(dir))
             {
                 eprintln!("Failed to dump settings before exit: {e}");
                 app_handle.exit(1);

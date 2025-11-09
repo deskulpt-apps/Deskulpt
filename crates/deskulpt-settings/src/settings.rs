@@ -6,8 +6,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::{DefaultOnError, MapSkipError, serde_as};
 
-mod persistence;
-
 /// Light/dark theme of the application.
 #[derive(
     Debug, Clone, Default, PartialEq, Eq, Deserialize, Serialize, JsonSchema, specta::Type,

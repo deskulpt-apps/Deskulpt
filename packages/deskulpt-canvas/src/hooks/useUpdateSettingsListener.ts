@@ -1,11 +1,11 @@
-import { deskulptCore } from "@deskulpt/bindings";
+import { deskulptSettings } from "@deskulpt/bindings";
 import { useSettingsStore } from "./useSettingsStore";
 import { createSetupTaskHook } from "@deskulpt/utils";
 
 export const useUpdateSettingsListener = createSetupTaskHook({
-  task: `event:${deskulptCore.events.updateSettings.name}`,
+  task: `event:${deskulptSettings.events.update.name}`,
   onMount: () =>
-    deskulptCore.events.updateSettings.listen((event) => {
+    deskulptSettings.events.update.listen((event) => {
       useSettingsStore.setState(() => event.payload, true);
     }),
   onUnmount: (unlisten) => unlisten.then((f) => f()).catch(console.error),

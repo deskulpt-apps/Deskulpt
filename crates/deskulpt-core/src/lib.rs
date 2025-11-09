@@ -10,7 +10,6 @@ use tauri::plugin::TauriPlugin;
 mod commands;
 pub mod events;
 pub mod path;
-pub mod settings;
 pub mod shortcuts;
 pub mod states;
 pub mod tray;

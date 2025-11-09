@@ -1,11 +1,11 @@
 //! Keyboard shortcut management.
 
 use anyhow::Result;
-use tauri::{App, AppHandle, Runtime};
+use deskulpt_settings::{SettingsExt, ShortcutKey};
+use tauri::{App, AppHandle, Manager, Runtime};
 use tauri_plugin_global_shortcut::{GlobalShortcut, GlobalShortcutExt, ShortcutState};
 
-use crate::settings::ShortcutKey;
-use crate::states::{CanvasImodeStateExt, SettingsStateExt};
+use crate::states::CanvasImodeStateExt;
 use crate::window::WindowExt;
 
 /// Re-register a shortcut.
@@ -47,7 +47,7 @@ fn reregister_shortcut<R: Runtime>(
 }
 
 /// Extension trait for keyboard shortcut operations.
-pub trait ShortcutsExt<R: Runtime>: SettingsStateExt<R> + GlobalShortcutExt<R> {
+pub trait ShortcutsExt<R: Runtime>: Manager<R> + SettingsExt<R> + GlobalShortcutExt<R> {
     /// Initialize keyboard shortcuts management.
     ///
     /// This immediately registers shortcuts based on the settings. Failure to
@@ -55,8 +55,8 @@ pub trait ShortcutsExt<R: Runtime>: SettingsStateExt<R> + GlobalShortcutExt<R> {
     /// re-registers shortcuts when shortcuts in the settings change.
     fn init_shortcuts(&self) {
         {
-            let settings = self.get_settings();
             let gs = self.global_shortcut();
+            let settings = self.settings().read();
             for (key, shortcut) in &settings.shortcuts {
                 if let Err(e) = reregister_shortcut(gs, key, None, Some(shortcut)) {
                     eprintln!("Failed to register shortcut {shortcut:?} for {key:?}: {e:?}");
@@ -65,7 +65,7 @@ pub trait ShortcutsExt<R: Runtime>: SettingsStateExt<R> + GlobalShortcutExt<R> {
         }
 
         let app_handle = self.app_handle().clone();
-        self.on_shortcut_change(move |key, old, new| {
+        self.settings().on_shortcut_change(move |key, old, new| {
             let gs = app_handle.global_shortcut();
             if let Err(e) = reregister_shortcut(gs, key, old, new) {
                 eprintln!(

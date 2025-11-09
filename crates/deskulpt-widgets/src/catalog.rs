@@ -5,7 +5,7 @@ use std::path::Path;
 
 use anyhow::Result;
 use deskulpt_common::outcome::Outcome;
-use deskulpt_core::settings::{Settings, SettingsPatch};
+use deskulpt_settings::{Settings, SettingsPatch};
 use serde::Serialize;
 
 use crate::manifest::{LoadManifest, NodeManifest, WidgetManifest};

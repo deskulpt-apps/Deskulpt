@@ -1,9 +1,8 @@
 //! Window initialization scripts.
 
 use anyhow::Result;
+use deskulpt_settings::Settings;
 use serialize_to_javascript::{DefaultTemplate, Template, default_template};
-
-use crate::settings::Settings;
 
 /// Template for the manager window initialization script.
 #[derive(Template)]

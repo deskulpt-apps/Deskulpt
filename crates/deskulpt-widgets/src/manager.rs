@@ -5,8 +5,7 @@ use std::sync::RwLock;
 use anyhow::{Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
-use deskulpt_core::path::PathExt;
-use deskulpt_core::states::SettingsStateExt;
+use deskulpt_settings::SettingsExt;
 use tauri::{AppHandle, Runtime, WebviewWindow};
 
 use crate::catalog::{WidgetCatalog, WidgetDescriptor};
@@ -50,7 +49,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// an addition, removal, or modification. It then syncs the settings with
     /// the updated catalog. If any step fails, an error is returned.
     pub fn reload(&self, id: &str) -> Result<()> {
-        let widget_dir = self.app_handle.widgets_dir()?.join(id);
+        let widget_dir = self.app_handle.settings().widgets_dir()?.join(id);
         let descriptor = WidgetDescriptor::load(&widget_dir);
 
         let mut catalog = self.catalog.write().unwrap();
@@ -62,7 +61,8 @@ impl<R: Runtime> WidgetsManager<R> {
         UpdateEvent(&catalog).emit(&self.app_handle)?;
 
         self.app_handle
-            .update_settings(|settings| catalog.compute_settings_patch(settings))?;
+            .settings()
+            .update_with(|settings| catalog.compute_settings_patch(settings))?;
         Ok(())
     }
 
@@ -72,15 +72,16 @@ impl<R: Runtime> WidgetsManager<R> {
     /// replaces the existing catalog. It then syncs the settings with the
     /// updated catalog. If any step fails, an error is returned.
     pub fn reload_all(&self) -> Result<()> {
-        let widgets_dir = self.app_handle.widgets_dir()?;
-        let new_catalog = WidgetCatalog::load(widgets_dir)?;
+        let widgets_dir = self.app_handle.settings().widgets_dir()?;
+        let new_catalog = WidgetCatalog::load(&widgets_dir)?;
 
         let mut catalog = self.catalog.write().unwrap();
         *catalog = new_catalog;
         UpdateEvent(&catalog).emit(&self.app_handle)?;
 
         self.app_handle
-            .update_settings(|settings| catalog.compute_settings_patch(settings))?;
+            .settings()
+            .update_with(|settings| catalog.compute_settings_patch(settings))?;
         Ok(())
     }
 
