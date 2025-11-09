@@ -1,4 +1,7 @@
 //! Setup state of frontend windows.
+//!
+//! TODO: Move this to a separate high-level crate that depends on this crate
+//! because it is not specific to widgets.
 
 use std::sync::atomic::{AtomicU8, Ordering};
 
@@ -22,7 +25,7 @@ impl From<DeskulptWindow> for SetupFlags {
     }
 }
 
-/// Setup state for frontend windows.
+/// Setup state of frontend windows.
 ///
 /// This is essentially an atomic bitmask corresponding to [`SetupFlags`]. Each
 /// set bit means that the corresponding window has completed setup.

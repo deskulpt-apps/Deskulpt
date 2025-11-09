@@ -55,22 +55,28 @@ export type UpdateEvent = WidgetCatalog
 export type WidgetCatalog = { [key in string]: Outcome<WidgetDescriptor> }
 
 /**
- * Deskulpt widget descriptor.
+ * The descriptor for a Deskulpt widget.
  * 
- * This contains widget metadata obtained from manifest files necessary for
+ * This contains all widget metadata obtained from manifest files necessary for
  * bundling and rendering the widget.
  */
 export type WidgetDescriptor = { 
 /**
  * The name of the widget.
+ * 
+ * Obtained from the widget manifest.
  */
 name: string; 
 /**
  * The entry point of the widget.
+ * 
+ * Obtained from the widget manifest.
  */
 entry: string; 
 /**
  * The dependencies of the widget.
+ * 
+ * Obtained from the node manifest.
  */
 dependencies: { [key in string]: string } }
 
@@ -107,12 +113,16 @@ export const events = {
 
 export const commands = {
   /**
-   * Wrapper of [`crate::Widgets::complete_setup`].
+   * Mark a window as having completed setup.
+   * 
+   * Wrapper of [`crate::WidgetsManager::complete_setup`].
    */
   completeSetup: () => invoke<null>("plugin:deskulpt-widgets|complete_setup"),
 
   /**
-   * Wrapper of [`crate::Widgets::refresh`].
+   * Refresh a specific widget by its ID.
+   * 
+   * This command is a wrapper of [`crate::WidgetsManager::refresh`].
    */
   refresh: (
     id: string,
@@ -121,7 +131,9 @@ export const commands = {
   }),
 
   /**
-   * Wrapper of [`crate::Widgets::refresh_all`].
+   * Refresh all widgets.
+   * 
+   * This command is a wrapper of [`crate::WidgetsManager::refresh_all`].
    */
   refreshAll: () => invoke<null>("plugin:deskulpt-widgets|refresh_all"),
 };
