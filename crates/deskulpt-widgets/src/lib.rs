@@ -21,6 +21,7 @@ use deskulpt_core::path::PathExt;
 use deskulpt_core::states::SettingsStateExt;
 use tauri::plugin::TauriPlugin;
 use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
+use tracing::instrument;
 
 use crate::catalog::{WidgetCatalog, WidgetDescriptor};
 use crate::events::UpdateEvent;
@@ -173,6 +174,7 @@ impl<R: Runtime> Widgets<R> {
     }
 
     /// Push a render task to the worker with tracing context attached.
+    #[instrument(skip(self), fields(widget_id = %id, entry = %entry), err)]
     fn spawn_render_task(&self, id: &str, entry: &str) -> Result<()> {
         self.render_worker.process(RenderWorkerTask::Render {
             id: id.to_string(),
