@@ -58,8 +58,8 @@ jobs:
         with:
           platform: ubuntu-latest
           cache-key: debug
+          nightly-components: rustfmt
           tools: cargo-shear
-          nightly-rustfmt: true
 
       - uses: ./.github/actions/setup-node
 

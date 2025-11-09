@@ -1,6 +1,5 @@
 [alias]
-docs = "doc --workspace --no-deps --exclude xtask-gen"
-gen  = "run --bin xtask-gen --"
+gen = "run --bin xtask-gen --"
 
 [env]
 WORKSPACE_DIR = { value = "", relative = true }
@@ -9,8 +8,4 @@ WORKSPACE_DIR = { value = "", relative = true }
 # https://github.com/rolldown/rolldown/blob/90102d7b7a74319d2838619f504d661fcb9fff73/.cargo/config.toml#L6-L7
 rustflags = ["--cfg", "tracing_unstable"]
 
-rustdocflags = [
-  "--document-private-items",
-  "--extend-css",
-  "crates/rustdoc.css",
-]
+rustdocflags = ["--document-private-items"]

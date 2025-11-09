@@ -24,16 +24,16 @@ inputs:
     required: true
     default: ""
 
+  nightly-components:
+    description: Rust components to install from the nightly toolchain.
+    type: string
+    required: true
+    default: ""
+
   tools:
     description: Additional tools to install.
     type: string
     required: false
-
-  nightly-rustfmt:
-    description: Whether to install rustfmt from the nightly toolchain.
-    type: boolean
-    required: true
-    default: false
 
   cache-key:
     description: The cache key.
@@ -74,11 +74,11 @@ runs:
         save-if: ${{ inputs.save-cache == 'true' }}
         cache-bin: false
 
-    - name: Install nightly rustfmt
-      if: ${{ inputs.nightly-rustfmt }}
+    - name: Install nightly components
+      if: ${{ inputs.nightly-components }}
       shell: bash
       run: |
-        rustup toolchain install nightly --component rustfmt --profile minimal --no-self-update
+        rustup toolchain install nightly --component ${{ inputs.nightly-components }} --profile minimal --no-self-update
 
     - name: Install tools
       uses: taiki-e/install-action@v2

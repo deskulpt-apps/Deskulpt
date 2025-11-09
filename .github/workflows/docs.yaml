@@ -27,7 +27,7 @@ jobs:
         with:
           platform: ubuntu-latest
           cache-key: debug
-          components: rust-docs
+          nightly-components: rust-docs
 
       - uses: ./.github/actions/setup-node
 
@@ -36,7 +36,7 @@ jobs:
 
       - name: Build rustdoc
         run: |
-          cargo docs
+          pnpm docs:rs
           rm -f target/doc/.lock
           cp -r target/doc/ docs/.vitepress/dist/rustdoc/
 

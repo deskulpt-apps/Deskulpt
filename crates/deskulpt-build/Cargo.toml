@@ -16,4 +16,4 @@ syn          = { workspace = true }
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [package.metadata.docs.rs]
-rustdoc-args = ["--extend-css", "../rustdoc.css"]
+rustdoc-args = ["--document-private-items"]

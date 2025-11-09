@@ -18,4 +18,4 @@ quote = { workspace = true }
 syn   = { workspace = true }
 
 [package.metadata.docs.rs]
-rustdoc-args = ["--extend-css", "../rustdoc.css"]
+rustdoc-args = ["--document-private-items"]

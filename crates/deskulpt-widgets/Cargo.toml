@@ -29,4 +29,4 @@ tokio           = { workspace = true }
 deskulpt-build = { workspace = true }
 
 [package.metadata.docs.rs]
-rustdoc-args = ["--extend-css", "../rustdoc.css"]
+rustdoc-args = ["--document-private-items"]

@@ -24,7 +24,8 @@ Note that if you are only modifying the documentation contents without touching 
 The Deskulpt backend is documented with [rustdoc](https://doc.rust-lang.org/rustdoc/) for developers' internal reference. Unlike the public docs hosted on [docs.rs](https://docs.rs/), the internal rustdoc includes private crate items and is meant specifically to be used by Deskulpt developers. It is built separately from the main documentation website and hosted under its `rustdoc/` subdirectory. To build the internal backend rustdoc locally, run the following command:
 
 ```bash
-cargo docs
+pnpm docs:rs
+pnpm docs:rs --open # automatically open in your default browser
 ```
 
 This command will print the path to the generated documentation, which you can open directly in our browser.
