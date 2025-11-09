@@ -31,7 +31,11 @@ pub enum RenderWorkerTask {
 /// This bundles the specified widget and emits a [`RenderEvent`] to the canvas
 /// window with the bundling result.
 #[instrument(skip(app_handle, entry), fields(widget_id = %id, entry = %entry), err(Debug))]
-async fn process_render_task<R: Runtime>(app_handle: &AppHandle<R>, id: String, entry: String) {
+async fn process_render_task<R: Runtime>(
+    app_handle: &AppHandle<R>,
+    id: String,
+    entry: String,
+) -> Result<()> {
     let id_for_task = id.clone();
     let report = async move {
         let widget_dir = app_handle.widgets_dir()?.join(&id_for_task);
@@ -48,6 +52,7 @@ async fn process_render_task<R: Runtime>(app_handle: &AppHandle<R>, id: String, 
             "Failed to emit RenderEvent to canvas",
         );
     };
+    Ok(())
 }
 
 /// Handle for communicating with the render worker.
@@ -65,7 +70,9 @@ impl RenderWorkerHandle {
             while let Some(task) = rx.recv().await {
                 match task {
                     RenderWorkerTask::Render { id, entry } => {
-                        process_render_task(&app_handle, id, entry).await;
+                        if let Err(e) = process_render_task(&app_handle, id, entry).await {
+                            tracing::error!(error = ?e, "Render worker task failed");
+                        }
                     },
                 }
             }
