@@ -1290,7 +1290,6 @@ dependencies = [
  "deskulpt-build",
  "deskulpt-common",
  "deskulpt-core",
- "deskulpt-settings",
  "either",
  "itertools",
  "rolldown",
