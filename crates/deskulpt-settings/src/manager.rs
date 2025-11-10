@@ -1,10 +1,11 @@
 //! Deskulpt settings manager and its APIs.
 
+use std::path::PathBuf;
 use std::sync::{RwLock, RwLockReadGuard};
 
 use anyhow::{Result, bail};
 use deskulpt_common::event::Event;
-use tauri::{AppHandle, Runtime};
+use tauri::{AppHandle, Manager, Runtime};
 
 use crate::events::UpdateEvent;
 use crate::hooks::SettingsHooks;
@@ -21,6 +22,8 @@ pub struct SettingsManager<R: Runtime> {
     pub(crate) hooks: RwLock<SettingsHooks>,
     /// The handle for the worker.
     worker: WorkerHandle,
+    /// The path where settings are persisted on disk.
+    persist_path: PathBuf,
 }
 
 impl<R: Runtime> SettingsManager<R> {
@@ -28,13 +31,25 @@ impl<R: Runtime> SettingsManager<R> {
     ///
     /// TODO. A worker is started immediately.
     pub fn new(app_handle: AppHandle<R>) -> Self {
+        let persist_path = app_handle
+            .path()
+            .app_local_data_dir()
+            .unwrap()
+            .join("settings.json");
+
+        let settings = Settings::load(&persist_path).unwrap_or_else(|e| {
+            eprintln!("Failed to load settings: {e:?}");
+            Default::default()
+        });
+
         let worker = WorkerHandle::new(app_handle.clone());
 
         Self {
             app_handle,
-            settings: todo!(),
+            settings: RwLock::new(settings),
             hooks: Default::default(),
             worker,
+            persist_path,
         }
     }
 
@@ -160,6 +175,8 @@ impl<R: Runtime> SettingsManager<R> {
     }
 
     pub fn persist(&self) -> Result<()> {
-        todo!();
+        let settings = self.settings.read().unwrap();
+        settings.dump(&self.persist_path)?;
+        Ok(())
     }
 }

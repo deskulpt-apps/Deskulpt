@@ -1,6 +1,6 @@
 //! Utilities for persisting the settings.
 
-use std::fs::{File, create_dir_all};
+use std::fs::File;
 use std::io::{BufReader, BufWriter};
 use std::path::Path;
 
@@ -8,9 +8,6 @@ use anyhow::Result;
 use serde::Serialize;
 
 use crate::Settings;
-
-/// The settings file name in the persistence directory.
-static SETTINGS_FILE: &str = "settings.json";
 
 /// The URL to the JSON schema file of the settings.
 static SETTINGS_SCHEMA_URL: &str = "https://deskulpt-apps.github.io/settings-schema.json";
@@ -47,26 +44,25 @@ impl Settings {
     /// Corrupted settings file will attempt to recover as much data as
     /// possible, applying default values for the corrupted parts. However,
     /// if the file is completely corrupted, an error might still be returned.
-    pub fn load(persist_dir: &Path) -> Result<Self> {
-        let settings_path = persist_dir.join(SETTINGS_FILE);
-        if !settings_path.exists() {
+    pub fn load(path: &Path) -> Result<Self> {
+        if !path.exists() {
             return Ok(Default::default());
         }
-        let file = File::open(settings_path)?;
+        let file = File::open(path)?;
         let reader = BufReader::new(file);
         let settings: Settings = serde_json::from_reader(reader)?;
         Ok(settings)
     }
 
     /// Write the settings to the persistence directory.
-    pub fn dump(&self, persist_dir: &Path) -> Result<()> {
-        // On certain platforms, File::create fails if intermediate directories
-        // do not exist, in which case we need to manually create the directory;
-        // see https://doc.rust-lang.org/std/fs/struct.File.html#method.create
-        if !persist_dir.exists() {
-            create_dir_all(persist_dir)?;
+    pub fn dump(&self, path: &Path) -> Result<()> {
+        if let Some(parent) = path.parent()
+            && !parent.as_os_str().is_empty()
+        {
+            std::fs::create_dir_all(parent)?;
         }
-        let file = File::create(persist_dir.join(SETTINGS_FILE))?;
+
+        let file = File::create(path)?;
         let writer = BufWriter::new(file);
         let settings = SettingsWithMeta::new(self);
         serde_json::to_writer_pretty(writer, &settings)?;
