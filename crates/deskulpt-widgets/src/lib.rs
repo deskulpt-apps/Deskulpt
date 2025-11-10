@@ -19,6 +19,7 @@ use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use deskulpt_core::path::PathExt;
 use deskulpt_core::states::SettingsStateExt;
+pub use manager::WidgetsManager;
 use tauri::plugin::TauriPlugin;
 use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
 use tracing::instrument;
@@ -42,8 +43,8 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 
 /// Extension to [`Manager`] for accessing Deskulpt widgets APIs.
 trait WidgetsExt<R: Runtime> {
-    /// Get a reference to the [`WidgetsManager`] to access the APIs.
-    fn widgets(&self) -> &WidgetsManager<R>;
+    /// Get a reference to the internal [`Widgets`] state to access the APIs.
+    fn widgets(&self) -> &Widgets<R>;
 }
 
 impl<R: Runtime, M: Manager<R>> WidgetsExt<R> for M {

@@ -20,7 +20,7 @@ use crate::WidgetsExt;
 )]
 pub async fn refresh<R: Runtime>(app_handle: AppHandle<R>, id: String) -> SerResult<()> {
     let request_id = Uuid::new_v4();
-    tracing::Span::current().record("request_id", &tracing::field::display(request_id));
+    tracing::Span::current().record("request_id", tracing::field::display(request_id));
 
     app_handle.widgets().refresh(&id)?;
     Ok(())
