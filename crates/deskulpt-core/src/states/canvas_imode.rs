@@ -7,6 +7,7 @@ use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
 use tauri::menu::MenuItem;
 use tauri::{App, AppHandle, Emitter, Manager, Runtime, WebviewWindow};
+use tracing::warn;
 
 use crate::events::ShowToastEvent;
 
@@ -105,7 +106,7 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + Emitter<R> {
                 // avoid flickering on the first click; failure to do so is not
                 // critical so we consume the error
                 if let Err(e) = canvas.set_focus() {
-                    eprintln!("Failed to gain focus on canvas: {}", e);
+                    warn!(window = "canvas", error = %e, "Failed to regain focus after toggling");
                 }
                 "Canvas sunk."
             },
@@ -114,7 +115,7 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + Emitter<R> {
         if let Err(e) =
             ShowToastEvent::Success(toast_message.to_string()).emit_to(self, DeskulptWindow::Canvas)
         {
-            eprintln!("Failed to emit ShowToastEvent to canvas: {}", e);
+            warn!(window = "canvas", error = %e, "Failed to emit toast notification");
         }
 
         Ok(())

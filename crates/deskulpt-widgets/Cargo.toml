@@ -11,20 +11,20 @@ repository = { workspace = true }
 version    = { workspace = true }
 
 [dependencies]
-anyhow            = { workspace = true }
-bitflags          = { workspace = true }
-deskulpt-common   = { workspace = true }
-deskulpt-core     = { workspace = true }
-deskulpt-settings = { workspace = true }
-either            = { workspace = true }
-itertools         = { workspace = true }
-rolldown          = { workspace = true }
-rolldown_common   = { workspace = true }
-serde             = { workspace = true, features = ["derive"] }
-serde_json        = { workspace = true }
-specta            = { workspace = true, features = ["derive", "function", "serde_json"] }
-tauri             = { workspace = true, features = ["specta"] }
-tokio             = { workspace = true }
+anyhow          = { workspace = true }
+bitflags        = { workspace = true }
+deskulpt-common = { workspace = true }
+deskulpt-core   = { workspace = true }
+either          = { workspace = true }
+itertools       = { workspace = true }
+rolldown        = { workspace = true }
+rolldown_common = { workspace = true }
+serde           = { workspace = true, features = ["derive"] }
+serde_json      = { workspace = true }
+specta          = { workspace = true, features = ["derive", "function", "serde_json"] }
+tauri           = { workspace = true, features = ["specta"] }
+tokio           = { workspace = true }
+tracing         = { workspace = true }
 
 [build-dependencies]
 deskulpt-build = { workspace = true }

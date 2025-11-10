@@ -103,10 +103,10 @@ pub trait PathExt<R: Runtime>: Manager<R> {
     /// This will create the logs directory if it does not exist. It must be
     /// called before calling the [`logs_dir`](PathExt::logs_dir) method.
     fn init_logs_dir(&self) -> Result<()> {
-        let logs_dir = LOGS_DIR.get_or_init(|| {
-            let logs_dir = self.path().app_log_dir().unwrap();
-            Arc::new(logs_dir)
-        });
+        // Ensure the persistence directory exists first because logs are stored
+        // within it for easier backup/cleanup.
+        let persist_dir = self.persist_dir()?;
+        let logs_dir = LOGS_DIR.get_or_init(|| Arc::new(persist_dir.join("logs")));
 
         if !logs_dir.exists() {
             create_dir_all(logs_dir.as_ref())?;

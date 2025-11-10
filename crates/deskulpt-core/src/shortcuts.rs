@@ -25,12 +25,20 @@ fn reregister_shortcut<R: Runtime>(
     let handler: fn(&AppHandle<R>) = match action {
         ShortcutAction::ToggleCanvasImode => |app_handle| {
             if let Err(e) = app_handle.toggle_canvas_imode() {
-                eprintln!("Failed to toggle canvas interaction mode: {e}");
+                tracing::error!(
+                    shortcut_key = "toggleCanvasImode",
+                    error = %e,
+                    "Failed to toggle canvas interaction mode from shortcut",
+                );
             }
         },
         ShortcutAction::OpenManager => |app_handle| {
             if let Err(e) = app_handle.open_manager() {
-                eprintln!("Failed to open the manager window: {e}");
+                tracing::error!(
+                    shortcut_key = "openManager",
+                    error = %e,
+                    "Failed to open the manager window from shortcut",
+                );
             }
         },
     };
@@ -56,10 +64,14 @@ pub trait ShortcutsExt<R: Runtime>: Manager<R> + SettingsExt<R> + GlobalShortcut
     fn init_shortcuts(&self) {
         {
             let gs = self.global_shortcut();
-            let settings = self.settings().read();
-            for (action, shortcut) in &settings.shortcuts {
-                if let Err(e) = reregister_shortcut(gs, action, None, Some(shortcut)) {
-                    eprintln!("Failed to register shortcut {shortcut:?} for {action:?}: {e:?}");
+            for (key, shortcut) in &settings.shortcuts {
+                if let Err(e) = reregister_shortcut(gs, key, None, Some(shortcut)) {
+                    tracing::error!(
+                        shortcut_key = ?key,
+                        shortcut_binding = %shortcut,
+                        error = ?e,
+                        "Failed to register shortcut",
+                    );
                 }
             }
         }
@@ -67,9 +79,13 @@ pub trait ShortcutsExt<R: Runtime>: Manager<R> + SettingsExt<R> + GlobalShortcut
         let app_handle = self.app_handle().clone();
         self.settings().on_shortcut_change(move |action, old, new| {
             let gs = app_handle.global_shortcut();
-            if let Err(e) = reregister_shortcut(gs, action, old, new) {
-                eprintln!(
-                    "Failed to re-register shortcut from {old:?} to {new:?} for {action:?}: {e:?}"
+            if let Err(e) = reregister_shortcut(gs, key, old, new) {
+                tracing::error!(
+                    shortcut_key = ?key,
+                    old_binding = ?old,
+                    new_binding = ?new,
+                    error = ?e,
+                    "Failed to re-register shortcut",
                 );
             }
         });

@@ -56,17 +56,32 @@ fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
     match event.id().as_ref() {
         "tray-toggle" => {
             if let Err(e) = app_handle.toggle_canvas_imode() {
-                eprintln!("Error toggling canvas interaction mode: {e}");
+                tracing::error!(
+                    action = "toggle_canvas_imode",
+                    error = %e,
+                    "Failed to toggle canvas interaction mode from tray menu",
+                );
             }
         },
         "tray-manage" => {
             if let Err(e) = app_handle.open_manager() {
-                eprintln!("Error opening manager window: {e}");
+                tracing::error!(
+                    action = "open_manager",
+                    error = %e,
+                    "Failed to open manager window from tray menu",
+                );
             }
         },
         "tray-exit" => {
-            if let Err(e) = app_handle.settings().persist() {
-                eprintln!("Failed to persist settings before exit: {e}");
+            if let Err(e) = app_handle
+                .persist_dir()
+                .and_then(|dir| app_handle.get_settings().dump(dir))
+            {
+                tracing::error!(
+                    action = "dump_settings",
+                    error = %e,
+                    "Failed to persist settings before exiting from tray",
+                );
                 app_handle.exit(1);
                 return;
             }
@@ -88,7 +103,11 @@ fn on_tray_icon_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
     {
         // Toggle canvas interaction mode on left-click
         if let Err(e) = tray.app_handle().toggle_canvas_imode() {
-            eprintln!("Error toggling canvas interaction mode: {e}");
+            tracing::error!(
+                action = "toggle_canvas_imode",
+                error = %e,
+                "Failed to toggle canvas interaction mode from tray icon",
+            );
         }
     }
 }
