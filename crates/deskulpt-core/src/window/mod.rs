@@ -4,22 +4,20 @@ mod script;
 
 use anyhow::Result;
 use deskulpt_common::window::DeskulptWindow;
+use deskulpt_settings::{SettingsExt, Theme};
 use script::{CanvasInitJS, ManagerInitJS};
 use tauri::{
     App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, Window, WindowEvent,
 };
 
-use crate::settings::Theme;
-use crate::states::SettingsStateExt;
-
 /// Extention trait for window-related operations.
-pub trait WindowExt<R: Runtime>: Manager<R> + SettingsStateExt<R> {
+pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
     /// Create the manager window.
     fn create_manager(&self) -> Result<()>
     where
         Self: Sized,
     {
-        let settings = self.get_settings();
+        let settings = self.settings().read();
         let init_js = ManagerInitJS::generate(&settings)?;
 
         // https://www.radix-ui.com/colors: "Slate 1" colors
@@ -52,7 +50,7 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsStateExt<R> {
     where
         Self: Sized,
     {
-        let settings = self.get_settings();
+        let settings = self.settings().read();
         let init_js = CanvasInitJS::generate(&settings)?;
         let canvas = WebviewWindowBuilder::new(
             self,

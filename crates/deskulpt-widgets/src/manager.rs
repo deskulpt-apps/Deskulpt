@@ -6,7 +6,7 @@ use anyhow::{Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use deskulpt_core::path::PathExt;
-use deskulpt_core::states::SettingsStateExt;
+use deskulpt_settings::SettingsExt;
 use tauri::{AppHandle, Runtime, WebviewWindow};
 
 use crate::catalog::{WidgetCatalog, WidgetDescriptor};
@@ -62,7 +62,8 @@ impl<R: Runtime> WidgetsManager<R> {
         UpdateEvent(&catalog).emit(&self.app_handle)?;
 
         self.app_handle
-            .update_settings(|settings| catalog.compute_settings_patch(settings))?;
+            .settings()
+            .update_with(|settings| catalog.compute_settings_patch(settings))?;
         Ok(())
     }
 
@@ -80,7 +81,8 @@ impl<R: Runtime> WidgetsManager<R> {
         UpdateEvent(&catalog).emit(&self.app_handle)?;
 
         self.app_handle
-            .update_settings(|settings| catalog.compute_settings_patch(settings))?;
+            .settings()
+            .update_with(|settings| catalog.compute_settings_patch(settings))?;
         Ok(())
     }
 

@@ -53,6 +53,7 @@ deskulpt-core          = { version = "0.1.0", path = "crates/deskulpt-core" }
 deskulpt-macros        = { version = "0.1.0", path = "crates/deskulpt-macros" }
 deskulpt-plugin        = { version = "0.1.0", path = "crates/deskulpt-plugin" }
 deskulpt-plugin-macros = { version = "0.1.0", path = "crates/deskulpt-plugin-macros" }
+deskulpt-settings      = { version = "0.1.0", path = "crates/deskulpt-settings" }
 deskulpt-widgets       = { version = "0.1.0", path = "crates/deskulpt-widgets" }
 deskulpt-workspace     = { version = "0.1.0", path = "crates/deskulpt-workspace" }
 

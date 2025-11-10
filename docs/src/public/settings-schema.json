@@ -10,7 +10,7 @@
       "default": "light"
     },
     "shortcuts": {
-      "description": "The keyboard shortcuts.",
+      "description": "The keyboard shortcuts.\n\nThis maps the actions to the shortcut strings that will trigger them.",
       "type": "object",
       "additionalProperties": {
         "type": "string"
@@ -28,7 +28,7 @@
   },
   "$defs": {
     "Theme": {
-      "description": "Light/dark theme of the application.",
+      "description": "The light/dark theme of the application interface.",
       "type": "string",
       "enum": [
         "light",
@@ -36,7 +36,7 @@
       ]
     },
     "WidgetSettings": {
-      "description": "Per-widget settings.\n\nDifferent from widget configurations, these are independent of the widget\nconfiguration files and are managed internally by the application.",
+      "description": "Per-widget settings.",
       "type": "object",
       "properties": {
         "x": {

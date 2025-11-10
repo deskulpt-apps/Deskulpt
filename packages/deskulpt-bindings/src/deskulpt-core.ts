@@ -23,63 +23,6 @@ export type DeskulptWindow =
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key in string]: JsonValue }
 
 /**
- * Full settings of the Deskulpt application.
- */
-export type Settings = { 
-/**
- * The application theme.
- */
-theme: Theme; 
-/**
- * The keyboard shortcuts.
- */
-shortcuts: Partial<{ [key in ShortcutKey]: string }>; 
-/**
- * The mapping from widget IDs to their respective settings.
- */
-widgets: { [key in string]: WidgetSettings } }
-
-/**
- * A patch for partial updates to [`Settings`].
- */
-export type SettingsPatch = { 
-/**
- * If not `None`, update [`Settings::theme`].
- */
-theme?: Theme; 
-/**
- * If not `None`, update [`Settings::shortcuts`].
- * 
- * Non-specified shortcuts will remain unchanged. If a shortcut value is
- * `None`, it means removing that shortcut. Otherwise, it means updating
- * or adding that shortcut.
- */
-shortcuts?: Partial<{ [key in ShortcutKey]: string | null }>; 
-/**
- * If not `None`, update [`Settings::widgets`].
- * 
- * Non-specified widgets will remain unchanged. If a widget settings patch
- * is `None`, it means leaving that widget settings unchanged. Otherwise,
- * it means applying the patch to that widget settings. If the widget ID
- * does not exist, a new widget settings will be created with default
- * values, and then the patch will be applied to it.
- */
-widgets?: { [key in string]: WidgetSettingsPatch | null } }
-
-/**
- * Types of keyboard shortcuts in the application.
- */
-export type ShortcutKey = 
-/**
- * For toggling canvas interaction mode.
- */
-"toggleCanvasImode" | 
-/**
- * For opening the manager window.
- */
-"openManager"
-
-/**
  * Event for showing a toast notification.
  * 
  * This event is emitted from the backend to the canvas window when a toast
@@ -94,73 +37,6 @@ export type ShowToastEvent =
  * Show an [error](https://sonner.emilkowal.ski/toast#error) toast.
  */
 { type: "error"; content: string }
-
-/**
- * Light/dark theme of the application.
- */
-export type Theme = "light" | "dark"
-
-/**
- * Event for updating the settings.
- * 
- * This event is emitted from the backend to all frontend windows whenever
- * there is a change in the settings. Full settings are included to ensure
- * that all windows see the most up-to-date version eventually.
- */
-export type UpdateSettingsEvent = Settings
-
-/**
- * Per-widget settings.
- * 
- * Different from widget configurations, these are independent of the widget
- * configuration files and are managed internally by the application.
- */
-export type WidgetSettings = { 
-/**
- * The leftmost x-coordinate in pixels.
- */
-x: number; 
-/**
- * The topmost y-coordinate in pixels.
- */
-y: number; 
-/**
- * The width in pixels.
- */
-width: number; 
-/**
- * The height in pixels.
- */
-height: number; 
-/**
- * The opacity in percentage.
- */
-opacity: number }
-
-/**
- * A patch for partial updates to [`WidgetSettings`].
- */
-export type WidgetSettingsPatch = { 
-/**
- * If not `None`, update [`WidgetSettings::x`].
- */
-x?: number; 
-/**
- * If not `None`, update [`WidgetSettings::y`].
- */
-y?: number; 
-/**
- * If not `None`, update [`WidgetSettings::width`].
- */
-width?: number; 
-/**
- * If not `None`, update [`WidgetSettings::height`].
- */
-height?: number; 
-/**
- * If not `None`, update [`WidgetSettings::opacity`].
- */
-opacity?: number }
 
 // =============================================================================
 // Events
@@ -186,7 +62,6 @@ function makeEvent<T>(name: string) {
 
 export const events = {
   showToast: makeEvent<ShowToastEvent>("deskulpt-core://show-toast"),
-  updateSettings: makeEvent<UpdateSettingsEvent>("deskulpt-core://update-settings"),
 };
 
 // =============================================================================
@@ -236,14 +111,5 @@ export const commands = {
     id: string | null,
   ) => invoke<null>("plugin:deskulpt-core|open_widget", {
     id,
-  }),
-
-  /**
-   * Wrapper of [`SettingsStateExt::update_settings`].
-   */
-  updateSettings: (
-    patch: SettingsPatch,
-  ) => invoke<null>("plugin:deskulpt-core|update_settings", {
-    patch,
   }),
 };

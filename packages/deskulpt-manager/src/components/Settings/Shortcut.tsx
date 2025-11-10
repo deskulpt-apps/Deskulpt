@@ -16,7 +16,7 @@ import {
 } from "react";
 import { FaEdit } from "react-icons/fa";
 import { MdClear } from "react-icons/md";
-import { deskulptCore } from "@deskulpt/bindings";
+import { deskulptSettings } from "@deskulpt/bindings";
 import { useSettingsStore } from "../../hooks";
 import { toast } from "sonner";
 import { INVALID_KEYCODES, KEYCODES, MODIFIERS } from "./keyboard";
@@ -36,11 +36,11 @@ const styles = {
 };
 
 interface Props {
-  shortcutKey: deskulptCore.ShortcutKey;
+  action: deskulptSettings.ShortcutAction;
 }
 
-const ShortcutAction = ({ shortcutKey }: Props) => {
-  const shortcut = useSettingsStore((state) => state.shortcuts[shortcutKey]);
+const ShortcutAction = ({ action }: Props) => {
+  const shortcut = useSettingsStore((state) => state.shortcuts[action]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const clearButtonRef = useRef<HTMLButtonElement>(null);
@@ -126,10 +126,8 @@ const ShortcutAction = ({ shortcutKey }: Props) => {
   }, []);
 
   const confirmAction = useCallback(() => {
-    deskulptCore.commands
-      .updateSettings({
-        shortcuts: { [shortcutKey]: value === "" ? null : value },
-      })
+    deskulptSettings.commands
+      .update({ shortcuts: { [action]: value === "" ? null : value } })
       .then(() => {
         setPlaceholder(INITIAL_PLACEHOLDER);
         setIsValid(true);
@@ -138,7 +136,7 @@ const ShortcutAction = ({ shortcutKey }: Props) => {
       .catch(() => {
         toast.error("Failed to update shortcut.");
       });
-  }, [shortcutKey, value]);
+  }, [action, value]);
 
   const clearAction = useCallback(() => {
     if (inputRef.current === null) {

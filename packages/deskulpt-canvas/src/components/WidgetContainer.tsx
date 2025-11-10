@@ -8,7 +8,7 @@ import { LuGripVertical } from "react-icons/lu";
 import { Box } from "@radix-ui/themes";
 import { useSettingsStore, useWidgetsStore } from "../hooks";
 import { css } from "@emotion/react";
-import { deskulptCore } from "@deskulpt/bindings";
+import { deskulptSettings } from "@deskulpt/bindings";
 
 const styles = {
   wrapper: css({
@@ -60,7 +60,7 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
     (_: DraggableEvent, data: DraggableData) => {
       setX(data.x);
       setY(data.y);
-      deskulptCore.commands.updateSettings({
+      deskulptSettings.commands.update({
         widgets: { [id]: { x: data.x, y: data.y } },
       });
     },
@@ -74,7 +74,7 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
       }
       setWidth(width + delta.width);
       setHeight(height + delta.height);
-      deskulptCore.commands.updateSettings({
+      deskulptSettings.commands.update({
         widgets: {
           [id]: { width: width + delta.width, height: height + delta.height },
         },

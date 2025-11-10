@@ -1,18 +1,16 @@
 import { Box, IconButton } from "@radix-ui/themes";
-import { deskulptCore } from "@deskulpt/bindings";
+import { deskulptSettings } from "@deskulpt/bindings";
 import { MdOutlineDarkMode, MdOutlineLightMode } from "react-icons/md";
 import { useCallback } from "react";
 
 interface ThemeTogglerProps {
-  theme: deskulptCore.Theme;
+  theme: deskulptSettings.Theme;
 }
 
 const ThemeToggler = ({ theme }: ThemeTogglerProps) => {
   const toggleTheme = useCallback(() => {
-    deskulptCore.commands
-      .updateSettings({
-        theme: theme === "light" ? "dark" : "light",
-      })
+    deskulptSettings.commands
+      .update({ theme: theme === "light" ? "dark" : "light" })
       .catch(console.error);
   }, [theme]);
 

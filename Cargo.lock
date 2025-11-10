@@ -1160,6 +1160,7 @@ name = "deskulpt"
 version = "0.1.0"
 dependencies = [
  "deskulpt-core",
+ "deskulpt-settings",
  "deskulpt-widgets",
  "tauri",
  "tauri-build",
@@ -1199,14 +1200,13 @@ dependencies = [
  "deskulpt-plugin",
  "deskulpt-plugin-fs",
  "deskulpt-plugin-sys",
+ "deskulpt-settings",
  "dunce",
  "objc2 0.6.3",
  "once_cell",
  "open",
- "schemars 1.0.4",
  "serde",
  "serde_json",
- "serde_with",
  "serialize-to-javascript",
  "specta",
  "tauri",
@@ -1265,6 +1265,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "deskulpt-settings"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "deskulpt-build",
+ "deskulpt-common",
+ "schemars 1.0.4",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "specta",
+ "tauri",
+ "tokio",
+]
+
+[[package]]
 name = "deskulpt-widgets"
 version = "0.1.0"
 dependencies = [
@@ -1273,6 +1289,7 @@ dependencies = [
  "deskulpt-build",
  "deskulpt-common",
  "deskulpt-core",
+ "deskulpt-settings",
  "either",
  "itertools",
  "rolldown",
@@ -7997,6 +8014,7 @@ dependencies = [
  "clap",
  "deskulpt-common",
  "deskulpt-core",
+ "deskulpt-settings",
  "deskulpt-widgets",
  "deskulpt-workspace",
  "handlebars",

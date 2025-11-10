@@ -1,14 +1,16 @@
-//! Application and widget settings.
+//! Definitions, patching, and persistence of Deskulpt settings.
 
 use std::collections::BTreeMap;
+use std::fs::File;
+use std::io::{BufReader, BufWriter};
+use std::path::Path;
 
+use anyhow::Result;
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::{DefaultOnError, MapSkipError, serde_as};
 
-mod persistence;
-
-/// Light/dark theme of the application.
+/// The light/dark theme of the application interface.
 #[derive(
     Debug, Clone, Default, PartialEq, Eq, Deserialize, Serialize, JsonSchema, specta::Type,
 )]
@@ -19,22 +21,19 @@ pub enum Theme {
     Dark,
 }
 
-/// Types of keyboard shortcuts in the application.
+/// Actions that can be bound to keyboard shortcuts.
 #[derive(
     Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize, JsonSchema, specta::Type,
 )]
 #[serde(rename_all = "camelCase")]
-pub enum ShortcutKey {
-    /// For toggling canvas interaction mode.
+pub enum ShortcutAction {
+    /// Toggle the canvas interaction mode (imode).
     ToggleCanvasImode,
-    /// For opening the manager window.
+    /// Open the manager interface.
     OpenManager,
 }
 
 /// Per-widget settings.
-///
-/// Different from widget configurations, these are independent of the widget
-/// configuration files and are managed internally by the application.
 #[serde_as]
 #[derive(Debug, Deserialize, Serialize, JsonSchema, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
@@ -142,8 +141,10 @@ pub struct Settings {
     #[serde_as(deserialize_as = "DefaultOnError")]
     pub theme: Theme,
     /// The keyboard shortcuts.
+    ///
+    /// This maps the actions to the shortcut strings that will trigger them.
     #[serde_as(deserialize_as = "MapSkipError<_, _>")]
-    pub shortcuts: BTreeMap<ShortcutKey, String>,
+    pub shortcuts: BTreeMap<ShortcutAction, String>,
     /// The mapping from widget IDs to their respective settings.
     #[serde_as(deserialize_as = "MapSkipError<_, _>")]
     pub widgets: BTreeMap<String, WidgetSettings>,
@@ -161,15 +162,65 @@ pub struct SettingsPatch {
     /// Non-specified shortcuts will remain unchanged. If a shortcut value is
     /// `None`, it means removing that shortcut. Otherwise, it means updating
     /// or adding that shortcut.
-    #[specta(optional, type = BTreeMap<ShortcutKey, Option<String>>)]
-    pub shortcuts: Option<BTreeMap<ShortcutKey, Option<String>>>,
+    #[specta(optional, type = BTreeMap<ShortcutAction, Option<String>>)]
+    pub shortcuts: Option<BTreeMap<ShortcutAction, Option<String>>>,
     /// If not `None`, update [`Settings::widgets`].
     ///
     /// Non-specified widgets will remain unchanged. If a widget settings patch
-    /// is `None`, it means leaving that widget settings unchanged. Otherwise,
-    /// it means applying the patch to that widget settings. If the widget ID
-    /// does not exist, a new widget settings will be created with default
-    /// values, and then the patch will be applied to it.
+    /// is `None`, it means removing that widget. Otherwise, it means applying
+    /// the patch to that widget settings. If the widget ID does not exist, a
+    /// new widget settings will be created with default values, and then the
+    /// patch will be applied to it.
     #[specta(optional, type = BTreeMap<String, Option<WidgetSettingsPatch>>)]
     pub widgets: Option<BTreeMap<String, Option<WidgetSettingsPatch>>>,
+}
+
+impl Settings {
+    /// Load the settings from disk.
+    ///
+    /// Default settings will be returned if the settings file does not exist.
+    /// Corrupted settings file will attempt to recover as much data as
+    /// possible, applying default values for the corrupted parts. However,
+    /// if the file is completely corrupted, an error might still be returned.
+    pub fn load(path: &Path) -> Result<Self> {
+        if !path.exists() {
+            return Ok(Default::default());
+        }
+        let file = File::open(path)?;
+        let reader = BufReader::new(file);
+        let settings: Settings = serde_json::from_reader(reader)?;
+        Ok(settings)
+    }
+
+    /// Dump the settings to disk.
+    ///
+    /// The provided path will be created if it does not exist. The settings
+    /// will be serialized in pretty JSON format with `$schema` metadata for
+    /// human readability and editor support.
+    pub fn dump(&self, path: &Path) -> Result<()> {
+        #[derive(Serialize)]
+        struct SettingsWithMeta<'a> {
+            #[serde(rename = "$schema")]
+            schema: &'static str,
+            #[serde(flatten)]
+            settings: &'a Settings,
+        }
+
+        const SETTINGS_SCHEMA_URL: &str = "https://deskulpt-apps.github.io/settings-schema.json";
+
+        if let Some(parent) = path.parent()
+            && !parent.as_os_str().is_empty()
+        {
+            std::fs::create_dir_all(parent)?;
+        }
+
+        let file = File::create(path)?;
+        let writer = BufWriter::new(file);
+        let settings = SettingsWithMeta {
+            schema: SETTINGS_SCHEMA_URL,
+            settings: self,
+        };
+        serde_json::to_writer_pretty(writer, &settings)?;
+        Ok(())
+    }
 }

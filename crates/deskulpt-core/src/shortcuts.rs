@@ -1,20 +1,20 @@
 //! Keyboard shortcut management.
 
 use anyhow::Result;
-use tauri::{App, AppHandle, Runtime};
+use deskulpt_settings::{SettingsExt, ShortcutAction};
+use tauri::{App, AppHandle, Manager, Runtime};
 use tauri_plugin_global_shortcut::{GlobalShortcut, GlobalShortcutExt, ShortcutState};
 
-use crate::settings::ShortcutKey;
-use crate::states::{CanvasImodeStateExt, SettingsStateExt};
+use crate::states::CanvasImodeStateExt;
 use crate::window::WindowExt;
 
 /// Re-register a shortcut.
 ///
 /// The old shortcut will be unregistered and the new shortcut will be
-/// registered, with the listener determined by the shortcut key.
+/// registered, with the listener determined by the shortcut action.
 fn reregister_shortcut<R: Runtime>(
     gs: &GlobalShortcut<R>,
-    key: &ShortcutKey,
+    action: &ShortcutAction,
     old: Option<&String>,
     new: Option<&String>,
 ) -> Result<()> {
@@ -22,13 +22,13 @@ fn reregister_shortcut<R: Runtime>(
         gs.unregister(shortcut.as_str())?;
     }
 
-    let handler: fn(&AppHandle<R>) = match key {
-        ShortcutKey::ToggleCanvasImode => |app_handle| {
+    let handler: fn(&AppHandle<R>) = match action {
+        ShortcutAction::ToggleCanvasImode => |app_handle| {
             if let Err(e) = app_handle.toggle_canvas_imode() {
                 eprintln!("Failed to toggle canvas interaction mode: {e}");
             }
         },
-        ShortcutKey::OpenManager => |app_handle| {
+        ShortcutAction::OpenManager => |app_handle| {
             if let Err(e) = app_handle.open_manager() {
                 eprintln!("Failed to open the manager window: {e}");
             }
@@ -47,7 +47,7 @@ fn reregister_shortcut<R: Runtime>(
 }
 
 /// Extension trait for keyboard shortcut operations.
-pub trait ShortcutsExt<R: Runtime>: SettingsStateExt<R> + GlobalShortcutExt<R> {
+pub trait ShortcutsExt<R: Runtime>: Manager<R> + SettingsExt<R> + GlobalShortcutExt<R> {
     /// Initialize keyboard shortcuts management.
     ///
     /// This immediately registers shortcuts based on the settings. Failure to
@@ -55,21 +55,21 @@ pub trait ShortcutsExt<R: Runtime>: SettingsStateExt<R> + GlobalShortcutExt<R> {
     /// re-registers shortcuts when shortcuts in the settings change.
     fn init_shortcuts(&self) {
         {
-            let settings = self.get_settings();
             let gs = self.global_shortcut();
-            for (key, shortcut) in &settings.shortcuts {
-                if let Err(e) = reregister_shortcut(gs, key, None, Some(shortcut)) {
-                    eprintln!("Failed to register shortcut {shortcut:?} for {key:?}: {e:?}");
+            let settings = self.settings().read();
+            for (action, shortcut) in &settings.shortcuts {
+                if let Err(e) = reregister_shortcut(gs, action, None, Some(shortcut)) {
+                    eprintln!("Failed to register shortcut {shortcut:?} for {action:?}: {e:?}");
                 }
             }
         }
 
         let app_handle = self.app_handle().clone();
-        self.on_shortcut_change(move |key, old, new| {
+        self.settings().on_shortcut_change(move |action, old, new| {
             let gs = app_handle.global_shortcut();
-            if let Err(e) = reregister_shortcut(gs, key, old, new) {
+            if let Err(e) = reregister_shortcut(gs, action, old, new) {
                 eprintln!(
-                    "Failed to re-register shortcut from {old:?} to {new:?} for {key:?}: {e:?}"
+                    "Failed to re-register shortcut from {old:?} to {new:?} for {action:?}: {e:?}"
                 );
             }
         });
