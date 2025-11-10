@@ -27,6 +27,7 @@ tracing                      = { workspace = true }
 tracing-appender             = { workspace = true }
 tracing-panic                = { workspace = true }
 tracing-subscriber           = { workspace = true, features = ["time"] }
+uuid                         = { workspace = true }
 
 tauri = { workspace = true, features = [
   "specta",

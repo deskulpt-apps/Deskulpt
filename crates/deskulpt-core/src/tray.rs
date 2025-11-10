@@ -6,6 +6,7 @@ use tauri::image::Image;
 use tauri::menu::{MenuBuilder, MenuEvent, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use tauri::{App, AppHandle, Runtime};
+use tracing::instrument;
 
 use crate::states::CanvasImodeStateExt;
 use crate::window::WindowExt;
@@ -13,6 +14,7 @@ use crate::window::WindowExt;
 /// Extention trait for system tray-related operations.
 pub trait TrayExt<R: Runtime>: CanvasImodeStateExt<R> {
     /// Create the system tray.
+    #[instrument(skip(self, icon), err)]
     fn create_tray(&self, icon: Image) -> Result<()>
     where
         Self: Sized,
@@ -52,21 +54,34 @@ impl<R: Runtime> TrayExt<R> for AppHandle<R> {}
 ///
 /// This handler will receive any menu event but only act on events related to
 /// the system tray.
+#[instrument(skip(app_handle, event))]
 fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
     match event.id().as_ref() {
         "tray-toggle" => {
             if let Err(e) = app_handle.toggle_canvas_imode() {
-                eprintln!("Error toggling canvas interaction mode: {e}");
-            }
+                tracing::error!(
+                    error = %e,
+                    "Failed to toggle canvas interaction mode from tray menu",
+                );
+            };
         },
         "tray-manage" => {
             if let Err(e) = app_handle.open_manager() {
-                eprintln!("Error opening manager window: {e}");
-            }
+                tracing::error!(
+                    error = %e,
+                    "Failed to open manager window from tray menu",
+                );
+            };
         },
         "tray-exit" => {
-            if let Err(e) = app_handle.settings().persist() {
-                eprintln!("Failed to persist settings before exit: {e}");
+            let persist_result = app_handle
+                .persist_dir()
+                .and_then(|dir| app_handle.get_settings().dump(dir));
+            if let Err(e) = persist_result {
+                tracing::error!(
+                    error = %e,
+                    "Failed to persist settings before exiting from tray",
+                );
                 app_handle.exit(1);
                 return;
             }
@@ -77,6 +92,7 @@ fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
 }
 
 /// Handler for system tray icon events.
+#[instrument(skip(tray, event))]
 fn on_tray_icon_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
     if let TrayIconEvent::Click {
         button,
@@ -88,7 +104,10 @@ fn on_tray_icon_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
     {
         // Toggle canvas interaction mode on left-click
         if let Err(e) = tray.app_handle().toggle_canvas_imode() {
-            eprintln!("Error toggling canvas interaction mode: {e}");
+            tracing::error!(
+                error = %e,
+                "Failed to toggle canvas interaction mode from tray icon",
+            );
         }
     }
 }

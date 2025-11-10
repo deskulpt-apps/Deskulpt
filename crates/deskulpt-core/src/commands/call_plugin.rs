@@ -2,6 +2,8 @@ use deskulpt_common::{SerResult, ser_bail};
 use once_cell::sync::Lazy;
 use tauri::{AppHandle, Runtime, command};
 use tokio::sync::Mutex;
+use tracing::instrument;
+use uuid::Uuid;
 
 use crate::path::PathExt;
 
@@ -27,6 +29,16 @@ static SYS_PLUGIN: Lazy<Mutex<deskulpt_plugin_sys::SysPlugin>> =
 /// it should be a generic `R: Runtime` parameter in the final implementation.
 #[command]
 #[specta::specta]
+#[instrument(
+    skip(app_handle, payload),
+    fields(
+        plugin = %plugin,
+        widget_id = %id,
+        command = %command,
+        request_id = tracing::field::Empty
+    ),
+    err(Debug)
+)]
 pub async fn call_plugin<R: Runtime>(
     app_handle: AppHandle<R>,
     plugin: String,
@@ -34,6 +46,9 @@ pub async fn call_plugin<R: Runtime>(
     id: String,
     payload: Option<serde_json::Value>,
 ) -> SerResult<serde_json::Value> {
+    let request_id = Uuid::new_v4();
+    tracing::Span::current().record("request_id", tracing::field::display(request_id));
+
     let widget_dir_fn = move |id: &str| app_handle.widget_dir(id);
 
     match plugin.as_str() {

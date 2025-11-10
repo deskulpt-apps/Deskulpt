@@ -1216,6 +1216,7 @@ dependencies = [
  "tracing-appender",
  "tracing-panic",
  "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]
@@ -1289,7 +1290,6 @@ dependencies = [
  "deskulpt-build",
  "deskulpt-common",
  "deskulpt-core",
- "deskulpt-settings",
  "either",
  "itertools",
  "rolldown",
@@ -1299,6 +1299,8 @@ dependencies = [
  "specta",
  "tauri",
  "tokio",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
