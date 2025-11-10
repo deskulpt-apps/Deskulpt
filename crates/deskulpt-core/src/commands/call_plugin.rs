@@ -47,7 +47,7 @@ pub async fn call_plugin<R: Runtime>(
     payload: Option<serde_json::Value>,
 ) -> SerResult<serde_json::Value> {
     let request_id = Uuid::new_v4();
-    tracing::Span::current().record("request_id", &tracing::field::display(request_id));
+    tracing::Span::current().record("request_id", tracing::field::display(request_id));
 
     let widget_dir_fn = move |id: &str| app_handle.widget_dir(id);
 

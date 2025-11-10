@@ -60,15 +60,6 @@ impl<R: Runtime> CanvasImodeStateInner<R> {
     }
 }
 
-impl CanvasImode {
-    fn as_str(&self) -> &'static str {
-        match self {
-            CanvasImode::Sink => "sink",
-            CanvasImode::Float => "float",
-        }
-    }
-}
-
 /// Managed state for canvas interaction mode.
 struct CanvasImodeState<R: Runtime>(Mutex<CanvasImodeStateInner<R>>);
 
