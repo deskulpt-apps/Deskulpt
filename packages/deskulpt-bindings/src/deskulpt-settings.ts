@@ -30,8 +30,10 @@ export type Settings = {
 theme: Theme; 
 /**
  * The keyboard shortcuts.
+ * 
+ * This maps the actions to the shortcut strings that will trigger them.
  */
-shortcuts: Partial<{ [key in ShortcutKey]: string }>; 
+shortcuts: Partial<{ [key in ShortcutAction]: string }>; 
 /**
  * The mapping from widget IDs to their respective settings.
  */
@@ -52,33 +54,33 @@ theme?: Theme;
  * `None`, it means removing that shortcut. Otherwise, it means updating
  * or adding that shortcut.
  */
-shortcuts?: Partial<{ [key in ShortcutKey]: string | null }>; 
+shortcuts?: Partial<{ [key in ShortcutAction]: string | null }>; 
 /**
  * If not `None`, update [`Settings::widgets`].
  * 
  * Non-specified widgets will remain unchanged. If a widget settings patch
- * is `None`, it means leaving that widget settings unchanged. Otherwise,
- * it means applying the patch to that widget settings. If the widget ID
- * does not exist, a new widget settings will be created with default
- * values, and then the patch will be applied to it.
+ * is `None`, it means removing that widget. Otherwise, it means applying
+ * the patch to that widget settings. If the widget ID does not exist, a
+ * new widget settings will be created with default values, and then the
+ * patch will be applied to it.
  */
 widgets?: { [key in string]: WidgetSettingsPatch | null } }
 
 /**
- * Types of keyboard shortcuts in the application.
+ * Actions that can be bound to keyboard shortcuts.
  */
-export type ShortcutKey = 
+export type ShortcutAction = 
 /**
- * For toggling canvas interaction mode.
+ * Toggle the canvas interaction mode (imode).
  */
 "toggleCanvasImode" | 
 /**
- * For opening the manager window.
+ * Open the manager interface.
  */
 "openManager"
 
 /**
- * Light/dark theme of the application.
+ * The light/dark theme of the application interface.
  */
 export type Theme = "light" | "dark"
 
@@ -89,9 +91,6 @@ export type UpdateEvent = Settings
 
 /**
  * Per-widget settings.
- * 
- * Different from widget configurations, these are independent of the widget
- * configuration files and are managed internally by the application.
  */
 export type WidgetSettings = { 
 /**

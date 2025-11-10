@@ -72,7 +72,7 @@ impl RenderWorkerHandle {
     ///
     /// This does not block. The task is sent to the render worker for
     /// asynchronous processing and does not wait for completion. An error is
-    /// returned if task submission fails, but not if the task itself fails.
+    /// returned if task submission fails, but not task processing fails.
     pub fn process(&self, task: RenderWorkerTask) -> Result<()> {
         Ok(self.0.send(task)?)
     }

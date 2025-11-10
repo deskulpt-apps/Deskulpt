@@ -6,16 +6,14 @@
 
 mod commands;
 mod events;
-mod hooks;
 mod manager;
-mod persistence;
 mod settings;
 mod worker;
 
 pub use manager::SettingsManager;
 #[doc(no_inline)] // Avoid duplicate docs
 pub use settings::{
-    Settings, SettingsPatch, ShortcutKey, Theme, WidgetSettings, WidgetSettingsPatch,
+    Settings, SettingsPatch, ShortcutAction, Theme, WidgetSettings, WidgetSettingsPatch,
 };
 use tauri::plugin::TauriPlugin;
 use tauri::{Manager, Runtime};

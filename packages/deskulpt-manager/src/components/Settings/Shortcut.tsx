@@ -36,11 +36,11 @@ const styles = {
 };
 
 interface Props {
-  shortcutKey: deskulptSettings.ShortcutKey;
+  action: deskulptSettings.ShortcutAction;
 }
 
-const ShortcutAction = ({ shortcutKey }: Props) => {
-  const shortcut = useSettingsStore((state) => state.shortcuts[shortcutKey]);
+const ShortcutAction = ({ action }: Props) => {
+  const shortcut = useSettingsStore((state) => state.shortcuts[action]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const clearButtonRef = useRef<HTMLButtonElement>(null);
@@ -127,7 +127,7 @@ const ShortcutAction = ({ shortcutKey }: Props) => {
 
   const confirmAction = useCallback(() => {
     deskulptSettings.commands
-      .update({ shortcuts: { [shortcutKey]: value === "" ? null : value } })
+      .update({ shortcuts: { [action]: value === "" ? null : value } })
       .then(() => {
         setPlaceholder(INITIAL_PLACEHOLDER);
         setIsValid(true);
@@ -136,7 +136,7 @@ const ShortcutAction = ({ shortcutKey }: Props) => {
       .catch(() => {
         toast.error("Failed to update shortcut.");
       });
-  }, [shortcutKey, value]);
+  }, [action, value]);
 
   const clearAction = useCallback(() => {
     if (inputRef.current === null) {
