@@ -19,7 +19,7 @@ pub trait TrayExt<R: Runtime>: CanvasImodeStateExt<R> {
     {
         // Store the menu item for toggling canvas interaction mode
         let menu_item_toggle = MenuItemBuilder::with_id("tray-toggle", "Float").build(self)?;
-        self.set_canvas_imode_menu_item(&menu_item_toggle);
+        self.manage_canvas_imode(menu_item_toggle.clone())?;
 
         // Build the system tray menu
         let tray_menu = MenuBuilder::new(self)

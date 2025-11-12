@@ -4,7 +4,7 @@ mod script;
 
 use anyhow::Result;
 use deskulpt_common::window::DeskulptWindow;
-use deskulpt_settings::{SettingsExt, Theme};
+use deskulpt_settings::{CanvasImode, SettingsExt, Theme};
 use script::{CanvasInitJS, ManagerInitJS};
 use tauri::{
     App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, Window, WindowEvent,
@@ -88,8 +88,9 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         // https://github.com/tauri-apps/tauri/issues/9597
         canvas.show()?;
 
-        // Canvas is by default click-through
-        canvas.set_ignore_cursor_events(true)?;
+        if settings.canvas_imode == CanvasImode::Sink {
+            canvas.set_ignore_cursor_events(true)?;
+        }
 
         Ok(())
     }

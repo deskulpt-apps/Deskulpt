@@ -1,125 +1,77 @@
 //! State management for canvas interaction mode.
 
-use std::sync::Mutex;
-
 use anyhow::Result;
 use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
+use deskulpt_settings::{CanvasImode, SettingsExt, SettingsPatch};
 use tauri::menu::MenuItem;
 use tauri::{App, AppHandle, Emitter, Manager, Runtime, WebviewWindow};
 
 use crate::events::ShowToastEvent;
 
-/// Canvas interaction mode.
-#[derive(Clone)]
-enum CanvasImode {
-    /// Sink mode.
-    ///
-    /// The canvas is click-through. Widgets are not interactable. The desktop
-    /// is interactable.
-    Sink,
-    /// Float mode.
-    ///
-    /// The canvas is not click-through. Widgets are interactable. The desktop
-    /// is not interactable.
-    Float,
-}
-
-/// The internal of the managed state for canvas interaction mode.
-struct CanvasImodeStateInner<R: Runtime> {
-    /// The interaction mode of the canvas.
-    mode: CanvasImode,
-    /// The menu item for toggling the canvas interaction mode.
-    menu_item: Option<MenuItem<R>>,
-}
-
-impl<R: Runtime> CanvasImodeStateInner<R> {
-    /// Toggle the interaction mode.
-    ///
-    /// This will change the mode and update the menu item text if it exists.
-    fn toggle(&mut self, canvas: &WebviewWindow<R>) -> Result<()> {
-        // The menu item shows the action that will be performed on click, so it
-        // should be the opposite of the mode
-        let (new_mode, new_text) = match self.mode {
-            CanvasImode::Sink => {
-                canvas.set_ignore_cursor_events(false)?;
-                (CanvasImode::Float, "Sink")
-            },
-            CanvasImode::Float => {
-                canvas.set_ignore_cursor_events(true)?;
-                (CanvasImode::Sink, "Float")
-            },
-        };
-
-        self.mode = new_mode;
-        if let Some(menu_item) = &self.menu_item {
-            menu_item.set_text(new_text)?;
-        }
-        Ok(())
-    }
-}
-
 /// Managed state for canvas interaction mode.
-struct CanvasImodeState<R: Runtime>(Mutex<CanvasImodeStateInner<R>>);
+struct CanvasImodeState<R: Runtime>(MenuItem<R>);
 
 /// Extension trait for operations on canvas interaction mode.
-pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + Emitter<R> {
+pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + Emitter<R> + SettingsExt<R> {
     /// Initialize state management for canvas interaction mode.
     ///
-    /// The canvas is in sink mode by default.
-    fn manage_canvas_imode(&self) {
-        let inner = CanvasImodeStateInner {
-            mode: CanvasImode::Sink,
-            menu_item: None::<MenuItem<R>>,
-        };
-        self.manage(CanvasImodeState(Mutex::new(inner)));
-    }
+    /// This will also listen for changes to the canvas interaction mode and
+    /// update the canvas window and menu item accordingly.
+    fn manage_canvas_imode(&self, menu_item: MenuItem<R>) -> Result<()> {
+        self.manage(CanvasImodeState(menu_item));
 
-    /// Set the menu item for toggling canvas interaction mode.
-    fn set_canvas_imode_menu_item(&self, menu_item: &MenuItem<R>) {
-        let state = self.state::<CanvasImodeState<R>>();
-        let mut state = state.0.lock().unwrap();
+        let app_handle = self.app_handle().clone();
+        let canvas = DeskulptWindow::Canvas.webview_window(&app_handle)?;
+        self.settings().on_canvas_imode_change(move |_, new| {
+            if let Err(e) = on_new_canvas_imode(&app_handle, &canvas, new) {
+                eprintln!("Failed to update canvas interaction mode: {}", e);
+            }
+        });
 
-        // Cloning works because menu items are behind shared references
-        state.menu_item = Some(menu_item.clone());
+        Ok(())
     }
 
     /// Toggle the interaction mode of the canvas window.
-    ///
-    /// This will show a toast message on the canvas window indicating the new
-    /// interaction mode.
-    fn toggle_canvas_imode(&self) -> Result<()>
-    where
-        Self: Sized,
-    {
-        let canvas = DeskulptWindow::Canvas.webview_window(self)?;
-
-        let state = self.state::<CanvasImodeState<R>>();
-        let mut state = state.0.lock().unwrap();
-        state.toggle(&canvas)?;
-
-        let toast_message = match state.mode {
-            CanvasImode::Float => "Canvas floated.",
-            CanvasImode::Sink => {
-                // Toggled from float to sink, so we try to regain focus to
-                // avoid flickering on the first click; failure to do so is not
-                // critical so we consume the error
-                if let Err(e) = canvas.set_focus() {
-                    eprintln!("Failed to gain focus on canvas: {}", e);
-                }
-                "Canvas sunk."
-            },
-        };
-
-        if let Err(e) =
-            ShowToastEvent::Success(toast_message.to_string()).emit_to(self, DeskulptWindow::Canvas)
-        {
-            eprintln!("Failed to emit ShowToastEvent to canvas: {}", e);
-        }
-
+    fn toggle_canvas_imode(&self) -> Result<()> {
+        self.settings().update_with(|settings| SettingsPatch {
+            canvas_imode: Some(match settings.canvas_imode {
+                CanvasImode::Float => CanvasImode::Sink,
+                CanvasImode::Sink => CanvasImode::Float,
+            }),
+            ..Default::default()
+        })?;
         Ok(())
     }
 }
 
 impl<R: Runtime> CanvasImodeStateExt<R> for App<R> {}
 impl<R: Runtime> CanvasImodeStateExt<R> for AppHandle<R> {}
+
+/// Handler for canvas interaction mode changes.
+///
+/// This updates the canvas windows's click-through state and the menu item
+/// text. It also emits a toast notification to the canvas window, but failure
+/// to do so is non-fatal and will not result in an error.
+fn on_new_canvas_imode<R: Runtime>(
+    app_handle: &AppHandle<R>,
+    canvas: &WebviewWindow<R>,
+    mode: &CanvasImode,
+) -> Result<()> {
+    let (should_ignore, menu_text) = match mode {
+        CanvasImode::Sink => (true, "Float"),
+        CanvasImode::Float => (false, "Sink"),
+    };
+    canvas.set_ignore_cursor_events(should_ignore)?;
+
+    let state = app_handle.state::<CanvasImodeState<R>>();
+    state.0.set_text(menu_text)?;
+
+    if let Err(e) = ShowToastEvent::Success(format!("Canvas interaction mode: {mode:?}"))
+        .emit_to(app_handle, DeskulptWindow::Canvas)
+    {
+        eprintln!("Failed to emit ShowToastEvent to canvas: {}", e);
+    }
+
+    Ok(())
+}

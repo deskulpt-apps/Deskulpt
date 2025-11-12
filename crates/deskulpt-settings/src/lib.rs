@@ -13,7 +13,8 @@ mod worker;
 pub use manager::SettingsManager;
 #[doc(no_inline)] // Avoid duplicate docs
 pub use settings::{
-    Settings, SettingsPatch, ShortcutAction, Theme, WidgetSettings, WidgetSettingsPatch,
+    CanvasImode, Settings, SettingsPatch, ShortcutAction, Theme, WidgetSettings,
+    WidgetSettingsPatch,
 };
 use tauri::plugin::TauriPlugin;
 use tauri::{Manager, Runtime};
