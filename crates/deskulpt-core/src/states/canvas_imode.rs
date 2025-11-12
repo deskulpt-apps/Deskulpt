@@ -50,7 +50,7 @@ impl<R: Runtime> CanvasImodeStateExt<R> for AppHandle<R> {}
 
 /// Handler for canvas interaction mode changes.
 ///
-/// This updates the canvas windows's click-through state and the menu item
+/// This updates the canvas window's click-through state and the menu item
 /// text. It also emits a toast notification to the canvas window, but failure
 /// to do so is non-fatal and will not result in an error.
 fn on_new_canvas_imode<R: Runtime>(
