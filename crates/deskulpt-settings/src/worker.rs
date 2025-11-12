@@ -4,16 +4,21 @@ use anyhow::Result;
 use tauri::{AppHandle, Runtime};
 use tokio::sync::mpsc::{self, UnboundedReceiver};
 
-use crate::SettingsExt;
 use crate::settings::{ShortcutAction, Theme};
+use crate::{CanvasImode, SettingsExt};
 
 /// Tasks that the worker can process.
+#[allow(clippy::enum_variant_names)] // TODO: Remove when we have non-change tasks
 #[derive(Debug)]
 pub enum WorkerTask {
     /// Theme has changed.
     ///
     /// The worker will trigger all hooks on theme change.
     ThemeChanged { old: Theme, new: Theme },
+    /// Canvas interaction mode has changed.
+    ///
+    /// The worker will trigger all hooks on canvas interaction mode change.
+    CanvasImodeChanged { old: CanvasImode, new: CanvasImode },
     /// Shortcut has changed.
     ///
     /// The worker will trigger all hooks on shortcut change.
@@ -33,6 +38,9 @@ async fn worker<R: Runtime>(app_handle: AppHandle<R>, mut rx: UnboundedReceiver<
         match task {
             WorkerTask::ThemeChanged { old, new } => {
                 app_handle.settings().trigger_theme_hooks(&old, &new);
+            },
+            WorkerTask::CanvasImodeChanged { old, new } => {
+                app_handle.settings().trigger_canvas_imode_hooks(&old, &new);
             },
             WorkerTask::ShortcutChanged { action, old, new } => {
                 app_handle

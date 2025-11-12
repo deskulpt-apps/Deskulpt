@@ -9,6 +9,11 @@
       "$ref": "#/$defs/Theme",
       "default": "light"
     },
+    "canvasImode": {
+      "description": "The canvas interaction mode.",
+      "$ref": "#/$defs/CanvasImode",
+      "default": "sink"
+    },
     "shortcuts": {
       "description": "The keyboard shortcuts.\n\nThis maps the actions to the shortcut strings that will trigger them.",
       "type": "object",
@@ -33,6 +38,21 @@
       "enum": [
         "light",
         "dark"
+      ]
+    },
+    "CanvasImode": {
+      "description": "The canvas interaction mode.",
+      "oneOf": [
+        {
+          "description": "Sink mode.\n\nThe canvas is click-through. Widgets are not interactable. The desktop\nis interactable.",
+          "type": "string",
+          "const": "sink"
+        },
+        {
+          "description": "Float mode.\n\nThe canvas is not click-through. Widgets are interactable. The desktop\nis not interactable.",
+          "type": "string",
+          "const": "float"
+        }
       ]
     },
     "WidgetSettings": {

@@ -21,6 +21,25 @@ pub enum Theme {
     Dark,
 }
 
+/// The canvas interaction mode.
+#[derive(
+    Debug, Clone, Default, PartialEq, Eq, Deserialize, Serialize, JsonSchema, specta::Type,
+)]
+#[serde(rename_all = "camelCase")]
+pub enum CanvasImode {
+    /// Sink mode.
+    ///
+    /// The canvas is click-through. Widgets are not interactable. The desktop
+    /// is interactable.
+    #[default]
+    Sink,
+    /// Float mode.
+    ///
+    /// The canvas is not click-through. Widgets are interactable. The desktop
+    /// is not interactable.
+    Float,
+}
+
 /// Actions that can be bound to keyboard shortcuts.
 #[derive(
     Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Deserialize, Serialize, JsonSchema, specta::Type,
@@ -140,6 +159,9 @@ pub struct Settings {
     /// The application theme.
     #[serde_as(deserialize_as = "DefaultOnError")]
     pub theme: Theme,
+    /// The canvas interaction mode.
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pub canvas_imode: CanvasImode,
     /// The keyboard shortcuts.
     ///
     /// This maps the actions to the shortcut strings that will trigger them.
@@ -157,6 +179,9 @@ pub struct SettingsPatch {
     /// If not `None`, update [`Settings::theme`].
     #[specta(optional, type = Theme)]
     pub theme: Option<Theme>,
+    /// If not `None`, update [`Settings::canvas_imode`].
+    #[specta(optional, type = CanvasImode)]
+    pub canvas_imode: Option<CanvasImode>,
     /// If not `None`, update [`Settings::shortcuts`].
     ///
     /// Non-specified shortcuts will remain unchanged. If a shortcut value is

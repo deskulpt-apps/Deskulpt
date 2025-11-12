@@ -7,12 +7,16 @@ use anyhow::{Result, bail};
 use deskulpt_common::event::Event;
 use tauri::{AppHandle, Manager, Runtime};
 
+use crate::CanvasImode;
 use crate::events::UpdateEvent;
 use crate::settings::{Settings, SettingsPatch, ShortcutAction, Theme};
 use crate::worker::{WorkerHandle, WorkerTask};
 
 #[doc(hidden)]
 type OnThemeChange = Box<dyn Fn(&Theme, &Theme) + Send + Sync>;
+
+#[doc(hidden)]
+type OnCanvasImodeChange = Box<dyn Fn(&CanvasImode, &CanvasImode) + Send + Sync>;
 
 #[doc(hidden)]
 type OnShortcutChange =
@@ -25,6 +29,10 @@ struct SettingsHooks {
     ///
     /// See [`SettingsManager::on_theme_change`] for registration.
     on_theme_change: Vec<OnThemeChange>,
+    /// Hooks triggered on canvas interaction mode change.
+    ///
+    /// See [`SettingsManager::on_canvas_imode_change`] for registration.
+    on_canvas_imode_change: Vec<OnCanvasImodeChange>,
     /// Hooks triggered on shortcut change.
     ///
     /// See [`SettingsManager::on_shortcut_change`] for registration.
@@ -110,6 +118,27 @@ impl<R: Runtime> SettingsManager<R> {
         }
     }
 
+    /// Register a hook that will be triggered on canvas interaction mode
+    /// change.
+    ///
+    /// The two arguments are respectively the old and new canvas interaction
+    /// modes.
+    pub fn on_canvas_imode_change<F>(&self, hook: F)
+    where
+        F: Fn(&CanvasImode, &CanvasImode) + Send + Sync + 'static,
+    {
+        let mut hooks = self.hooks.write().unwrap();
+        hooks.on_canvas_imode_change.push(Box::new(hook));
+    }
+
+    /// Trigger all registered canvas interaction mode change hooks.
+    pub(crate) fn trigger_canvas_imode_hooks(&self, old: &CanvasImode, new: &CanvasImode) {
+        let hooks = self.hooks.read().unwrap();
+        for hook in &hooks.on_canvas_imode_change {
+            hook(old, new);
+        }
+    }
+
     /// Register a hook that will be triggered on shortcut change.
     ///
     /// The first argument is the shortcut action. The second and third
@@ -167,6 +196,17 @@ impl<R: Runtime> SettingsManager<R> {
             tasks.push(WorkerTask::ThemeChanged {
                 old: old_theme,
                 new: theme,
+            });
+            dirty = true;
+        }
+
+        if let Some(canvas_imode) = patch.canvas_imode
+            && settings.canvas_imode != canvas_imode
+        {
+            let old_imode = std::mem::replace(&mut settings.canvas_imode, canvas_imode.clone());
+            tasks.push(WorkerTask::CanvasImodeChanged {
+                old: old_imode,
+                new: canvas_imode,
             });
             dirty = true;
         }

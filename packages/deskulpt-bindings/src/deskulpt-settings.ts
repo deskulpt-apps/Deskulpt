@@ -8,6 +8,25 @@ import * as tauriEvent from "@tauri-apps/api/event";
 // =============================================================================
 
 /**
+ * The canvas interaction mode.
+ */
+export type CanvasImode = 
+/**
+ * Sink mode.
+ * 
+ * The canvas is click-through. Widgets are not interactable. The desktop
+ * is interactable.
+ */
+"sink" | 
+/**
+ * Float mode.
+ * 
+ * The canvas is not click-through. Widgets are interactable. The desktop
+ * is not interactable.
+ */
+"float"
+
+/**
  * Deskulpt window enum.
  */
 export type DeskulptWindow = 
@@ -29,6 +48,10 @@ export type Settings = {
  */
 theme: Theme; 
 /**
+ * The canvas interaction mode.
+ */
+canvasImode: CanvasImode; 
+/**
  * The keyboard shortcuts.
  * 
  * This maps the actions to the shortcut strings that will trigger them.
@@ -47,6 +70,10 @@ export type SettingsPatch = {
  * If not `None`, update [`Settings::theme`].
  */
 theme?: Theme; 
+/**
+ * If not `None`, update [`Settings::canvas_imode`].
+ */
+canvasImode?: CanvasImode; 
 /**
  * If not `None`, update [`Settings::shortcuts`].
  * 
