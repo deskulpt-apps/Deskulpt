@@ -15,6 +15,7 @@ anyhow                       = { workspace = true }
 deskulpt-common              = { workspace = true }
 deskulpt-settings            = { workspace = true }
 dunce                        = { workspace = true }
+global-mousemove             = { workspace = true }
 once_cell                    = { workspace = true }
 open                         = { workspace = true, features = ["shellexecute-on-windows"] }
 serde                        = { workspace = true, features = ["derive"] }

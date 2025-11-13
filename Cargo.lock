@@ -1202,6 +1202,7 @@ dependencies = [
  "deskulpt-plugin-sys",
  "deskulpt-settings",
  "dunce",
+ "global-mousemove",
  "objc2 0.6.3",
  "once_cell",
  "open",
@@ -2072,6 +2073,20 @@ dependencies = [
  "windows-sys 0.59.0",
  "x11rb",
  "xkeysym",
+]
+
+[[package]]
+name = "global-mousemove"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "21c0d4448f54e1a86d8d9e937400f05a2ffa91c2dfeb874f9cc8e7e604d1c924"
+dependencies = [
+ "objc2-core-foundation",
+ "objc2-core-graphics",
+ "objc2-foundation 0.3.1",
+ "thiserror 2.0.17",
+ "windows-sys 0.61.1",
+ "x11",
 ]
 
 [[package]]

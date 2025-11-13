@@ -4,6 +4,7 @@
     html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg"
 )]
 
+use deskulpt_core::canvas_imode::CanvasImodeExt;
 use deskulpt_core::path::PathExt;
 use deskulpt_core::shortcuts::ShortcutsExt;
 use deskulpt_core::states::LoggingStateExt;
@@ -34,6 +35,7 @@ pub fn run() {
             app.create_manager()?;
             app.create_canvas()?;
             app.create_tray(DESKULPT_ICON)?;
+            app.init_canvas_imode()?;
 
             Ok(())
         })

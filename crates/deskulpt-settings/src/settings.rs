@@ -27,11 +27,17 @@ pub enum Theme {
 )]
 #[serde(rename_all = "camelCase")]
 pub enum CanvasImode {
+    /// Auto mode.
+    ///
+    /// Automatically switch between sink and float modes based on mouse
+    /// position, so that users will feel like the widgets and the desktop are
+    /// simultaneously interactable.
+    #[default]
+    Auto,
     /// Sink mode.
     ///
     /// The canvas is click-through. Widgets are not interactable. The desktop
     /// is interactable.
-    #[default]
     Sink,
     /// Float mode.
     ///
