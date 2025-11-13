@@ -5,7 +5,7 @@ use deskulpt_settings::{SettingsExt, ShortcutAction};
 use tauri::{App, AppHandle, Manager, Runtime};
 use tauri_plugin_global_shortcut::{GlobalShortcut, GlobalShortcutExt, ShortcutState};
 
-use crate::canvas_imode::CanvasImodeExt;
+use crate::states::CanvasImodeStateExt;
 use crate::window::WindowExt;
 
 /// Re-register a shortcut.

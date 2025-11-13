@@ -5,13 +5,12 @@ use deskulpt_settings::SettingsExt;
 use tauri::image::Image;
 use tauri::menu::{MenuBuilder, MenuEvent, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
-use tauri::{App, AppHandle, Runtime};
+use tauri::{App, AppHandle, Manager, Runtime};
 
-use crate::canvas_imode::CanvasImodeExt;
 use crate::window::WindowExt;
 
 /// Extention trait for system tray-related operations.
-pub trait TrayExt<R: Runtime>: CanvasImodeExt<R> {
+pub trait TrayExt<R: Runtime>: Manager<R> {
     /// Create the system tray.
     fn create_tray(&self, icon: Image) -> Result<()>
     where

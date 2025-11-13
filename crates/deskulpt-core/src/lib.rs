@@ -7,7 +7,6 @@
 use tauri::Runtime;
 use tauri::plugin::TauriPlugin;
 
-pub mod canvas_imode;
 pub mod commands;
 pub mod events;
 pub mod path;

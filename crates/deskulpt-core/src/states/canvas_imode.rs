@@ -1,62 +1,32 @@
 //! State management for canvas interaction mode.
 
-use std::sync::atomic::{AtomicU64, Ordering};
+use std::sync::RwLock;
+use std::sync::atomic::{AtomicBool, Ordering};
 
 use anyhow::Result;
 use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
 use deskulpt_settings::{CanvasImode, SettingsExt, SettingsPatch};
-use tauri::{App, AppHandle, Emitter, Manager, Runtime, WebviewWindow};
+use tauri::{App, AppHandle, Manager, Runtime, WebviewWindow};
 
 use crate::events::ShowToastEvent;
 
-/// The mousemove listener state.
-///
-/// This is represented as an [`AtomicU64`], where the first bit indicates
-/// whether the listener is enabled (1) or not (0), and the rest of the bits
-/// represent an [`u64`] epoch counter.
-struct ListenerState(AtomicU64);
+/// Managed state for canvas interaction mode.
+#[derive(Default)]
+struct CanvasImodeState(RwLock<()>);
 
-impl ListenerState {
-    /// Get the current enabled state and epoch.
-    ///
-    /// This method uses the acquire memory ordering to "subscribe" to updates
-    /// from [`Self::set_enabled`], synchronizing with its release memory
-    /// ordering. This guarantees that the method always reads the latest value
-    /// written by [`Self::set_enabled`], and that no memory operations *after*
-    /// this load can be reordered to happen *before* it.
-    fn get(&self) -> (bool, u64) {
-        let v = self.0.load(Ordering::Acquire);
-        ((v & 1) == 1, v >> 1)
-    }
-
-    /// Set the enabled state and increment the epoch.
-    ///
-    /// This method is thread-safe using an atomic compare-and-swap operation.
-    /// It uses the release memory ordering to "publish" the updated state to
-    /// all [`Self::get`] "subscribers", ensuring they will see this new value.
-    fn set_enabled(&self, enabled: bool) {
-        let _ = self
-            .0
-            // On top of release memory ordering for "set", it is typical to add
-            // "acquire" semantics for both "set" and "fetch" in CAS operations
-            .fetch_update(Ordering::AcqRel, Ordering::Acquire, |old| {
-                let new_epoch = (old >> 1).wrapping_add(1);
-                Some((new_epoch << 1) | (enabled as u64))
-            });
-    }
-}
-
-/// Global listener state for mousemove events.
-static LISTENER_STATE: ListenerState = ListenerState(AtomicU64::new(0));
+/// Whether the global mousemove listener is enabled.
+static LISTENING_MOUSEMOVE: AtomicBool = AtomicBool::new(false);
 
 /// Extension trait for operations on canvas interaction mode.
-pub trait CanvasImodeExt<R: Runtime>: Manager<R> + Emitter<R> + SettingsExt<R> {
+pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
     /// Initialize management for canvas interaction mode.
     ///
-    /// This will hook into settings changes and global mousemove events and
-    /// update the canvas window's interaction mode accordingly.
-    fn init_canvas_imode(&self) -> Result<()> {
+    /// This will also hook into settings changes and global mousemove events
+    /// and update the canvas window's interaction mode accordingly.
+    fn manage_canvas_imode(&self) -> Result<()> {
+        self.manage(CanvasImodeState::default());
+
         let canvas = DeskulptWindow::Canvas.webview_window(self)?;
         let canvas_cloned = canvas.clone();
 
@@ -67,7 +37,7 @@ pub trait CanvasImodeExt<R: Runtime>: Manager<R> + Emitter<R> + SettingsExt<R> {
         });
 
         if self.settings().read().canvas_imode == CanvasImode::Auto {
-            LISTENER_STATE.set_enabled(true);
+            LISTENING_MOUSEMOVE.store(true, Ordering::Release);
         }
 
         self.settings().on_canvas_imode_change(move |_, new| {
@@ -96,8 +66,8 @@ pub trait CanvasImodeExt<R: Runtime>: Manager<R> + Emitter<R> + SettingsExt<R> {
     }
 }
 
-impl<R: Runtime> CanvasImodeExt<R> for App<R> {}
-impl<R: Runtime> CanvasImodeExt<R> for AppHandle<R> {}
+impl<R: Runtime> CanvasImodeStateExt<R> for App<R> {}
+impl<R: Runtime> CanvasImodeStateExt<R> for AppHandle<R> {}
 
 /// Handler for canvas interaction mode changes.
 ///
@@ -107,15 +77,15 @@ impl<R: Runtime> CanvasImodeExt<R> for AppHandle<R> {}
 fn on_new_canvas_imode<R: Runtime>(canvas: &WebviewWindow<R>, mode: &CanvasImode) -> Result<()> {
     match mode {
         CanvasImode::Auto => {
-            LISTENER_STATE.set_enabled(true);
+            LISTENING_MOUSEMOVE.store(true, Ordering::Release);
         },
-        CanvasImode::Sink => {
-            LISTENER_STATE.set_enabled(false);
-            canvas.set_ignore_cursor_events(true)?;
-        },
-        CanvasImode::Float => {
-            LISTENER_STATE.set_enabled(false);
-            canvas.set_ignore_cursor_events(false)?;
+        CanvasImode::Sink | CanvasImode::Float => {
+            // Set the flag with write lock acquired to avoid racing with the
+            // mousemove hook on setting `ignore_cursor_events`
+            let state = canvas.state::<CanvasImodeState>();
+            let _guard = state.0.write().unwrap();
+            LISTENING_MOUSEMOVE.store(false, Ordering::Release);
+            canvas.set_ignore_cursor_events(*mode == CanvasImode::Sink)?;
         },
     }
 
@@ -130,10 +100,10 @@ fn on_new_canvas_imode<R: Runtime>(canvas: &WebviewWindow<R>, mode: &CanvasImode
 
 /// Global mousemove event listener.
 ///
-/// If [`LISTENER_STATE`] shows that the listener is disabled, this will short-
-/// circuit immediately. Otherwise, it checks whether the mouse is over any
-/// widget in the canvas window. If so, the canvas will accept cursor events;
-/// otherwise, it will ignore them.
+/// If the cheap check on [`LISTENING_MOUSEMOVE`] gives false, the hook will
+/// short-circuit immediately, effectively disabling the listener. Otherwise,
+/// it will check whether the mouse is over any widget in the canvas window. If
+/// so, the canvas will accept cursor events; otherwise, it will ignore them.
 fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
     let scale_factor = canvas.scale_factor()?;
     let canvas_position = canvas.inner_position()?;
@@ -143,8 +113,7 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
     let mut is_cursor_ignored = true;
 
     global_mousemove::listen(move |event| {
-        let (enabled0, epoch0) = LISTENER_STATE.get();
-        if !enabled0 {
+        if !LISTENING_MOUSEMOVE.load(Ordering::Acquire) {
             return;
         }
 
@@ -152,7 +121,10 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
         let scaled_x = (x - canvas_x) / scale_factor;
         let scaled_y = (y - canvas_y) / scale_factor;
 
-        let settings = canvas.settings().read();
+        let settings = match canvas.settings().try_read() {
+            Some(settings) => settings,
+            None => return, // Avoid blocking
+        };
         let mouse_over_widget = settings.widgets.values().any(|widget| {
             scaled_x >= widget.x as f64
                 && scaled_x < widget.x as f64 + widget.width as f64
@@ -163,15 +135,17 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
         // Avoid redundant calls by checking if the state has really changed
         let should_ignore_cursor = !mouse_over_widget;
         if should_ignore_cursor != is_cursor_ignored {
-            // Double-check before doing actual work: if the listener has been
-            // disabled while we were processing, or if the epoch has changed
-            // which means that some other update has been published, we should
-            // abort to prevent a "stale" event applying incorrect effect
-            let (enabled1, epoch1) = LISTENER_STATE.get();
-            if !enabled1 || epoch0 != epoch1 {
+            // Check the flag with read lock acquired to avoid racing with the
+            // writers on setting `ignore_cursor_events`
+            let state = canvas.state::<CanvasImodeState>();
+            let _guard = match state.0.try_read() {
+                Ok(guard) => guard,
+                Err(_) => return, // Avoid blocking
+            };
+
+            if !LISTENING_MOUSEMOVE.load(Ordering::Acquire) {
                 return;
             }
-
             is_cursor_ignored = should_ignore_cursor;
             if let Err(e) = canvas.set_ignore_cursor_events(should_ignore_cursor) {
                 eprintln!("Failed to set cursor events state: {e}");
