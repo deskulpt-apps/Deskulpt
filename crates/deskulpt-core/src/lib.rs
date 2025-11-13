@@ -7,7 +7,7 @@
 use tauri::Runtime;
 use tauri::plugin::TauriPlugin;
 
-pub mod commands;
+mod commands;
 pub mod events;
 pub mod path;
 pub mod shortcuts;

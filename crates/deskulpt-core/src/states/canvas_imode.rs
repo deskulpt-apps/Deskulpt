@@ -20,7 +20,7 @@ static LISTENING_MOUSEMOVE: AtomicBool = AtomicBool::new(false);
 
 /// Extension trait for operations on canvas interaction mode.
 pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
-    /// Initialize management for canvas interaction mode.
+    /// Initialize state management for canvas interaction mode.
     ///
     /// This will also hook into settings changes and global mousemove events
     /// and update the canvas window's interaction mode accordingly.
@@ -71,9 +71,10 @@ impl<R: Runtime> CanvasImodeStateExt<R> for AppHandle<R> {}
 
 /// Handler for canvas interaction mode changes.
 ///
-/// This updates the canvas window's click-through state and the menu item
-/// text. It also emits a toast notification to the canvas window, but failure
-/// to do so is non-fatal and will not result in an error.
+/// This updates the canvas window's click-through state and the mousemove event
+/// listener's behavior according to the given mode. It also emits a toast
+/// notification to the canvas window, but failure to do so is non-fatal and
+/// will not result in an error.
 fn on_new_canvas_imode<R: Runtime>(canvas: &WebviewWindow<R>, mode: &CanvasImode) -> Result<()> {
     match mode {
         CanvasImode::Auto => {
