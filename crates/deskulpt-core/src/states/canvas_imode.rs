@@ -11,9 +11,17 @@ use tauri::{App, AppHandle, Manager, Runtime, WebviewWindow};
 
 use crate::events::ShowToastEvent;
 
+struct CanvasInfo {
+    x: f64,
+    y: f64,
+    scale_factor: f64,
+}
+
 /// Managed state for canvas interaction mode.
-#[derive(Default)]
-struct CanvasImodeState(RwLock<()>);
+struct CanvasImodeState {
+    lock: RwLock<()>,
+    info: RwLock<CanvasInfo>,
+}
 
 /// Whether the global mousemove listener is enabled.
 static LISTENING_MOUSEMOVE: AtomicBool = AtomicBool::new(false);
@@ -25,13 +33,22 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
     /// This will also hook into settings changes and global mousemove events
     /// and update the canvas window's interaction mode accordingly.
     fn manage_canvas_imode(&self) -> Result<()> {
-        self.manage(CanvasImodeState::default());
-
         let canvas = DeskulptWindow::Canvas.webview_window(self)?;
-        let canvas_cloned = canvas.clone();
+        let canvas_position = canvas.inner_position()?;
+        let canvas_scale_factor = canvas.scale_factor()?;
+        let canvas_info = CanvasInfo {
+            x: canvas_position.x as f64,
+            y: canvas_position.y as f64,
+            scale_factor: canvas_scale_factor as f64,
+        };
+        self.manage(CanvasImodeState {
+            lock: RwLock::new(()),
+            info: RwLock::new(canvas_info),
+        });
 
+        let canvas_cloned = canvas.clone();
         std::thread::spawn(move || {
-            if let Err(e) = listen_to_mousemove(canvas) {
+            if let Err(e) = listen_to_mousemove(canvas_cloned) {
                 eprintln!("Failed to listen to global mousemove events: {}", e);
             }
         });
@@ -41,12 +58,27 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         }
 
         self.settings().on_canvas_imode_change(move |_, new| {
-            if let Err(e) = on_new_canvas_imode(&canvas_cloned, new) {
+            if let Err(e) = on_new_canvas_imode(&canvas, new) {
                 eprintln!("Failed to update canvas interaction mode: {}", e);
             }
         });
 
         Ok(())
+    }
+
+    fn set_canvas_info(&self, x: Option<f64>, y: Option<f64>, scale_factor: Option<f64>) {
+        let state = self.state::<CanvasImodeState>();
+        let mut info = state.info.write().unwrap();
+
+        if let Some(x) = x {
+            info.x = x;
+        }
+        if let Some(y) = y {
+            info.y = y;
+        }
+        if let Some(scale_factor) = scale_factor {
+            info.scale_factor = scale_factor;
+        }
     }
 
     /// Toggle the interaction mode of the canvas window.
@@ -84,7 +116,7 @@ fn on_new_canvas_imode<R: Runtime>(canvas: &WebviewWindow<R>, mode: &CanvasImode
             // Set the flag with write lock acquired to avoid racing with the
             // mousemove hook on setting `ignore_cursor_events`
             let state = canvas.state::<CanvasImodeState>();
-            let _guard = state.0.write().unwrap();
+            let _guard = state.lock.write().unwrap();
             LISTENING_MOUSEMOVE.store(false, Ordering::Release);
             canvas.set_ignore_cursor_events(*mode == CanvasImode::Sink)?;
         },
@@ -106,25 +138,25 @@ fn on_new_canvas_imode<R: Runtime>(canvas: &WebviewWindow<R>, mode: &CanvasImode
 /// it will check whether the mouse is over any widget in the canvas window. If
 /// so, the canvas will accept cursor events; otherwise, it will ignore them.
 fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
-    let scale_factor = canvas.scale_factor()?;
-    let canvas_position = canvas.inner_position()?;
-    let canvas_x = (canvas_position.x as f64) / scale_factor;
-    let canvas_y = (canvas_position.y as f64) / scale_factor;
-
-    #[cfg(target_os = "macos")]
-    let mousemove_factor = 1.0;
-    #[cfg(not(target_os = "macos"))]
-    let mousemove_factor = 1.0 / scale_factor;
-
     let mut is_cursor_ignored = true;
 
     global_mousemove::listen(move |event| {
         if !LISTENING_MOUSEMOVE.load(Ordering::Acquire) {
             return;
         }
+
+        let (canvas_x, canvas_y, scale_factor) =
+            match canvas.state::<CanvasImodeState>().info.try_read() {
+                Ok(info) => (info.x, info.y, info.scale_factor),
+                Err(_) => return, // Avoid blocking
+            };
+
+        #[cfg(target_os = "macos")]
+        let scale_factor = 1.0;
+
         let global_mousemove::MouseMoveEvent { x, y } = event;
-        let scaled_x = x * mousemove_factor - canvas_x;
-        let scaled_y = y * mousemove_factor - canvas_y;
+        let scaled_x = (x - canvas_x) / scale_factor;
+        let scaled_y = (y - canvas_y) / scale_factor;
 
         let settings = match canvas.settings().try_read() {
             Some(settings) => settings,
@@ -143,7 +175,7 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
             // Check the flag with read lock acquired to avoid racing with the
             // writers on setting `ignore_cursor_events`
             let state = canvas.state::<CanvasImodeState>();
-            let _guard = match state.0.try_read() {
+            let _guard = match state.lock.try_read() {
                 Ok(guard) => guard,
                 Err(_) => return, // Avoid blocking
             };

@@ -10,6 +10,8 @@ use tauri::{
     App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, Window, WindowEvent,
 };
 
+use crate::states::CanvasImodeStateExt;
+
 /// Extention trait for window-related operations.
 pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
     /// Create the manager window.
@@ -109,14 +111,32 @@ impl<R: Runtime> WindowExt<R> for AppHandle<R> {}
 
 /// Window event handler for all Deskulpt windows.
 pub fn on_window_event(window: &Window, event: &WindowEvent) {
-    if window.label() == "manager" {
-        // Prevent the manager window from closing when the close button is
-        // clicked, but only hide it instead
-        if let WindowEvent::CloseRequested { api, .. } = event {
-            api.prevent_close();
-            if let Err(e) = window.hide() {
-                eprintln!("Failed to hide the manager window: {e}");
+    match window.label() {
+        "manager" => {
+            // Prevent the manager window from closing when the close button is
+            // clicked, but only hide it instead
+            if let WindowEvent::CloseRequested { api, .. } = event {
+                api.prevent_close();
+                if let Err(e) = window.hide() {
+                    eprintln!("Failed to hide the manager window: {e}");
+                }
             }
-        }
+        },
+        "canvas" => match event {
+            WindowEvent::Moved(position) => {
+                window.app_handle().set_canvas_info(
+                    Some(position.x as f64),
+                    Some(position.y as f64),
+                    None,
+                );
+            },
+            WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
+                window
+                    .app_handle()
+                    .set_canvas_info(None, None, Some(*scale_factor));
+            },
+            _ => {},
+        },
+        _ => {},
     }
 }
