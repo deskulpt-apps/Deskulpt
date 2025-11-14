@@ -39,7 +39,7 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         let canvas_info = CanvasInfo {
             x: canvas_position.x as f64,
             y: canvas_position.y as f64,
-            scale_factor: canvas_scale_factor as f64,
+            scale_factor: canvas_scale_factor,
         };
         self.manage(CanvasImodeState {
             lock: RwLock::new(()),
