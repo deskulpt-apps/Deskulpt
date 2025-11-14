@@ -108,8 +108,13 @@ fn on_new_canvas_imode<R: Runtime>(canvas: &WebviewWindow<R>, mode: &CanvasImode
 fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
     let scale_factor = canvas.scale_factor()?;
     let canvas_position = canvas.inner_position()?;
-    let canvas_x = canvas_position.x as f64;
-    let canvas_y = canvas_position.y as f64;
+    let canvas_x = (canvas_position.x as f64) / scale_factor;
+    let canvas_y = (canvas_position.y as f64) / scale_factor;
+
+    #[cfg(target_os = "macos")]
+    let mousemove_factor = 1.0;
+    #[cfg(not(target_os = "macos"))]
+    let mousemove_factor = 1.0 / scale_factor;
 
     let mut is_cursor_ignored = true;
 
@@ -117,10 +122,9 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
         if !LISTENING_MOUSEMOVE.load(Ordering::Acquire) {
             return;
         }
-
         let global_mousemove::MouseMoveEvent { x, y } = event;
-        let scaled_x = (x - canvas_x) / scale_factor;
-        let scaled_y = (y - canvas_y) / scale_factor;
+        let scaled_x = x * mousemove_factor - canvas_x;
+        let scaled_y = y * mousemove_factor - canvas_y;
 
         let settings = match canvas.settings().try_read() {
             Some(settings) => settings,
