@@ -123,10 +123,11 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
             }
         },
         "canvas" => match event {
-            WindowEvent::Moved(_) | WindowEvent::ScaleFactorChanged { .. } => {
-                if let Err(e) = window.app_handle().refresh_canvas_info() {
-                    eprintln!("Failed to refresh canvas info: {e}");
-                }
+            WindowEvent::Moved(position) => {
+                window.app_handle().set_canvas_position(position);
+            },
+            WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
+                window.app_handle().set_canvas_scale_factor(*scale_factor);
             },
             _ => {},
         },

@@ -4,21 +4,31 @@ use std::sync::RwLock;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use anyhow::Result;
-use atomic_float::AtomicF64;
 use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
 use deskulpt_settings::{CanvasImode, SettingsExt, SettingsPatch};
-use tauri::{App, AppHandle, Manager, Runtime, WebviewWindow};
+use seqlock::SeqLock;
+use tauri::{App, AppHandle, Manager, PhysicalPosition, Runtime, WebviewWindow};
 
 use crate::events::ShowToastEvent;
 
+/// Geometry information of the canvas window.
+#[derive(Copy, Clone)]
+struct CanvasGeometry {
+    /// Physical x-coordinate.
+    x: f64,
+    /// Physical y-coordinate.
+    y: f64,
+    /// Inverse of the scale factor.
+    inv_scale: f64,
+}
+
 /// Managed state for canvas interaction mode.
-#[derive(Default)]
 struct CanvasImodeState {
+    /// Lock for serializing `set_ignore_cursor_events` calls.
     lock: RwLock<()>,
-    logical_x: AtomicF64,
-    logical_y: AtomicF64,
-    inv_scale: AtomicF64,
+    /// Geometry information of the canvas window.
+    geo: SeqLock<CanvasGeometry>,
 }
 
 /// Whether the global mousemove listener is enabled.
@@ -31,10 +41,18 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
     /// This will also hook into settings changes and global mousemove events
     /// and update the canvas window's interaction mode accordingly.
     fn manage_canvas_imode(&self) -> Result<()> {
-        self.manage(CanvasImodeState::default());
-        self.refresh_canvas_info()?;
-
         let canvas = DeskulptWindow::Canvas.webview_window(self)?;
+        let canvas_position = canvas.inner_position()?;
+        let canvas_geometry = CanvasGeometry {
+            x: canvas_position.x as f64,
+            y: canvas_position.y as f64,
+            inv_scale: 1.0 / canvas.scale_factor()?,
+        };
+        self.manage(CanvasImodeState {
+            lock: RwLock::new(()),
+            geo: SeqLock::new(canvas_geometry),
+        });
+
         let canvas_cloned = canvas.clone();
         std::thread::spawn(move || {
             if let Err(e) = listen_to_mousemove(canvas_cloned) {
@@ -55,21 +73,23 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         Ok(())
     }
 
-    fn refresh_canvas_info(&self) -> Result<()> {
-        let canvas = DeskulptWindow::Canvas.webview_window(self)?;
-        let position = canvas.inner_position()?;
-        let inv_scale = 1.0 / canvas.scale_factor()?;
-
+    /// Set the position of the canvas window.
+    ///
+    /// This should be called whenever the canvas window is moved.
+    fn set_canvas_position(&self, position: &PhysicalPosition<i32>) {
         let state = self.state::<CanvasImodeState>();
-        state
-            .logical_x
-            .store((position.x as f64) * inv_scale, Ordering::Relaxed);
-        state
-            .logical_y
-            .store((position.y as f64) * inv_scale, Ordering::Relaxed);
-        state.inv_scale.store(inv_scale, Ordering::Relaxed);
+        let mut geo = state.geo.lock_write();
+        geo.x = position.x as f64;
+        geo.y = position.y as f64;
+    }
 
-        Ok(())
+    /// Set the scale factor of the canvas window.
+    ///
+    /// This should be called whenever the canvas window's scale factor changes.
+    fn set_canvas_scale_factor(&self, scale_factor: f64) {
+        let state = self.state::<CanvasImodeState>();
+        let mut geo = state.geo.lock_write();
+        geo.inv_scale = 1.0 / scale_factor;
     }
 
     /// Toggle the interaction mode of the canvas window.
@@ -137,19 +157,23 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
         }
 
         let state = canvas.state::<CanvasImodeState>();
-        let canvas_x = state.logical_x.load(Ordering::Relaxed);
-        let canvas_y = state.logical_y.load(Ordering::Relaxed);
-
-        // Global mousemove event gives logical pixels for macOS and physical
-        // pixels for other platforms, so we scale only non-macOS platforms
-        #[cfg(target_os = "macos")]
-        let mousemove_inv_scale = 1.0;
-        #[cfg(not(target_os = "macos"))]
-        let mousemove_inv_scale = state.inv_scale.load(Ordering::Relaxed);
+        let canvas_geo = state.geo.read();
 
         let global_mousemove::MouseMoveEvent { x, y } = event;
-        let scaled_x = x * mousemove_inv_scale - canvas_x;
-        let scaled_y = y * mousemove_inv_scale - canvas_y;
+
+        // For macOS, mousemove coordinates are in logical coordinates, so
+        // only canvas physical position needs to be scaled
+        #[cfg(target_os = "macos")]
+        let scaled_x = x - canvas_geo.x * canvas_geo.inv_scale;
+        #[cfg(target_os = "macos")]
+        let scaled_y = y - canvas_geo.y * canvas_geo.inv_scale;
+
+        // For other platforms, mousemove coordinates are in physical
+        // coordinates, so they need to be scaled together with canvas position
+        #[cfg(not(target_os = "macos"))]
+        let scaled_x = (x - canvas_geo.x) * canvas_geo.inv_scale;
+        #[cfg(not(target_os = "macos"))]
+        let scaled_y = (y - canvas_geo.y) * canvas_geo.inv_scale;
 
         // TODO!(Charlie-XIAO): REMOVE THIS PRINT
         println!("\x1b[2m({x},{y}) => ({scaled_x},{scaled_y})\x1b[0m");
