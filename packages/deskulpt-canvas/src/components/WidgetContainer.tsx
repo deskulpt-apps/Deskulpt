@@ -77,7 +77,7 @@ function computeResizedGeometry(
 
 const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
   const draggableRef = useRef<HTMLDivElement>(null);
-  const resizeStartRef = useRef<WidgetGeometry>();
+  const resizeStartRef = useRef<WidgetGeometry>(null);
 
   // This non-null assertion is safe because the IDs are obtained from the keys
   // of the widgets store
@@ -128,7 +128,7 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
   }, [geometry]);
 
   const onResize: ResizeCallback = useCallback((_, direction, __, delta) => {
-    if (resizeStartRef.current == undefined) {
+    if (resizeStartRef.current === null) {
       return;
     }
     const newGeometry = computeResizedGeometry(
@@ -146,7 +146,7 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
 
   const onResizeStop: ResizeCallback = useCallback(
     (_, direction, __, delta) => {
-      if (resizeStartRef.current == undefined) {
+      if (resizeStartRef.current === null) {
         return;
       }
 
