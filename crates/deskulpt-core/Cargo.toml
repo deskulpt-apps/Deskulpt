@@ -12,6 +12,7 @@ version    = { workspace = true }
 
 [dependencies]
 anyhow                       = { workspace = true }
+atomic_float                 = { workspace = true }
 deskulpt-common              = { workspace = true }
 deskulpt-settings            = { workspace = true }
 dunce                        = { workspace = true }

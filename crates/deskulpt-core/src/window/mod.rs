@@ -124,16 +124,10 @@ pub fn on_window_event(window: &Window, event: &WindowEvent) {
         },
         "canvas" => match event {
             WindowEvent::Moved(position) => {
-                window.app_handle().set_canvas_info(
-                    Some(position.x as f64),
-                    Some(position.y as f64),
-                    None,
-                );
+                window.app_handle().set_canvas_position(position);
             },
             WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
-                window
-                    .app_handle()
-                    .set_canvas_info(None, None, Some(*scale_factor));
+                window.app_handle().set_canvas_scale_factor(*scale_factor);
             },
             _ => {},
         },

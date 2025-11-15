@@ -12,6 +12,7 @@ version    = "0.1.0"
 
 [workspace.dependencies]
 anyhow                         = "1.0.100"
+atomic_float                   = "1.1.0"
 bitflags                       = "2.10.0"
 clap                           = "4.5.51"
 dunce                          = "1.0.5"

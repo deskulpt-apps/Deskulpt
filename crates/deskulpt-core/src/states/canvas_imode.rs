@@ -4,23 +4,20 @@ use std::sync::RwLock;
 use std::sync::atomic::{AtomicBool, Ordering};
 
 use anyhow::Result;
+use atomic_float::AtomicF64;
 use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
 use deskulpt_settings::{CanvasImode, SettingsExt, SettingsPatch};
-use tauri::{App, AppHandle, Manager, Runtime, WebviewWindow};
+use tauri::{App, AppHandle, Manager, PhysicalPosition, Runtime, WebviewWindow};
 
 use crate::events::ShowToastEvent;
-
-struct CanvasInfo {
-    x: f64,
-    y: f64,
-    scale_factor: f64,
-}
 
 /// Managed state for canvas interaction mode.
 struct CanvasImodeState {
     lock: RwLock<()>,
-    info: RwLock<CanvasInfo>,
+    x: AtomicF64,
+    y: AtomicF64,
+    inv_scale: AtomicF64,
 }
 
 /// Whether the global mousemove listener is enabled.
@@ -36,14 +33,11 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         let canvas = DeskulptWindow::Canvas.webview_window(self)?;
         let canvas_position = canvas.inner_position()?;
         let canvas_scale_factor = canvas.scale_factor()?;
-        let canvas_info = CanvasInfo {
-            x: canvas_position.x as f64,
-            y: canvas_position.y as f64,
-            scale_factor: canvas_scale_factor,
-        };
         self.manage(CanvasImodeState {
             lock: RwLock::new(()),
-            info: RwLock::new(canvas_info),
+            x: AtomicF64::new(canvas_position.x as f64),
+            y: AtomicF64::new(canvas_position.y as f64),
+            inv_scale: AtomicF64::new(1.0 / canvas_scale_factor),
         });
 
         let canvas_cloned = canvas.clone();
@@ -66,19 +60,15 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         Ok(())
     }
 
-    fn set_canvas_info(&self, x: Option<f64>, y: Option<f64>, scale_factor: Option<f64>) {
+    fn set_canvas_position(&self, position: &PhysicalPosition<i32>) {
         let state = self.state::<CanvasImodeState>();
-        let mut info = state.info.write().unwrap();
+        state.x.store(position.x as f64, Ordering::Relaxed);
+        state.y.store(position.y as f64, Ordering::Relaxed);
+    }
 
-        if let Some(x) = x {
-            info.x = x;
-        }
-        if let Some(y) = y {
-            info.y = y;
-        }
-        if let Some(scale_factor) = scale_factor {
-            info.scale_factor = scale_factor;
-        }
+    fn set_canvas_scale_factor(&self, scale_factor: f64) {
+        let state = self.state::<CanvasImodeState>();
+        state.inv_scale.store(1.0 / scale_factor, Ordering::Relaxed);
     }
 
     /// Toggle the interaction mode of the canvas window.
@@ -145,18 +135,17 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
             return;
         }
 
-        let (canvas_x, canvas_y, scale_factor) =
-            match canvas.state::<CanvasImodeState>().info.try_read() {
-                Ok(info) => (info.x, info.y, info.scale_factor),
-                Err(_) => return, // Avoid blocking
-            };
-
-        #[cfg(target_os = "macos")]
-        let scale_factor = 1.0;
+        let state = canvas.state::<CanvasImodeState>();
+        let canvas_x = state.x.load(Ordering::Relaxed);
+        let canvas_y = state.y.load(Ordering::Relaxed);
+        let canvas_inv_scale = state.inv_scale.load(Ordering::Relaxed);
 
         let global_mousemove::MouseMoveEvent { x, y } = event;
-        let scaled_x = (x - canvas_x) / scale_factor;
-        let scaled_y = (y - canvas_y) / scale_factor;
+        let scaled_x = (x - canvas_x) * canvas_inv_scale;
+        let scaled_y = (y - canvas_y) * canvas_inv_scale;
+
+        // TODO!(Charlie-XIAO): REMOVE THIS PRINT
+        println!("\x1b[2m({x},{y}) => ({scaled_x},{scaled_y})\x1b[0m");
 
         let settings = match canvas.settings().try_read() {
             Some(settings) => settings,
@@ -186,6 +175,9 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
             is_cursor_ignored = should_ignore_cursor;
             if let Err(e) = canvas.set_ignore_cursor_events(should_ignore_cursor) {
                 eprintln!("Failed to set cursor events state: {e}");
+            } else {
+                // TODO!(Charlie-XIAO): REMOVE THIS PRINT
+                println!("ignore_cursor_events({should_ignore_cursor})");
             }
         }
     })?;
