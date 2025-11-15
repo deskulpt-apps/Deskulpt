@@ -83,41 +83,36 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
     resizeStartRef.current = { ...geometry };
   }, [geometry]);
 
-  const onResize: ResizeCallback = useCallback(
-    (_, direction, __, delta) => {
-      if (geometry === undefined) {
-        return;
-      }
+  const onResize: ResizeCallback = useCallback((_, direction, __, delta) => {
+    const { x, y, width, height } = resizeStartRef.current;
+    let newX = x;
+    let newY = y;
+    const newWidth = width + delta.width;
+    const newHeight = height + delta.height;
 
-      const { x, y, width, height } = resizeStartRef.current;
-      let newX = x;
-      let newY = y;
-      const newWidth = width + delta.width;
-      const newHeight = height + delta.height;
+    // If resizing from top and/or left edges, we need to adjust position
+    // accordingly to make sure their opposite edges stay in place
+    switch (direction) {
+      case "top":
+      case "topRight":
+        newY = y - delta.height;
+        break;
+      case "left":
+      case "bottomLeft":
+        newX = x - delta.width;
+        break;
+      case "topLeft":
+        newX = x - delta.width;
+        newY = y - delta.height;
+        break;
+    }
 
-      switch (direction) {
-        case "top":
-        case "topRight":
-          newY = y - delta.height;
-          break;
-        case "left":
-        case "bottomLeft":
-          newX = x - delta.width;
-          break;
-        case "topLeft":
-          newX = x - delta.width;
-          newY = y - delta.height;
-          break;
-      }
-
-      // Force position and size changes to land in the same frame to avoid
-      // visual glitches
-      flushSync(() => {
-        setGeometry({ x: newX, y: newY, width: newWidth, height: newHeight });
-      });
-    },
-    [geometry],
-  );
+    // Force position and size changes to land in the same frame to avoid
+    // visual glitches
+    flushSync(() => {
+      setGeometry({ x: newX, y: newY, width: newWidth, height: newHeight });
+    });
+  }, []);
 
   const onResizeStop: ResizeCallback = useCallback(() => {
     deskulptSettings.commands.update({ widgets: { [id]: { ...geometry } } });
