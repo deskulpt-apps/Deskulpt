@@ -98,7 +98,7 @@ impl<R: Runtime> SettingsManager<R> {
     /// acquired immediately. This is useful in scenarios where blocking is not
     /// acceptable.
     pub fn try_read(&self) -> Option<RwLockReadGuard<'_, Settings>> {
-        self.settings.try_read().ok()
+        self.settings.try_read()
     }
 
     /// Persist the current settings to disk.
