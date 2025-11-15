@@ -13,6 +13,7 @@ version    = { workspace = true }
 [dependencies]
 anyhow          = { workspace = true }
 deskulpt-common = { workspace = true }
+parking_lot     = { workspace = true }
 schemars        = { workspace = true }
 serde           = { workspace = true, features = ["derive"] }
 serde_json      = { workspace = true }

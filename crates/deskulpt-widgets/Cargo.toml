@@ -18,6 +18,7 @@ deskulpt-core     = { workspace = true }
 deskulpt-settings = { workspace = true }
 either            = { workspace = true }
 itertools         = { workspace = true }
+parking_lot       = { workspace = true }
 rolldown          = { workspace = true }
 rolldown_common   = { workspace = true }
 serde             = { workspace = true, features = ["derive"] }

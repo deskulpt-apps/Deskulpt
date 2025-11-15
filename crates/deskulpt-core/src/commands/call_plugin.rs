@@ -1,7 +1,7 @@
 use deskulpt_common::{SerResult, ser_bail};
 use once_cell::sync::Lazy;
+use parking_lot::Mutex;
 use tauri::{AppHandle, Runtime, command};
-use tokio::sync::Mutex;
 
 use crate::path::PathExt;
 
@@ -38,7 +38,7 @@ pub async fn call_plugin<R: Runtime>(
 
     match plugin.as_str() {
         "fs" => {
-            let plugin = FS_PLUGIN.lock().await;
+            let plugin = FS_PLUGIN.lock();
             let result = deskulpt_plugin::call_plugin(
                 widget_dir_fn,
                 &*plugin,
@@ -49,7 +49,7 @@ pub async fn call_plugin<R: Runtime>(
             Ok(result)
         },
         "sys" => {
-            let plugin = SYS_PLUGIN.lock().await;
+            let plugin = SYS_PLUGIN.lock();
             let result = deskulpt_plugin::call_plugin(
                 widget_dir_fn,
                 &*plugin,
