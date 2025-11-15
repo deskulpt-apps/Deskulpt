@@ -15,9 +15,11 @@ anyhow                       = { workspace = true }
 deskulpt-common              = { workspace = true }
 deskulpt-settings            = { workspace = true }
 dunce                        = { workspace = true }
+global-mousemove             = { workspace = true }
 once_cell                    = { workspace = true }
 open                         = { workspace = true, features = ["shellexecute-on-windows"] }
 parking_lot                  = { workspace = true }
+seqlock                      = { workspace = true }
 serde                        = { workspace = true, features = ["derive"] }
 serde_json                   = { workspace = true }
 serialize-to-javascript      = { workspace = true }

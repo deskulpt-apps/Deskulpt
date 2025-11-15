@@ -92,6 +92,15 @@ impl<R: Runtime> SettingsManager<R> {
         self.settings.read()
     }
 
+    /// Try to get an immutable reference to the current settings.
+    ///
+    /// Same as [`Self::read`], but returns `None` if the read lock cannot be
+    /// acquired immediately. This is useful in scenarios where blocking is not
+    /// acceptable.
+    pub fn try_read(&self) -> Option<RwLockReadGuard<'_, Settings>> {
+        self.settings.try_read()
+    }
+
     /// Persist the current settings to disk.
     pub fn persist(&self) -> Result<()> {
         let settings = self.settings.read();
