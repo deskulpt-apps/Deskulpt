@@ -1,16 +1,29 @@
 //! Worker for processing settings-related tasks.
 
+use std::pin::Pin;
+use std::time::Duration;
+
 use anyhow::Result;
 use tauri::{AppHandle, Runtime};
-use tokio::sync::mpsc::{self, UnboundedReceiver};
+use tokio::sync::mpsc;
+use tokio::time::{Instant, Sleep};
 
 use crate::settings::{ShortcutAction, Theme};
 use crate::{CanvasImode, SettingsExt};
 
+/// Debounce duration for [`WorkerTask::Persist`].
+const PERSIST_DEBOUNCE: Duration = Duration::from_millis(500);
+
 /// Tasks that the worker can process.
-#[allow(clippy::enum_variant_names)] // TODO: Remove when we have non-change tasks
 #[derive(Debug)]
 pub enum WorkerTask {
+    /// Persist settings to disk.
+    ///
+    /// The worker will debounce frequent persist requests within the duration
+    /// [`PERSIST_DEBOUNCE`] into a single persist operation to reduce disk I/O.
+    /// Note that if the channel is closed unexpectedly, pending persists may be
+    /// lost.
+    Persist,
     /// Theme has changed.
     ///
     /// The worker will trigger all hooks on theme change.
@@ -29,27 +42,84 @@ pub enum WorkerTask {
     },
 }
 
-/// Handle for communicating with the worker.
-pub struct WorkerHandle(mpsc::UnboundedSender<WorkerTask>);
+/// The worker for processing settings-related tasks.
+struct Worker<R: Runtime> {
+    /// The Tauri app handle.
+    app_handle: AppHandle<R>,
+    /// The receiver for incoming tasks.
+    rx: mpsc::UnboundedReceiver<WorkerTask>,
+    /// Whether a [`WorkerTask::Persist`] is pending.
+    persist_pending: bool,
+    /// The debounce timer for [`WorkerTask::Persist`].
+    persist_debounce: Pin<Box<Sleep>>,
+}
 
-/// The main worker loop.
-async fn worker<R: Runtime>(app_handle: AppHandle<R>, mut rx: UnboundedReceiver<WorkerTask>) {
-    while let Some(task) = rx.recv().await {
+impl<R: Runtime> Worker<R> {
+    /// Create a new [`Worker`] instance.
+    fn new(app_handle: AppHandle<R>, rx: mpsc::UnboundedReceiver<WorkerTask>) -> Self {
+        Self {
+            app_handle,
+            rx,
+            persist_pending: false,
+            persist_debounce: Box::pin(tokio::time::sleep(PERSIST_DEBOUNCE)),
+        }
+    }
+
+    /// Run the worker event loop.
+    ///
+    /// This function will run indefinitely until the worker channel is closed.
+    async fn run(mut self) {
+        loop {
+            tokio::select! {
+                _ = &mut self.persist_debounce, if self.persist_pending => {
+                    self.on_persist_deadline();
+                },
+                task = self.rx.recv() => match task {
+                    Some(task) => self.handle_task(task),
+                    None => break,
+                },
+            }
+        }
+    }
+
+    /// Fire the persist operation when the debounce timer elapses.
+    fn on_persist_deadline(&mut self) {
+        self.persist_pending = false;
+        if let Err(e) = self.app_handle.settings().persist() {
+            eprintln!("Failed to persist settings: {e:?}");
+        }
+    }
+
+    /// Handle an incoming [`WorkerTask`].
+    fn handle_task(&mut self, task: WorkerTask) {
         match task {
+            WorkerTask::Persist => {
+                self.persist_pending = true;
+                self.persist_debounce
+                    .as_mut()
+                    .reset(Instant::now() + PERSIST_DEBOUNCE);
+            },
             WorkerTask::ThemeChanged { old, new } => {
-                app_handle.settings().trigger_theme_hooks(&old, &new);
+                self.app_handle.settings().trigger_theme_hooks(&old, &new);
             },
             WorkerTask::CanvasImodeChanged { old, new } => {
-                app_handle.settings().trigger_canvas_imode_hooks(&old, &new);
+                self.app_handle
+                    .settings()
+                    .trigger_canvas_imode_hooks(&old, &new);
             },
             WorkerTask::ShortcutChanged { action, old, new } => {
-                app_handle
-                    .settings()
-                    .trigger_shortcut_hooks(&action, old.as_ref(), new.as_ref());
+                self.app_handle.settings().trigger_shortcut_hooks(
+                    &action,
+                    old.as_ref(),
+                    new.as_ref(),
+                );
             },
         }
     }
 }
+
+/// Handle for communicating with the worker.
+pub struct WorkerHandle(mpsc::UnboundedSender<WorkerTask>);
 
 impl WorkerHandle {
     /// Create a new [`WorkerHandle`] instance.
@@ -60,7 +130,7 @@ impl WorkerHandle {
     pub fn new<R: Runtime>(app_handle: AppHandle<R>) -> Self {
         let (tx, rx) = mpsc::unbounded_channel();
         tauri::async_runtime::spawn(async move {
-            worker(app_handle, rx).await;
+            Worker::new(app_handle, rx).run().await;
         });
         Self(tx)
     }

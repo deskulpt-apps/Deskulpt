@@ -245,6 +245,7 @@ impl<R: Runtime> SettingsManager<R> {
 
         if dirty {
             UpdateEvent(&settings).emit(&self.app_handle)?;
+            tasks.push(WorkerTask::Persist);
         }
 
         // TODO: downgrade write lock to read lock when stable on std or when
