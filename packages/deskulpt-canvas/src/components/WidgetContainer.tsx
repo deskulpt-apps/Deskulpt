@@ -1,6 +1,13 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
+import { flushSync } from "react-dom";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
-import { Resizable, ResizeCallback } from "re-resizable";
+import {
+  NumberSize,
+  Resizable,
+  ResizeCallback,
+  ResizeDirection,
+  ResizeStartCallback,
+} from "re-resizable";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorDisplay from "./ErrorDisplay";
 import { stringifyError } from "@deskulpt/utils";
@@ -26,12 +33,51 @@ const styles = {
   }),
 };
 
+interface WidgetGeometry {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface WidgetContainerProps {
   id: string;
 }
 
+function computeResizedGeometry(
+  geometry: WidgetGeometry,
+  direction: ResizeDirection,
+  delta: NumberSize,
+): WidgetGeometry {
+  const { x, y, width, height } = geometry;
+  let newX = x;
+  let newY = y;
+  const newWidth = width + delta.width;
+  const newHeight = height + delta.height;
+
+  // If resizing from top and/or left edges, we need to adjust position
+  // accordingly to make sure their opposite edges stay in place
+  switch (direction) {
+    case "top":
+    case "topRight":
+      newY = y - delta.height;
+      break;
+    case "left":
+    case "bottomLeft":
+      newX = x - delta.width;
+      break;
+    case "topLeft":
+      newX = x - delta.width;
+      newY = y - delta.height;
+      break;
+  }
+
+  return { x: newX, y: newY, width: newWidth, height: newHeight };
+}
+
 const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
   const draggableRef = useRef<HTMLDivElement>(null);
+  const resizeStartRef = useRef<WidgetGeometry>(null);
 
   // This non-null assertion is safe because the IDs are obtained from the keys
   // of the widgets store
@@ -41,25 +87,32 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
   const opacity = settings?.opacity;
 
   // Local state to avoid jittery movement during dragging and resizing
-  const [x, setX] = useState(settings?.x);
-  const [y, setY] = useState(settings?.y);
-  const [width, setWidth] = useState(settings?.width);
-  const [height, setHeight] = useState(settings?.height);
+  const [geometry, setGeometry] = useState(
+    settings === undefined
+      ? undefined
+      : {
+          x: settings.x,
+          y: settings.y,
+          width: settings.width,
+          height: settings.height,
+        },
+  );
 
   useEffect(() => {
     if (settings === undefined) {
       return;
     }
-    setX(settings.x);
-    setY(settings.y);
-    setWidth(settings.width);
-    setHeight(settings.height);
+    setGeometry({
+      x: settings.x,
+      y: settings.y,
+      width: settings.width,
+      height: settings.height,
+    });
   }, [settings]);
 
   const onDragStop = useCallback(
     (_: DraggableEvent, data: DraggableData) => {
-      setX(data.x);
-      setY(data.y);
+      setGeometry((prev) => prev && { ...prev, x: data.x, y: data.y });
       deskulptSettings.commands.update({
         widgets: { [id]: { x: data.x, y: data.y } },
       });
@@ -67,39 +120,61 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
     [id],
   );
 
+  const onResizeStart: ResizeStartCallback = useCallback(() => {
+    if (geometry === undefined) {
+      return;
+    }
+    resizeStartRef.current = { ...geometry };
+  }, [geometry]);
+
+  const onResize: ResizeCallback = useCallback((_, direction, __, delta) => {
+    if (resizeStartRef.current === null) {
+      return;
+    }
+    const newGeometry = computeResizedGeometry(
+      resizeStartRef.current,
+      direction,
+      delta,
+    );
+
+    // Force position and size changes to land in the same frame to avoid
+    // visual glitches
+    flushSync(() => {
+      setGeometry(newGeometry);
+    });
+  }, []);
+
   const onResizeStop: ResizeCallback = useCallback(
-    (_, __, ___, delta) => {
-      if (width === undefined || height === undefined) {
+    (_, direction, __, delta) => {
+      if (resizeStartRef.current === null) {
         return;
       }
-      setWidth(width + delta.width);
-      setHeight(height + delta.height);
-      deskulptSettings.commands.update({
-        widgets: {
-          [id]: { width: width + delta.width, height: height + delta.height },
-        },
-      });
+
+      // We recompute with delta instead of using local state because at time
+      // this callback is triggered, we cannot guarantee that the local state
+      // updates has all been flushed due to react's asynchronous state updates;
+      // using delta also reduces the dependency array of this callback
+      const newGeometry = computeResizedGeometry(
+        resizeStartRef.current,
+        direction,
+        delta,
+      );
+      deskulptSettings.commands.update({ widgets: { [id]: newGeometry } });
     },
-    [id, width, height],
+    [id],
   );
 
   // Do not render anything if the widget is not fully configured; there could
   // be a gap between widget and settings updates, but they should eventually be
   // in sync
-  if (
-    x === undefined ||
-    y === undefined ||
-    width === undefined ||
-    height === undefined ||
-    opacity === undefined
-  ) {
+  if (geometry === undefined || opacity === undefined) {
     return null;
   }
 
   return (
     <Draggable
       nodeRef={draggableRef}
-      position={{ x, y }}
+      position={{ x: geometry.x, y: geometry.y }}
       onStop={onDragStop}
       bounds="body"
       handle=".handle"
@@ -121,7 +196,9 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
           <LuGripVertical size={20} />
         </Box>
         <Resizable
-          size={{ width, height }}
+          size={{ width: geometry.width, height: geometry.height }}
+          onResizeStart={onResizeStart}
+          onResize={onResize}
           onResizeStop={onResizeStop}
           css={styles.container}
           style={{ opacity: opacity / 100 }}
@@ -138,10 +215,10 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
           >
             <Widget
               id={id}
-              x={x}
-              y={y}
-              width={width}
-              height={height}
+              x={geometry.x}
+              y={geometry.y}
+              width={geometry.width}
+              height={geometry.height}
               opacity={opacity}
             />
           </ErrorBoundary>
