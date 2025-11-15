@@ -1,7 +1,13 @@
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
-import { Resizable, ResizeCallback, ResizeStartCallback } from "re-resizable";
+import {
+  NumberSize,
+  Resizable,
+  ResizeCallback,
+  ResizeDirection,
+  ResizeStartCallback,
+} from "re-resizable";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorDisplay from "./ErrorDisplay";
 import { stringifyError } from "@deskulpt/utils";
@@ -27,13 +33,51 @@ const styles = {
   }),
 };
 
+interface WidgetGeometry {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 interface WidgetContainerProps {
   id: string;
 }
 
+function computeResizedGeometry(
+  geometry: WidgetGeometry,
+  direction: ResizeDirection,
+  delta: NumberSize,
+): WidgetGeometry {
+  const { x, y, width, height } = geometry;
+  let newX = x;
+  let newY = y;
+  const newWidth = width + delta.width;
+  const newHeight = height + delta.height;
+
+  // If resizing from top and/or left edges, we need to adjust position
+  // accordingly to make sure their opposite edges stay in place
+  switch (direction) {
+    case "top":
+    case "topRight":
+      newY = y - delta.height;
+      break;
+    case "left":
+    case "bottomLeft":
+      newX = x - delta.width;
+      break;
+    case "topLeft":
+      newX = x - delta.width;
+      newY = y - delta.height;
+      break;
+  }
+
+  return { x: newX, y: newY, width: newWidth, height: newHeight };
+}
+
 const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
   const draggableRef = useRef<HTMLDivElement>(null);
-  const resizeStartRef = useRef({ x: 0, y: 0, width: 0, height: 0 });
+  const resizeStartRef = useRef<WidgetGeometry>();
 
   // This non-null assertion is safe because the IDs are obtained from the keys
   // of the widgets store
@@ -84,39 +128,41 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
   }, [geometry]);
 
   const onResize: ResizeCallback = useCallback((_, direction, __, delta) => {
-    const { x, y, width, height } = resizeStartRef.current;
-    let newX = x;
-    let newY = y;
-    const newWidth = width + delta.width;
-    const newHeight = height + delta.height;
-
-    // If resizing from top and/or left edges, we need to adjust position
-    // accordingly to make sure their opposite edges stay in place
-    switch (direction) {
-      case "top":
-      case "topRight":
-        newY = y - delta.height;
-        break;
-      case "left":
-      case "bottomLeft":
-        newX = x - delta.width;
-        break;
-      case "topLeft":
-        newX = x - delta.width;
-        newY = y - delta.height;
-        break;
+    if (resizeStartRef.current == undefined) {
+      return;
     }
+    const newGeometry = computeResizedGeometry(
+      resizeStartRef.current,
+      direction,
+      delta,
+    );
 
     // Force position and size changes to land in the same frame to avoid
     // visual glitches
     flushSync(() => {
-      setGeometry({ x: newX, y: newY, width: newWidth, height: newHeight });
+      setGeometry(newGeometry);
     });
   }, []);
 
-  const onResizeStop: ResizeCallback = useCallback(() => {
-    deskulptSettings.commands.update({ widgets: { [id]: { ...geometry } } });
-  }, [id, geometry]);
+  const onResizeStop: ResizeCallback = useCallback(
+    (_, direction, __, delta) => {
+      if (resizeStartRef.current == undefined) {
+        return;
+      }
+
+      // We recompute with delta instead of using local state because at time
+      // this callback is triggered, we cannot guarantee that the local state
+      // updates has all been flushed due to react's asynchronous state updates;
+      // using delta also reduces the dependency array of this callback
+      const newGeometry = computeResizedGeometry(
+        resizeStartRef.current,
+        direction,
+        delta,
+      );
+      deskulptSettings.commands.update({ widgets: { [id]: newGeometry } });
+    },
+    [id],
+  );
 
   // Do not render anything if the widget is not fully configured; there could
   // be a gap between widget and settings updates, but they should eventually be
