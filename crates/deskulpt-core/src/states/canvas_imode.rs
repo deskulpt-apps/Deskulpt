@@ -2,6 +2,7 @@
 
 use std::sync::RwLock;
 use std::sync::atomic::{AtomicBool, Ordering};
+use std::time::Duration;
 
 use anyhow::Result;
 use deskulpt_common::event::Event;
@@ -28,6 +29,12 @@ struct CanvasImodeState {
     /// Lock for serializing `set_ignore_cursor_events` calls.
     lock: RwLock<()>,
     /// Geometry information of the canvas window.
+    ///
+    /// We use [`SeqLock`] here for low-overhead and lock-free reads in the
+    /// global mousemove event listener which cannot afford blocking, thanks to
+    /// the fact that [`CanvasGeometry`] is [`Copy`]. Writers must be rare,
+    /// which is the case here since they only happen when the canvas window is
+    /// moved or rescaled, mostly on startup.
     geo: SeqLock<CanvasGeometry>,
 }
 
@@ -55,6 +62,13 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
 
         let canvas_cloned = canvas.clone();
         std::thread::spawn(move || {
+            // Delay the start of mousemove listener to avoid interfering with
+            // canvas window initialization, which is in most cases the heaviest
+            // period of writes to states that the mousemove listener may read;
+            // users commonly won't notice such delay because window creation
+            // and widgets rendering also take time.
+            std::thread::sleep(Duration::from_secs(1));
+
             if let Err(e) = listen_to_mousemove(canvas_cloned) {
                 eprintln!("Failed to listen to global mousemove events: {}", e);
             }
