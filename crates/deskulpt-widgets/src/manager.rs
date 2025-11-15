@@ -1,12 +1,11 @@
 //! Deskulpt widgets manager and its APIs.
 
-use std::sync::RwLock;
-
 use anyhow::{Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use deskulpt_core::path::PathExt;
 use deskulpt_settings::SettingsExt;
+use parking_lot::RwLock;
 use tauri::{AppHandle, Runtime, WebviewWindow};
 
 use crate::catalog::{WidgetCatalog, WidgetDescriptor};
@@ -53,7 +52,7 @@ impl<R: Runtime> WidgetsManager<R> {
         let widget_dir = self.app_handle.widgets_dir()?.join(id);
         let descriptor = WidgetDescriptor::load(&widget_dir);
 
-        let mut catalog = self.catalog.write().unwrap();
+        let mut catalog = self.catalog.write();
         if let Some(descriptor) = descriptor.transpose() {
             catalog.0.insert(id.to_string(), descriptor.into());
         } else {
@@ -76,7 +75,7 @@ impl<R: Runtime> WidgetsManager<R> {
         let widgets_dir = self.app_handle.widgets_dir()?;
         let new_catalog = WidgetCatalog::load(widgets_dir)?;
 
-        let mut catalog = self.catalog.write().unwrap();
+        let mut catalog = self.catalog.write();
         *catalog = new_catalog;
         UpdateEvent(&catalog).emit(&self.app_handle)?;
 
@@ -93,7 +92,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// submission fails, an error is returned. This method is non-blocking and
     /// does not wait for the task to complete.
     pub fn render(&self, id: &str) -> Result<()> {
-        let catalog = self.catalog.read().unwrap();
+        let catalog = self.catalog.read();
         let config = catalog
             .0
             .get(id)
@@ -115,7 +114,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// accumulated errors is returned. This method is non-blocking and does not
     /// wait for the tasks to complete.
     pub fn render_all(&self) -> Result<()> {
-        let catalog = self.catalog.read().unwrap();
+        let catalog = self.catalog.read();
 
         let mut errors = vec![];
         for (id, config) in catalog.0.iter() {
