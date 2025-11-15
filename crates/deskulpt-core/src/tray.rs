@@ -2,7 +2,6 @@
 
 use anyhow::Result;
 use deskulpt_settings::SettingsExt;
-use tauri::image::Image;
 use tauri::menu::{MenuBuilder, MenuEvent, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use tauri::{App, AppHandle, Manager, Runtime};
@@ -12,7 +11,7 @@ use crate::window::WindowExt;
 /// Extention trait for system tray-related operations.
 pub trait TrayExt<R: Runtime>: Manager<R> {
     /// Create the system tray.
-    fn create_tray(&self, icon: Image) -> Result<()>
+    fn create_tray(&self) -> Result<()>
     where
         Self: Sized,
     {
@@ -24,8 +23,12 @@ pub trait TrayExt<R: Runtime>: Manager<R> {
             .build()?;
 
         // Build the system tray icon
+        let icon = self
+            .app_handle()
+            .default_window_icon()
+            .expect("No default window icon");
         TrayIconBuilder::with_id("tray")
-            .icon(icon)
+            .icon(icon.clone())
             .icon_as_template(true)
             .show_menu_on_left_click(false)
             .tooltip("Deskulpt")

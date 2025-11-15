@@ -1,10 +1,10 @@
 //! Deskulpt settings manager and its APIs.
 
 use std::path::PathBuf;
-use std::sync::{RwLock, RwLockReadGuard};
 
 use anyhow::{Result, bail};
 use deskulpt_common::event::Event;
+use parking_lot::{RwLock, RwLockReadGuard};
 use tauri::{AppHandle, Manager, Runtime};
 
 use crate::CanvasImode;
@@ -89,7 +89,7 @@ impl<R: Runtime> SettingsManager<R> {
     /// and never attempt to acquire other locks while holding it to avoid
     /// deadlocks.
     pub fn read(&self) -> RwLockReadGuard<'_, Settings> {
-        self.settings.read().unwrap()
+        self.settings.read()
     }
 
     /// Try to get an immutable reference to the current settings.
@@ -103,7 +103,7 @@ impl<R: Runtime> SettingsManager<R> {
 
     /// Persist the current settings to disk.
     pub fn persist(&self) -> Result<()> {
-        let settings = self.settings.read().unwrap();
+        let settings = self.settings.read();
         settings.dump(&self.persist_path)?;
         Ok(())
     }
@@ -115,13 +115,13 @@ impl<R: Runtime> SettingsManager<R> {
     where
         F: Fn(&Theme, &Theme) + Send + Sync + 'static,
     {
-        let mut hooks = self.hooks.write().unwrap();
+        let mut hooks = self.hooks.write();
         hooks.on_theme_change.push(Box::new(hook));
     }
 
     /// Trigger all registered theme change hooks.
     pub(crate) fn trigger_theme_hooks(&self, old: &Theme, new: &Theme) {
-        let hooks = self.hooks.read().unwrap();
+        let hooks = self.hooks.read();
         for hook in &hooks.on_theme_change {
             hook(old, new);
         }
@@ -136,13 +136,13 @@ impl<R: Runtime> SettingsManager<R> {
     where
         F: Fn(&CanvasImode, &CanvasImode) + Send + Sync + 'static,
     {
-        let mut hooks = self.hooks.write().unwrap();
+        let mut hooks = self.hooks.write();
         hooks.on_canvas_imode_change.push(Box::new(hook));
     }
 
     /// Trigger all registered canvas interaction mode change hooks.
     pub(crate) fn trigger_canvas_imode_hooks(&self, old: &CanvasImode, new: &CanvasImode) {
-        let hooks = self.hooks.read().unwrap();
+        let hooks = self.hooks.read();
         for hook in &hooks.on_canvas_imode_change {
             hook(old, new);
         }
@@ -157,7 +157,7 @@ impl<R: Runtime> SettingsManager<R> {
     where
         F: Fn(&ShortcutAction, Option<&String>, Option<&String>) + Send + Sync + 'static,
     {
-        let mut hooks = self.hooks.write().unwrap();
+        let mut hooks = self.hooks.write();
         hooks.on_shortcut_change.push(Box::new(hook));
     }
 
@@ -168,7 +168,7 @@ impl<R: Runtime> SettingsManager<R> {
         old: Option<&String>,
         new: Option<&String>,
     ) {
-        let hooks = self.hooks.read().unwrap();
+        let hooks = self.hooks.read();
         for hook in &hooks.on_shortcut_change {
             hook(action, old, new);
         }
@@ -192,7 +192,7 @@ impl<R: Runtime> SettingsManager<R> {
     where
         F: FnOnce(&Settings) -> SettingsPatch,
     {
-        let mut settings = self.settings.write().unwrap();
+        let mut settings = self.settings.write();
         let patch = patch(&settings);
 
         let mut tasks = vec![];
@@ -254,6 +254,7 @@ impl<R: Runtime> SettingsManager<R> {
 
         if dirty {
             UpdateEvent(&settings).emit(&self.app_handle)?;
+            tasks.push(WorkerTask::Persist);
         }
 
         // TODO: downgrade write lock to read lock when stable on std or when

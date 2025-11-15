@@ -9,11 +9,7 @@ use deskulpt_core::shortcuts::ShortcutsExt;
 use deskulpt_core::states::{CanvasImodeStateExt, LoggingStateExt};
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
-use tauri::image::Image;
-use tauri::{Builder, generate_context, include_image};
-
-/// Image object for the Deskulpt icon.
-const DESKULPT_ICON: Image = include_image!("./icons/icon.png");
+use tauri::{Builder, generate_context};
 
 /// Entry point for the Deskulpt backend.
 pub fn run() {
@@ -33,7 +29,7 @@ pub fn run() {
             app.init_shortcuts();
             app.create_manager()?;
             app.create_canvas()?;
-            app.create_tray(DESKULPT_ICON)?;
+            app.create_tray()?;
 
             app.manage_canvas_imode()?;
 

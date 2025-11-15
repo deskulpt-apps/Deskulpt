@@ -5,7 +5,7 @@ use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
 use deskulpt_core::path::PathExt;
 use tauri::{AppHandle, Runtime};
-use tokio::sync::mpsc::{self, UnboundedReceiver};
+use tokio::sync::mpsc;
 
 use crate::events::RenderEvent;
 use crate::render::bundler::Bundler;
@@ -30,7 +30,7 @@ pub enum RenderWorkerTask {
 /// The main render worker loop.
 async fn render_worker<R: Runtime>(
     app_handle: AppHandle<R>,
-    mut rx: UnboundedReceiver<RenderWorkerTask>,
+    mut rx: mpsc::UnboundedReceiver<RenderWorkerTask>,
 ) {
     while let Some(task) = rx.recv().await {
         match task {
