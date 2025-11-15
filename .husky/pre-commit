@@ -1,9 +1,0 @@
-# Redirect stdout of the current shell session to a teletypewriter (tty) terminal,
-# otherwise the fancy output of lint-staged will be disabled; see the husky issue
-# https://github.com/typicode/husky/issues/968
-
-if [ -t 2 ]; then
-  exec >/dev/tty 2>&1
-fi
-
-pnpm lint-staged
