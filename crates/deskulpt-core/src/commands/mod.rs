@@ -3,7 +3,10 @@
 #[doc(hidden)]
 mod call_plugin;
 #[doc(hidden)]
+mod logs;
+#[doc(hidden)]
 mod open_widget;
 
 pub use call_plugin::*;
+pub use logs::*;
 pub use open_widget::*;
