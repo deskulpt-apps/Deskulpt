@@ -10,7 +10,7 @@ import {
 } from "re-resizable";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorDisplay from "./ErrorDisplay";
-import { stringifyError } from "@deskulpt/utils";
+import { logDiagnosticsEvent, stringifyError } from "@deskulpt/utils";
 import { LuGripVertical } from "react-icons/lu";
 import { Box } from "@radix-ui/themes";
 import { useSettingsStore, useWidgetsStore } from "../hooks";
@@ -164,6 +164,17 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
     [id],
   );
 
+  const handleWidgetError = useCallback(
+    (error: Error, info: { componentStack: string }) => {
+      void logDiagnosticsEvent("error", "Widget render error", {
+        widgetId: id,
+        stack: error.stack,
+        componentStack: info.componentStack,
+      });
+    },
+    [id],
+  );
+
   // Do not render anything if the widget is not fully configured; there could
   // be a gap between widget and settings updates, but they should eventually be
   // in sync
@@ -212,6 +223,7 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
                 message={stringifyError(error)}
               />
             )}
+            onError={handleWidgetError}
           >
             <Widget
               id={id}

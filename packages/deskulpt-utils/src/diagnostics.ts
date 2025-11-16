@@ -95,7 +95,7 @@ export function setupDiagnosticsLogging(source: string) {
     ] as const
   ).forEach(([method, level]) => overrideConsole(method, level));
 
-  window.addEventListener("error", (event) => {
+  window.addEventListener("error", (event: ErrorEvent) => {
     const message =
       event.message || stringifyError(event.error ?? "Unknown error");
     emit("error", message, {
@@ -107,9 +107,16 @@ export function setupDiagnosticsLogging(source: string) {
     });
   });
 
-  window.addEventListener("unhandledrejection", (event) => {
-    emit("error", stringifyError(event.reason), {
-      type: "unhandledrejection",
-    });
-  });
+  window.addEventListener(
+    "unhandledrejection",
+    (event: PromiseRejectionEvent) => {
+      emit("error", stringifyError(event.reason), {
+        type: "unhandledrejection",
+        reason:
+          event.reason instanceof Error
+            ? (event.reason.stack ?? event.reason.message)
+            : event.reason,
+      });
+    },
+  );
 }
