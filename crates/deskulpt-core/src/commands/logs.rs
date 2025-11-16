@@ -5,7 +5,6 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use deskulpt_common::{SerResult, ser_bail};
 use serde::Serialize;
-use serde_json::Value;
 use tauri::{AppHandle, Runtime, command};
 
 use crate::path::PathExt;
@@ -13,6 +12,7 @@ use crate::path::PathExt;
 /// Metadata describing a log file on disk.
 #[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
 pub struct LogFileInfo {
     pub name: String,
     pub size: u64,
@@ -22,6 +22,7 @@ pub struct LogFileInfo {
 /// A single parsed log entry.
 #[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
+#[allow(dead_code)]
 pub struct LogEntry {
     pub timestamp: String,
     pub level: String,
@@ -29,6 +30,7 @@ pub struct LogEntry {
     pub fields: Option<String>,
 }
 
+#[allow(dead_code)]
 #[command]
 #[specta::specta]
 pub fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileInfo>> {
@@ -56,6 +58,7 @@ pub fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileI
     Ok(files.into_iter().map(|(_, info)| info).collect())
 }
 
+#[allow(dead_code)]
 #[command]
 #[specta::specta]
 pub fn read_log<R: Runtime>(
@@ -85,6 +88,7 @@ pub fn read_log<R: Runtime>(
         .collect())
 }
 
+#[allow(dead_code)]
 #[command]
 #[specta::specta]
 pub fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
@@ -98,6 +102,7 @@ pub fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 fn parse_entry(line: &str) -> Option<LogEntry> {
     let value: serde_json::Value = serde_json::from_str(line).ok()?;
     let timestamp = value
@@ -116,23 +121,20 @@ fn parse_entry(line: &str) -> Option<LogEntry> {
         .unwrap_or_default()
         .to_string();
 
-    let fields = value
-        .as_object()
-        .map(|object| {
-            let mut rest = serde_json::Map::new();
-            for (key, val) in object {
-                if matches!(key.as_str(), "timestamp" | "level" | "message") {
-                    continue;
-                }
-                rest.insert(key.clone(), val.clone());
+    let fields = value.as_object().and_then(|object| {
+        let mut rest = serde_json::Map::new();
+        for (key, val) in object {
+            if matches!(key.as_str(), "timestamp" | "level" | "message") {
+                continue;
             }
-            if rest.is_empty() {
-                None
-            } else {
-                serde_json::to_string(&rest).ok()
-            }
-        })
-        .flatten();
+            rest.insert(key.clone(), val.clone());
+        }
+        if rest.is_empty() {
+            None
+        } else {
+            serde_json::to_string(&rest).ok()
+        }
+    });
 
     Some(LogEntry {
         timestamp,
@@ -142,6 +144,7 @@ fn parse_entry(line: &str) -> Option<LogEntry> {
     })
 }
 
+#[allow(dead_code)]
 fn ensure_single_component(filename: &str) -> SerResult<()> {
     if filename.is_empty() || filename.contains(['/', '\\']) {
         ser_bail!("Invalid log file name");
@@ -149,6 +152,7 @@ fn ensure_single_component(filename: &str) -> SerResult<()> {
     Ok(())
 }
 
+#[allow(dead_code)]
 fn format_system_time(time: SystemTime) -> String {
     match time.duration_since(UNIX_EPOCH) {
         Ok(duration) => duration.as_secs().to_string(),

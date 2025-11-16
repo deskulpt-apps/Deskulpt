@@ -8,5 +8,4 @@ mod logs;
 mod open_widget;
 
 pub use call_plugin::*;
-pub use logs::*;
 pub use open_widget::*;
