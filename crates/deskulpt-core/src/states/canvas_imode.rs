@@ -13,9 +13,9 @@ use tauri::{App, AppHandle, Manager, PhysicalPosition, Runtime, WebviewWindow};
 
 use crate::events::ShowToastEvent;
 
-/// Geometry information of the canvas window.
+/// Layout information of the canvas window.
 #[derive(Copy, Clone)]
-struct CanvasGeometry {
+struct CanvasLayout {
     /// Physical x-coordinate.
     x: f64,
     /// Physical y-coordinate.
@@ -28,14 +28,14 @@ struct CanvasGeometry {
 struct CanvasImodeState {
     /// Lock for serializing `set_ignore_cursor_events` calls.
     lock: RwLock<()>,
-    /// Geometry information of the canvas window.
+    /// Layout information of the canvas window.
     ///
     /// We use [`SeqLock`] here for low-overhead and lock-free reads in the
     /// global mousemove event listener which cannot afford blocking, thanks to
-    /// the fact that [`CanvasGeometry`] is [`Copy`]. Writers must be rare,
-    /// which is the case here since they only happen when the canvas window is
-    /// moved or rescaled, mostly on startup.
-    geo: SeqLock<CanvasGeometry>,
+    /// the fact that [`CanvasLayout`] is [`Copy`]. Writers must be rare, which
+    /// is the case here since they only happen when the canvas window is moved
+    /// or rescaled, mostly on startup.
+    layout: SeqLock<CanvasLayout>,
 }
 
 /// Whether the global mousemove listener is enabled.
@@ -50,14 +50,14 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
     fn manage_canvas_imode(&self) -> Result<()> {
         let canvas = DeskulptWindow::Canvas.webview_window(self)?;
         let canvas_position = canvas.inner_position()?;
-        let canvas_geometry = CanvasGeometry {
+        let canvas_layout = CanvasLayout {
             x: canvas_position.x as f64,
             y: canvas_position.y as f64,
             inv_scale: 1.0 / canvas.scale_factor()?,
         };
         self.manage(CanvasImodeState {
             lock: RwLock::new(()),
-            geo: SeqLock::new(canvas_geometry),
+            layout: SeqLock::new(canvas_layout),
         });
 
         let canvas_cloned = canvas.clone();
@@ -92,9 +92,9 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
     /// This should be called whenever the canvas window is moved.
     fn set_canvas_position(&self, position: &PhysicalPosition<i32>) {
         let state = self.state::<CanvasImodeState>();
-        let mut geo = state.geo.lock_write();
-        geo.x = position.x as f64;
-        geo.y = position.y as f64;
+        let mut layout = state.layout.lock_write();
+        layout.x = position.x as f64;
+        layout.y = position.y as f64;
     }
 
     /// Set the scale factor of the canvas window.
@@ -102,8 +102,8 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
     /// This should be called whenever the canvas window's scale factor changes.
     fn set_canvas_scale_factor(&self, scale_factor: f64) {
         let state = self.state::<CanvasImodeState>();
-        let mut geo = state.geo.lock_write();
-        geo.inv_scale = 1.0 / scale_factor;
+        let mut layout = state.layout.lock_write();
+        layout.inv_scale = 1.0 / scale_factor;
     }
 
     /// Toggle the interaction mode of the canvas window.
@@ -171,23 +171,23 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
         }
 
         let state = canvas.state::<CanvasImodeState>();
-        let canvas_geo = state.geo.read();
+        let canvas_layout = state.layout.read();
 
         let global_mousemove::MouseMoveEvent { x, y } = event;
 
         // For macOS, mousemove coordinates are in logical coordinates, so
         // only canvas physical position needs to be scaled
         #[cfg(target_os = "macos")]
-        let scaled_x = x - canvas_geo.x * canvas_geo.inv_scale;
+        let scaled_x = x - canvas_layout.x * canvas_layout.inv_scale;
         #[cfg(target_os = "macos")]
-        let scaled_y = y - canvas_geo.y * canvas_geo.inv_scale;
+        let scaled_y = y - canvas_layout.y * canvas_layout.inv_scale;
 
         // For other platforms, mousemove coordinates are in physical
         // coordinates, so they need to be scaled together with canvas position
         #[cfg(not(target_os = "macos"))]
-        let scaled_x = (x - canvas_geo.x) * canvas_geo.inv_scale;
+        let scaled_x = (x - canvas_layout.x) * canvas_layout.inv_scale;
         #[cfg(not(target_os = "macos"))]
-        let scaled_y = (y - canvas_geo.y) * canvas_geo.inv_scale;
+        let scaled_y = (y - canvas_layout.y) * canvas_layout.inv_scale;
 
         // TODO!(Charlie-XIAO): REMOVE THIS PRINT
         println!("\x1b[2m({x},{y}) => ({scaled_x},{scaled_y})\x1b[0m");
