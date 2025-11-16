@@ -189,9 +189,6 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
         #[cfg(not(target_os = "macos"))]
         let scaled_y = (y - canvas_layout.y) * canvas_layout.inv_scale;
 
-        // TODO!(Charlie-XIAO): REMOVE THIS PRINT
-        println!("\x1b[2m({x},{y}) => ({scaled_x},{scaled_y})\x1b[0m");
-
         let settings = match canvas.settings().try_read() {
             Some(settings) => settings,
             None => return, // Avoid blocking
@@ -220,9 +217,6 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
             is_cursor_ignored = should_ignore_cursor;
             if let Err(e) = canvas.set_ignore_cursor_events(should_ignore_cursor) {
                 eprintln!("Failed to set cursor events state: {e}");
-            } else {
-                // TODO!(Charlie-XIAO): REMOVE THIS PRINT
-                println!("ignore_cursor_events({should_ignore_cursor})");
             }
         }
     })?;
