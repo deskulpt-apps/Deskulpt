@@ -59,17 +59,17 @@ fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
     match event.id().as_ref() {
         "tray-toggle" => {
             if let Err(e) = app_handle.toggle_canvas_imode() {
-                eprintln!("Error toggling canvas interaction mode: {e}");
+                tracing::error!("Error toggling canvas interaction mode: {e}");
             }
         },
         "tray-manage" => {
             if let Err(e) = app_handle.open_manager() {
-                eprintln!("Error opening manager window: {e}");
+                tracing::error!("Error opening manager window: {e}");
             }
         },
         "tray-exit" => {
             if let Err(e) = app_handle.settings().persist() {
-                eprintln!("Failed to persist settings before exit: {e}");
+                tracing::error!("Failed to persist settings before exit: {e}");
                 app_handle.exit(1);
                 return;
             }
@@ -91,7 +91,7 @@ fn on_tray_icon_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
     {
         // Toggle canvas interaction mode on left-click
         if let Err(e) = tray.app_handle().toggle_canvas_imode() {
-            eprintln!("Error toggling canvas interaction mode: {e}");
+            tracing::error!("Error toggling canvas interaction mode: {e}");
         }
     }
 }

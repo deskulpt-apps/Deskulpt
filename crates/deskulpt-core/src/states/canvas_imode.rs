@@ -25,7 +25,7 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + Emitter<R> + SettingsExt
         let canvas = DeskulptWindow::Canvas.webview_window(&app_handle)?;
         self.settings().on_canvas_imode_change(move |_, new| {
             if let Err(e) = on_new_canvas_imode(&app_handle, &canvas, new) {
-                eprintln!("Failed to update canvas interaction mode: {}", e);
+                tracing::error!("Failed to update canvas interaction mode: {}", e);
             }
         });
 
@@ -70,7 +70,7 @@ fn on_new_canvas_imode<R: Runtime>(
     if let Err(e) = ShowToastEvent::Success(format!("Canvas interaction mode: {mode:?}"))
         .emit_to(app_handle, DeskulptWindow::Canvas)
     {
-        eprintln!("Failed to emit ShowToastEvent to canvas: {}", e);
+        tracing::error!("Failed to emit ShowToastEvent to canvas: {}", e);
     }
 
     Ok(())

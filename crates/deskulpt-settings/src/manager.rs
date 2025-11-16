@@ -67,7 +67,7 @@ impl<R: Runtime> SettingsManager<R> {
             .join("settings.json");
 
         let settings = Settings::load(&persist_path).unwrap_or_else(|e| {
-            eprintln!("Failed to load settings: {e:?}");
+            tracing::error!("Failed to load settings: {e:?}");
             Default::default()
         });
 

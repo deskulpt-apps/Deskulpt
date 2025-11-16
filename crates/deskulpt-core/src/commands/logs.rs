@@ -4,8 +4,10 @@ use std::io::{BufRead, BufReader};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use deskulpt_common::{SerResult, ser_bail};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use tauri::{AppHandle, Runtime, command};
+use tracing::Level;
 
 use crate::path::PathExt;
 
@@ -28,6 +30,43 @@ pub struct LogEntry {
     pub level: String,
     pub message: String,
     pub fields: Option<String>,
+}
+
+/// Log levels accepted from the frontend.
+#[derive(Debug, Deserialize, specta::Type)]
+#[serde(rename_all = "lowercase")]
+pub enum FrontendLogLevel {
+    Trace,
+    Debug,
+    Info,
+    Warn,
+    Error,
+}
+
+impl From<FrontendLogLevel> for Level {
+    fn from(level: FrontendLogLevel) -> Self {
+        match level {
+            FrontendLogLevel::Trace => Level::TRACE,
+            FrontendLogLevel::Debug => Level::DEBUG,
+            FrontendLogLevel::Info => Level::INFO,
+            FrontendLogLevel::Warn => Level::WARN,
+            FrontendLogLevel::Error => Level::ERROR,
+        }
+    }
+}
+
+#[command]
+#[specta::specta]
+pub fn log(level: FrontendLogLevel, message: String, fields: Option<Value>) -> SerResult<()> {
+    let level: Level = level.into();
+    let fields = fields.unwrap_or(Value::Null);
+    tracing::event!(
+        target: "deskulpt::frontend",
+        level,
+        frontend_message = %message,
+        frontend_fields = tracing::field::debug(&fields),
+    );
+    Ok(())
 }
 
 #[allow(dead_code)]

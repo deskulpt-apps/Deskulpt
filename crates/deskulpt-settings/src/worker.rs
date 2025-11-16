@@ -86,7 +86,7 @@ impl<R: Runtime> Worker<R> {
     fn on_persist_deadline(&mut self) {
         self.persist_pending = false;
         if let Err(e) = self.app_handle.settings().persist() {
-            eprintln!("Failed to persist settings: {e:?}");
+            tracing::error!("Failed to persist settings: {e:?}");
         }
     }
 
