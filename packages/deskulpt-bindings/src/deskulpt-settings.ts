@@ -12,6 +12,14 @@ import * as tauriEvent from "@tauri-apps/api/event";
  */
 export type CanvasImode = 
 /**
+ * Auto mode.
+ * 
+ * Automatically switch between sink and float modes based on mouse
+ * position, so that users will feel like the widgets and the desktop are
+ * simultaneously interactable.
+ */
+"auto" | 
+/**
  * Sink mode.
  * 
  * The canvas is click-through. Widgets are not interactable. The desktop

@@ -4,6 +4,7 @@ import { useSettingsStore } from "../../hooks";
 import { useCallback } from "react";
 
 const options: { value: deskulptSettings.CanvasImode; label: string }[] = [
+  { value: "auto", label: "Auto" },
   { value: "float", label: "Float" },
   { value: "sink", label: "Sink" },
 ];

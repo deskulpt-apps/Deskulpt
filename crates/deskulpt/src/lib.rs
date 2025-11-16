@@ -6,7 +6,7 @@
 
 use deskulpt_core::path::PathExt;
 use deskulpt_core::shortcuts::ShortcutsExt;
-use deskulpt_core::states::LoggingStateExt;
+use deskulpt_core::states::{CanvasImodeStateExt, LoggingStateExt};
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
 use tauri::{Builder, generate_context};
@@ -30,6 +30,8 @@ pub fn run() {
             app.create_manager()?;
             app.create_canvas()?;
             app.create_tray()?;
+
+            app.manage_canvas_imode()?;
 
             Ok(())
         })

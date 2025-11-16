@@ -12,7 +12,7 @@
     "canvasImode": {
       "description": "The canvas interaction mode.",
       "$ref": "#/$defs/CanvasImode",
-      "default": "sink"
+      "default": "auto"
     },
     "shortcuts": {
       "description": "The keyboard shortcuts.\n\nThis maps the actions to the shortcut strings that will trigger them.",
@@ -43,6 +43,11 @@
     "CanvasImode": {
       "description": "The canvas interaction mode.",
       "oneOf": [
+        {
+          "description": "Auto mode.\n\nAutomatically switch between sink and float modes based on mouse\nposition, so that users will feel like the widgets and the desktop are\nsimultaneously interactable.",
+          "type": "string",
+          "const": "auto"
+        },
         {
           "description": "Sink mode.\n\nThe canvas is click-through. Widgets are not interactable. The desktop\nis interactable.",
           "type": "string",
