@@ -50,7 +50,6 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
             .with_timer(UtcTime::rfc_3339())
             .flatten_event(true)
             .with_writer(writer);
-
         let subscriber = Registry::default().with(filter).with(fmt_layer);
         tracing::subscriber::set_global_default(subscriber)?;
 

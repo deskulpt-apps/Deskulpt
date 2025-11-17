@@ -4,6 +4,7 @@ fn main() {
             "call_plugin",
             "open_widget",
             "log",
+            "list_logs",
             "read_log",
             "clear_logs",
         ])
