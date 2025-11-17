@@ -16,7 +16,7 @@ function getLogCommand(): LogCommand | null {
   }
   const command = (deskulptCore.commands as any).log;
   cachedCommand = typeof command === "function" ? command : null;
-  return cachedCommand;
+  return cachedCommand ?? null;
 }
 
 export function logDiagnosticsEvent(
@@ -74,15 +74,17 @@ export function setupDiagnosticsLogging(source: string) {
   };
 
   const overrideConsole = (method: keyof Console, level: LogLevel) => {
-    const original = console[method].bind(console);
-    console[method] = ((...args: unknown[]) => {
+    const original = console[method].bind(console) as (
+      ...args: unknown[]
+    ) => void;
+    (console as any)[method] = ((...args: unknown[]) => {
       original(...args);
       const message =
         args.length === 0
           ? `[console.${method}]`
           : args.map((arg) => formatArg(arg)).join(" ");
       emit(level, message, { consoleMethod: method });
-    }) as Console[typeof method];
+    }) as any;
   };
 
   (

@@ -7,7 +7,7 @@ use deskulpt_common::{SerResult, ser_bail};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::{AppHandle, Runtime, command};
-use tracing::Level;
+use tracing::{Level, error, instrument, warn};
 
 use crate::path::PathExt;
 
@@ -58,12 +58,14 @@ impl From<FrontendLogLevel> for Level {
 #[allow(dead_code)]
 #[command]
 #[specta::specta]
+#[instrument(skip(app_handle))]
 pub fn log<R: Runtime>(
-    _app_handle: AppHandle<R>,
+    app_handle: AppHandle<R>,
     level: FrontendLogLevel,
     message: String,
     fields: Option<Value>,
 ) -> SerResult<()> {
+    let _ = app_handle;
     let level: Level = level.into();
     let fields = fields.unwrap_or(Value::Null);
     log_frontend_event(level, &message, &fields);
@@ -109,13 +111,40 @@ fn log_frontend_event(level: Level, message: &str, fields: &Value) {
 #[allow(dead_code)]
 #[command]
 #[specta::specta]
+#[instrument(skip(app_handle))]
 pub fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileInfo>> {
-    let logs_dir = app_handle.logs_dir()?;
+    let logs_dir = match app_handle.logs_dir() {
+        Ok(dir) => dir,
+        Err(e) => {
+            error!(error = ?e, "Failed to resolve logs directory");
+            return Err(e.into());
+        },
+    };
     let mut files = vec![];
 
-    for entry in fs::read_dir(logs_dir)? {
-        let entry = entry?;
-        let metadata = entry.metadata()?;
+    let entries = match fs::read_dir(logs_dir) {
+        Ok(entries) => entries,
+        Err(e) => {
+            error!(error = ?e, directory = %logs_dir.display(), "Failed to read logs directory");
+            return Err(e.into());
+        },
+    };
+
+    for entry in entries {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(e) => {
+                error!(error = ?e, "Failed to read directory entry");
+                continue;
+            },
+        };
+        let metadata = match entry.metadata() {
+            Ok(metadata) => metadata,
+            Err(e) => {
+                error!(error = ?e, path = %entry.path().display(), "Failed to read entry metadata");
+                continue;
+            },
+        };
         if !metadata.is_file() {
             continue;
         }
@@ -137,6 +166,7 @@ pub fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileI
 #[allow(dead_code)]
 #[command]
 #[specta::specta]
+#[instrument(skip(app_handle))]
 pub fn read_log<R: Runtime>(
     app_handle: AppHandle<R>,
     filename: String,
@@ -145,13 +175,32 @@ pub fn read_log<R: Runtime>(
     ensure_single_component(&filename)?;
 
     let limit = limit.max(1) as usize;
-    let path = app_handle.logs_dir()?.join(&filename);
-    let file = File::open(path)?;
+    let logs_dir = match app_handle.logs_dir() {
+        Ok(dir) => dir,
+        Err(e) => {
+            error!(error = ?e, "Failed to resolve logs directory");
+            return Err(e.into());
+        },
+    };
+    let path = logs_dir.join(&filename);
+    let file = match File::open(&path) {
+        Ok(file) => file,
+        Err(e) => {
+            error!(error = ?e, path = %path.display(), "Failed to open log file");
+            return Err(e.into());
+        },
+    };
     let reader = BufReader::new(file);
 
     let mut buffer = VecDeque::with_capacity(limit);
     for line in reader.lines() {
-        let line = line?;
+        let line = match line {
+            Ok(line) => line,
+            Err(e) => {
+                error!(error = ?e, path = %path.display(), "Failed to read line from log file");
+                continue;
+            },
+        };
         if buffer.len() == limit {
             buffer.pop_front();
         }
@@ -167,12 +216,41 @@ pub fn read_log<R: Runtime>(
 #[allow(dead_code)]
 #[command]
 #[specta::specta]
+#[instrument(skip(app_handle))]
 pub fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
-    let logs_dir = app_handle.logs_dir()?;
-    for entry in fs::read_dir(logs_dir)? {
-        let entry = entry?;
-        if entry.metadata()?.is_file() {
-            fs::remove_file(entry.path())?;
+    let logs_dir = match app_handle.logs_dir() {
+        Ok(dir) => dir,
+        Err(e) => {
+            error!(error = ?e, "Failed to resolve logs directory");
+            return Err(e.into());
+        },
+    };
+    let entries = match fs::read_dir(logs_dir) {
+        Ok(entries) => entries,
+        Err(e) => {
+            error!(error = ?e, directory = %logs_dir.display(), "Failed to read logs directory");
+            return Err(e.into());
+        },
+    };
+    for entry in entries {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(e) => {
+                error!(error = ?e, "Failed to read directory entry");
+                continue;
+            },
+        };
+        let metadata = match entry.metadata() {
+            Ok(metadata) => metadata,
+            Err(e) => {
+                error!(error = ?e, path = %entry.path().display(), "Failed to read entry metadata");
+                continue;
+            },
+        };
+        if metadata.is_file() {
+            if let Err(e) = fs::remove_file(entry.path()) {
+                error!(error = ?e, path = %entry.path().display(), "Failed to remove log file");
+            }
         }
     }
     Ok(())
@@ -180,7 +258,13 @@ pub fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
 
 #[allow(dead_code)]
 fn parse_entry(line: &str) -> Option<LogEntry> {
-    let value: serde_json::Value = serde_json::from_str(line).ok()?;
+    let value: serde_json::Value = match serde_json::from_str(line) {
+        Ok(value) => value,
+        Err(e) => {
+            warn!(error = ?e, "Failed to parse log entry line");
+            return None;
+        },
+    };
     let timestamp = value
         .get("timestamp")
         .and_then(|v| v.as_str())
