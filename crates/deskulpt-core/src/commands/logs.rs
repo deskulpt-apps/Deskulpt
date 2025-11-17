@@ -1,6 +1,7 @@
 use std::collections::VecDeque;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use deskulpt_common::{SerResult, ser_bail};
@@ -102,45 +103,21 @@ fn log_frontend_event(level: Level, message: &str, fields: &Value) {
 #[specta::specta]
 #[instrument(skip(app_handle))]
 pub fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileInfo>> {
-    let logs_dir = get_logs_dir(&app_handle)?;
-    let mut files = vec![];
-
-    let entries = match fs::read_dir(&logs_dir) {
-        Ok(entries) => entries,
-        Err(e) => {
-            error!(error = ?e, directory = %logs_dir.display(), "Failed to read logs directory");
-            return Err(e.into());
-        },
-    };
-
-    for entry in entries {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(e) => {
-                error!(error = ?e, "Failed to read directory entry");
-                continue;
-            },
-        };
-        let metadata = match entry.metadata() {
-            Ok(metadata) => metadata,
-            Err(e) => {
-                error!(error = ?e, path = %entry.path().display(), "Failed to read entry metadata");
-                continue;
-            },
-        };
-        if !metadata.is_file() {
-            continue;
-        }
-        let modified = metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH);
-        files.push((
-            modified,
-            LogFileInfo {
-                name: entry.file_name().to_string_lossy().into_owned(),
-                size: metadata.len().try_into().unwrap_or(u32::MAX),
-                modified: format_system_time(modified),
-            },
-        ));
-    }
+    let mut files: Vec<_> = collect_log_files(&app_handle)?
+        .into_iter()
+        .filter_map(|(path, metadata)| {
+            let modified = metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH);
+            let name = path.file_name()?.to_string_lossy().into_owned();
+            Some((
+                modified,
+                LogFileInfo {
+                    name,
+                    size: metadata.len().try_into().unwrap_or(u32::MAX),
+                    modified: format_system_time(modified),
+                },
+            ))
+        })
+        .collect();
 
     files.sort_by(|a, b| b.0.cmp(&a.0));
     Ok(files.into_iter().map(|(_, info)| info).collect())
@@ -193,33 +170,9 @@ pub fn read_log<R: Runtime>(
 #[specta::specta]
 #[instrument(skip(app_handle))]
 pub fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
-    let logs_dir = get_logs_dir(&app_handle)?;
-    let entries = match fs::read_dir(&logs_dir) {
-        Ok(entries) => entries,
-        Err(e) => {
-            error!(error = ?e, directory = %logs_dir.display(), "Failed to read logs directory");
-            return Err(e.into());
-        },
-    };
-    for entry in entries {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(e) => {
-                error!(error = ?e, "Failed to read directory entry");
-                continue;
-            },
-        };
-        let metadata = match entry.metadata() {
-            Ok(metadata) => metadata,
-            Err(e) => {
-                error!(error = ?e, path = %entry.path().display(), "Failed to read entry metadata");
-                continue;
-            },
-        };
-        if metadata.is_file() {
-            if let Err(e) = fs::remove_file(entry.path()) {
-                error!(error = ?e, path = %entry.path().display(), "Failed to remove log file");
-            }
+    for (path, _) in collect_log_files(&app_handle)? {
+        if let Err(e) = fs::remove_file(&path) {
+            error!(error = ?e, path = %path.display(), "Failed to remove log file");
         }
     }
     Ok(())
@@ -274,6 +227,42 @@ fn ensure_single_component(filename: &str) -> SerResult<()> {
         ser_bail!("Invalid log file name");
     }
     Ok(())
+}
+
+fn collect_log_files<R: Runtime>(
+    app_handle: &AppHandle<R>,
+) -> SerResult<Vec<(PathBuf, fs::Metadata)>> {
+    let logs_dir = get_logs_dir(app_handle)?;
+    let entries = match fs::read_dir(&logs_dir) {
+        Ok(entries) => entries,
+        Err(e) => {
+            error!(error = ?e, directory = %logs_dir.display(), "Failed to read logs directory");
+            return Err(e.into());
+        },
+    };
+
+    let mut files = Vec::new();
+    for entry in entries {
+        let entry = match entry {
+            Ok(entry) => entry,
+            Err(e) => {
+                error!(error = ?e, "Failed to read directory entry");
+                continue;
+            },
+        };
+        let metadata = match entry.metadata() {
+            Ok(metadata) => metadata,
+            Err(e) => {
+                error!(error = ?e, path = %entry.path().display(), "Failed to read entry metadata");
+                continue;
+            },
+        };
+        if metadata.is_file() {
+            files.push((entry.path(), metadata));
+        }
+    }
+
+    Ok(files)
 }
 #[allow(dead_code)]
 fn format_system_time(time: SystemTime) -> String {
