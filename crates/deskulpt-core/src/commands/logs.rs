@@ -17,7 +17,7 @@ use crate::path::PathExt;
 #[allow(dead_code)]
 pub struct LogFileInfo {
     pub name: String,
-    pub size: u64,
+    pub size: u32,
     pub modified: String,
 }
 
@@ -55,18 +55,55 @@ impl From<FrontendLogLevel> for Level {
     }
 }
 
+#[allow(dead_code)]
 #[command]
 #[specta::specta]
-pub fn log(level: FrontendLogLevel, message: String, fields: Option<Value>) -> SerResult<()> {
+pub fn log<R: Runtime>(
+    _app_handle: AppHandle<R>,
+    level: FrontendLogLevel,
+    message: String,
+    fields: Option<Value>,
+) -> SerResult<()> {
     let level: Level = level.into();
     let fields = fields.unwrap_or(Value::Null);
-    tracing::event!(
-        target: "deskulpt::frontend",
-        level,
-        frontend_message = %message,
-        frontend_fields = tracing::field::debug(&fields),
-    );
+    log_frontend_event(level, &message, &fields);
     Ok(())
+}
+
+#[allow(dead_code)]
+fn log_frontend_event(level: Level, message: &str, fields: &Value) {
+    match level {
+        Level::TRACE => tracing::event!(
+            target: "deskulpt::frontend",
+            Level::TRACE,
+            frontend_message = %message,
+            frontend_fields = tracing::field::debug(fields),
+        ),
+        Level::DEBUG => tracing::event!(
+            target: "deskulpt::frontend",
+            Level::DEBUG,
+            frontend_message = %message,
+            frontend_fields = tracing::field::debug(fields),
+        ),
+        Level::INFO => tracing::event!(
+            target: "deskulpt::frontend",
+            Level::INFO,
+            frontend_message = %message,
+            frontend_fields = tracing::field::debug(fields),
+        ),
+        Level::WARN => tracing::event!(
+            target: "deskulpt::frontend",
+            Level::WARN,
+            frontend_message = %message,
+            frontend_fields = tracing::field::debug(fields),
+        ),
+        Level::ERROR => tracing::event!(
+            target: "deskulpt::frontend",
+            Level::ERROR,
+            frontend_message = %message,
+            frontend_fields = tracing::field::debug(fields),
+        ),
+    }
 }
 
 #[allow(dead_code)]
@@ -87,7 +124,7 @@ pub fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileI
             modified,
             LogFileInfo {
                 name: entry.file_name().to_string_lossy().into_owned(),
-                size: metadata.len(),
+                size: metadata.len().try_into().unwrap_or(u32::MAX),
                 modified: format_system_time(modified),
             },
         ));
@@ -103,11 +140,11 @@ pub fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileI
 pub fn read_log<R: Runtime>(
     app_handle: AppHandle<R>,
     filename: String,
-    limit: usize,
+    limit: u32,
 ) -> SerResult<Vec<LogEntry>> {
     ensure_single_component(&filename)?;
 
-    let limit = limit.max(1);
+    let limit = limit.max(1) as usize;
     let path = app_handle.logs_dir()?.join(&filename);
     let file = File::open(path)?;
     let reader = BufReader::new(file);

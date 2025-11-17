@@ -3,6 +3,7 @@
 use anyhow::{Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
+use deskulpt_common::window::DeskulptWindow;
 use deskulpt_core::path::PathExt;
 use deskulpt_settings::SettingsExt;
 use parking_lot::RwLock;
@@ -191,8 +192,8 @@ impl<R: Runtime> WidgetsManager<R> {
     /// Tauri command: [`crate::commands::complete_setup`].
     #[instrument(skip(self, window))]
     pub fn complete_setup(&self, window: WebviewWindow<R>) -> Result<()> {
-        let window = window.label().try_into().unwrap();
-        let complete = self.setup_state.complete(window);
+        let window: DeskulptWindow = window.label().try_into().unwrap();
+        let complete = self.setup_state.complete(window.clone());
         info!(window = %window, complete, "Window setup completed");
         if complete {
             info!("All windows ready; triggering initial refresh");

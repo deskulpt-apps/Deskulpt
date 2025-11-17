@@ -1279,6 +1279,7 @@ dependencies = [
  "specta",
  "tauri",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
@@ -1301,6 +1302,7 @@ dependencies = [
  "specta",
  "tauri",
  "tokio",
+ "tracing",
 ]
 
 [[package]]
