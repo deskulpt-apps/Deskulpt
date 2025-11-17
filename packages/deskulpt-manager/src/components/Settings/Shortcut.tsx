@@ -8,7 +8,6 @@ import {
   TextField,
 } from "@radix-ui/themes";
 import {
-  FocusEvent,
   KeyboardEvent as ReactKeyboardEvent,
   useCallback,
   useRef,
@@ -41,10 +40,7 @@ interface Props {
 
 const ShortcutAction = ({ action }: Props) => {
   const shortcut = useSettingsStore((state) => state.shortcuts[action]);
-
   const inputRef = useRef<HTMLInputElement>(null);
-  const clearButtonRef = useRef<HTMLButtonElement>(null);
-  const confirmButtonRef = useRef<HTMLButtonElement>(null);
 
   const [value, setValue] = useState(shortcut ?? "");
   const [placeholder, setPlaceholder] = useState(INITIAL_PLACEHOLDER);
@@ -53,22 +49,6 @@ const ShortcutAction = ({ action }: Props) => {
   const handleFocus = useCallback(() => {
     setPlaceholder("Press key combination...");
   }, []);
-
-  const handleBlur = useCallback(
-    (event: FocusEvent) => {
-      // Prevent resetting when clicking on the clear or confirm button,
-      // otherwise they cannot access the correct value
-      if (
-        event.relatedTarget === confirmButtonRef.current ||
-        event.relatedTarget === clearButtonRef.current
-      ) {
-        return;
-      }
-      setValue(shortcut ?? "");
-      setPlaceholder(INITIAL_PLACEHOLDER);
-    },
-    [shortcut],
-  );
 
   const handleOpenChange = useCallback(
     (open: boolean) => {
@@ -176,13 +156,11 @@ const ShortcutAction = ({ action }: Props) => {
               value={value}
               placeholder={placeholder}
               onFocus={handleFocus}
-              onBlur={handleBlur}
               onKeyDown={handleKeyDown}
               css={[styles.input, !isValid && styles.inputInvalid]}
             >
               <TextField.Slot side="right">
                 <IconButton
-                  ref={clearButtonRef}
                   size="1"
                   variant="ghost"
                   disabled={value === ""}
@@ -194,12 +172,7 @@ const ShortcutAction = ({ action }: Props) => {
             </TextField.Root>
             {isValid && (shortcut ?? "") !== value && (
               <Popover.Close>
-                <Button
-                  ref={confirmButtonRef}
-                  size="1"
-                  variant="surface"
-                  onClick={confirmAction}
-                >
+                <Button size="1" variant="surface" onClick={confirmAction}>
                   {value === "" ? "Disable" : "Confirm"}
                 </Button>
               </Popover.Close>
