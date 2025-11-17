@@ -44,7 +44,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           echo "RELEASE_NOTES<<EOF" >> $GITHUB_OUTPUT
-          git-cliff >> $GITHUB_OUTPUT
+          git-cliff --latest >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Build Deskulpt
