@@ -11,6 +11,14 @@ use tracing::{Level, error, instrument, warn};
 
 use crate::path::PathExt;
 
+/// Helper to get the logs directory with consistent error handling.
+fn get_logs_dir<R: Runtime>(app_handle: &AppHandle<R>) -> SerResult<std::path::PathBuf> {
+    app_handle.logs_dir().map(|p| p.to_path_buf()).map_err(|e| {
+        error!(error = ?e, "Failed to resolve logs directory");
+        e.into()
+    })
+}
+
 /// Metadata describing a log file on disk.
 #[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
@@ -24,7 +32,6 @@ pub struct LogFileInfo {
 /// A single parsed log entry.
 #[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-#[allow(dead_code)]
 pub struct LogEntry {
     pub timestamp: String,
     pub level: String,
@@ -55,7 +62,6 @@ impl From<FrontendLogLevel> for Level {
     }
 }
 
-#[allow(dead_code)]
 #[command]
 #[specta::specta]
 #[instrument(skip(app_handle))]
@@ -72,57 +78,34 @@ pub fn log<R: Runtime>(
     Ok(())
 }
 
-#[allow(dead_code)]
 fn log_frontend_event(level: Level, message: &str, fields: &Value) {
+    macro_rules! emit {
+        ($macro:ident) => {
+            tracing::$macro!(
+                target: "deskulpt::frontend",
+                frontend_message = %message,
+                frontend_fields = tracing::field::debug(fields),
+            )
+        };
+    }
+
     match level {
-        Level::TRACE => tracing::event!(
-            target: "deskulpt::frontend",
-            Level::TRACE,
-            frontend_message = %message,
-            frontend_fields = tracing::field::debug(fields),
-        ),
-        Level::DEBUG => tracing::event!(
-            target: "deskulpt::frontend",
-            Level::DEBUG,
-            frontend_message = %message,
-            frontend_fields = tracing::field::debug(fields),
-        ),
-        Level::INFO => tracing::event!(
-            target: "deskulpt::frontend",
-            Level::INFO,
-            frontend_message = %message,
-            frontend_fields = tracing::field::debug(fields),
-        ),
-        Level::WARN => tracing::event!(
-            target: "deskulpt::frontend",
-            Level::WARN,
-            frontend_message = %message,
-            frontend_fields = tracing::field::debug(fields),
-        ),
-        Level::ERROR => tracing::event!(
-            target: "deskulpt::frontend",
-            Level::ERROR,
-            frontend_message = %message,
-            frontend_fields = tracing::field::debug(fields),
-        ),
+        Level::TRACE => emit!(trace),
+        Level::DEBUG => emit!(debug),
+        Level::INFO => emit!(info),
+        Level::WARN => emit!(warn),
+        Level::ERROR => emit!(error),
     }
 }
 
-#[allow(dead_code)]
 #[command]
 #[specta::specta]
 #[instrument(skip(app_handle))]
 pub fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileInfo>> {
-    let logs_dir = match app_handle.logs_dir() {
-        Ok(dir) => dir,
-        Err(e) => {
-            error!(error = ?e, "Failed to resolve logs directory");
-            return Err(e.into());
-        },
-    };
+    let logs_dir = get_logs_dir(&app_handle)?;
     let mut files = vec![];
 
-    let entries = match fs::read_dir(logs_dir) {
+    let entries = match fs::read_dir(&logs_dir) {
         Ok(entries) => entries,
         Err(e) => {
             error!(error = ?e, directory = %logs_dir.display(), "Failed to read logs directory");
@@ -163,7 +146,6 @@ pub fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileI
     Ok(files.into_iter().map(|(_, info)| info).collect())
 }
 
-#[allow(dead_code)]
 #[command]
 #[specta::specta]
 #[instrument(skip(app_handle))]
@@ -175,13 +157,7 @@ pub fn read_log<R: Runtime>(
     ensure_single_component(&filename)?;
 
     let limit = limit.max(1) as usize;
-    let logs_dir = match app_handle.logs_dir() {
-        Ok(dir) => dir,
-        Err(e) => {
-            error!(error = ?e, "Failed to resolve logs directory");
-            return Err(e.into());
-        },
-    };
+    let logs_dir = get_logs_dir(&app_handle)?;
     let path = logs_dir.join(&filename);
     let file = match File::open(&path) {
         Ok(file) => file,
@@ -201,7 +177,7 @@ pub fn read_log<R: Runtime>(
                 continue;
             },
         };
-        if buffer.len() == limit {
+        if buffer.len() >= limit {
             buffer.pop_front();
         }
         buffer.push_back(line);
@@ -213,19 +189,12 @@ pub fn read_log<R: Runtime>(
         .collect())
 }
 
-#[allow(dead_code)]
 #[command]
 #[specta::specta]
 #[instrument(skip(app_handle))]
 pub fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
-    let logs_dir = match app_handle.logs_dir() {
-        Ok(dir) => dir,
-        Err(e) => {
-            error!(error = ?e, "Failed to resolve logs directory");
-            return Err(e.into());
-        },
-    };
-    let entries = match fs::read_dir(logs_dir) {
+    let logs_dir = get_logs_dir(&app_handle)?;
+    let entries = match fs::read_dir(&logs_dir) {
         Ok(entries) => entries,
         Err(e) => {
             error!(error = ?e, directory = %logs_dir.display(), "Failed to read logs directory");
@@ -256,7 +225,6 @@ pub fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
     Ok(())
 }
 
-#[allow(dead_code)]
 fn parse_entry(line: &str) -> Option<LogEntry> {
     let value: serde_json::Value = match serde_json::from_str(line) {
         Ok(value) => value,
@@ -265,21 +233,18 @@ fn parse_entry(line: &str) -> Option<LogEntry> {
             return None;
         },
     };
-    let timestamp = value
-        .get("timestamp")
-        .and_then(|v| v.as_str())
-        .unwrap_or_default()
-        .to_string();
-    let level = value
-        .get("level")
-        .and_then(|v| v.as_str())
-        .unwrap_or_default()
-        .to_string();
-    let message = value
-        .get("message")
-        .and_then(|v| v.as_str())
-        .unwrap_or_default()
-        .to_string();
+
+    let get_str = |key: &str| {
+        value
+            .get(key)
+            .and_then(|v| v.as_str())
+            .unwrap_or_default()
+            .to_string()
+    };
+
+    let timestamp = get_str("timestamp");
+    let level = get_str("level");
+    let message = get_str("message");
 
     let fields = value.as_object().and_then(|object| {
         let mut rest = serde_json::Map::new();
@@ -304,14 +269,12 @@ fn parse_entry(line: &str) -> Option<LogEntry> {
     })
 }
 
-#[allow(dead_code)]
 fn ensure_single_component(filename: &str) -> SerResult<()> {
     if filename.is_empty() || filename.contains(['/', '\\']) {
         ser_bail!("Invalid log file name");
     }
     Ok(())
 }
-
 #[allow(dead_code)]
 fn format_system_time(time: SystemTime) -> String {
     match time.duration_since(UNIX_EPOCH) {
