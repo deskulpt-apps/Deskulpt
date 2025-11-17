@@ -4,6 +4,7 @@ use anyhow::Result;
 use deskulpt_settings::{SettingsExt, ShortcutAction};
 use tauri::{App, AppHandle, Manager, Runtime};
 use tauri_plugin_global_shortcut::{GlobalShortcut, GlobalShortcutExt, ShortcutState};
+use tracing::error;
 
 use crate::states::CanvasImodeStateExt;
 use crate::window::WindowExt;
@@ -25,12 +26,12 @@ fn reregister_shortcut<R: Runtime>(
     let handler: fn(&AppHandle<R>) = match action {
         ShortcutAction::ToggleCanvasImode => |app_handle| {
             if let Err(e) = app_handle.toggle_canvas_imode() {
-                tracing::error!("Failed to toggle canvas interaction mode: {e}");
+                error!("Failed to toggle canvas interaction mode: {e}");
             }
         },
         ShortcutAction::OpenManager => |app_handle| {
             if let Err(e) = app_handle.open_manager() {
-                tracing::error!("Failed to open the manager window: {e}");
+                error!("Failed to open the manager window: {e}");
             }
         },
     };
@@ -59,7 +60,7 @@ pub trait ShortcutsExt<R: Runtime>: Manager<R> + SettingsExt<R> + GlobalShortcut
             let settings = self.settings().read();
             for (action, shortcut) in &settings.shortcuts {
                 if let Err(e) = reregister_shortcut(gs, action, None, Some(shortcut)) {
-                    tracing::error!(
+                    error!(
                         shortcut_action = ?action,
                         shortcut_binding = %shortcut,
                         error = ?e,
@@ -73,7 +74,7 @@ pub trait ShortcutsExt<R: Runtime>: Manager<R> + SettingsExt<R> + GlobalShortcut
         self.settings().on_shortcut_change(move |action, old, new| {
             let gs = app_handle.global_shortcut();
             if let Err(e) = reregister_shortcut(gs, action, old, new) {
-                tracing::error!(
+                error!(
                     "Failed to re-register shortcut from {old:?} to {new:?} for {action:?}: {e:?}"
                 );
             }

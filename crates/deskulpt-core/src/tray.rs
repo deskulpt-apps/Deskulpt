@@ -5,6 +5,7 @@ use deskulpt_settings::SettingsExt;
 use tauri::menu::{MenuBuilder, MenuEvent, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use tauri::{App, AppHandle, Manager, Runtime};
+use tracing::error;
 
 use crate::window::WindowExt;
 
@@ -52,12 +53,12 @@ fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
     match event.id().as_ref() {
         "tray-manage" => {
             if let Err(e) = app_handle.open_manager() {
-                tracing::error!("Error opening manager window: {e}");
+                error!("Error opening manager window: {e}");
             }
         },
         "tray-exit" => {
             if let Err(e) = app_handle.settings().persist() {
-                tracing::error!("Failed to persist settings before exit: {e}");
+                error!("Failed to persist settings before exit: {e}");
                 app_handle.exit(1);
                 return;
             }
@@ -78,6 +79,6 @@ fn on_tray_icon_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
         && button_state == MouseButtonState::Down
         && let Err(e) = tray.app_handle().open_manager()
     {
-        tracing::error!("Error opening manager window: {e}");
+        error!("Error opening manager window: {e}");
     }
 }
