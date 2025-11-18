@@ -8,6 +8,7 @@
     "deskulpt-core:allow-list-logs",
     "deskulpt-core:allow-read-log",
     "deskulpt-core:allow-clear-logs",
+    "deskulpt-core:allow-open-logs-dir",
     "deskulpt-core:allow-open-widget",
     "deskulpt-settings:allow-update",
     "deskulpt-widgets:allow-complete-setup",

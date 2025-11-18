@@ -1,4 +1,3 @@
-import { Box, Table } from "@radix-ui/themes";
 import { memo } from "react";
 import { css } from "@emotion/react";
 import { deskulptCore } from "@deskulpt/bindings";
@@ -6,7 +5,28 @@ import { deskulptCore } from "@deskulpt/bindings";
 type LogEntry = deskulptCore.LogEntry;
 
 const styles = {
-  levelBadge: (level: string) => {
+  container: css({
+    padding: "8px 0",
+  }),
+  logEntry: css({
+    display: "flex",
+    gap: "12px",
+    padding: "4px 0",
+    fontFamily: "monospace",
+    fontSize: "12px",
+    lineHeight: 1.5,
+    borderBottom: "1px solid var(--gray-3)",
+    "&:last-child": {
+      borderBottom: "none",
+    },
+  }),
+  timestamp: css({
+    flexShrink: 0,
+    width: "160px",
+    color: "var(--gray-11)",
+    fontSize: "11px",
+  }),
+  level: (level: string) => {
     const colors: Record<string, string> = {
       ERROR: "#ff6b6b",
       WARN: "#ffa500",
@@ -15,24 +35,26 @@ const styles = {
       TRACE: "#9f7aea",
     };
     return css({
-      padding: "1px 6px",
-      borderRadius: "999px",
+      flexShrink: 0,
+      width: "60px",
       fontSize: "11px",
       fontWeight: 600,
-      letterSpacing: "0.02em",
       textTransform: "uppercase",
-      backgroundColor: colors[level] || "#a0aec0",
-      color: "white",
+      color: colors[level] || "#a0aec0",
     });
   },
-  logRow: css({
-    fontFamily: "monospace",
-    fontSize: "12px",
+  message: css({
+    flex: 1,
+    minWidth: 0,
+    whiteSpace: "pre-wrap",
+    wordBreak: "break-word",
+    overflowWrap: "anywhere",
   }),
   noLogs: css({
     textAlign: "center",
     padding: "32px",
     color: "var(--gray-11)",
+    fontSize: "12px",
   }),
 };
 
@@ -85,52 +107,30 @@ interface LogViewerProps {
 const LogViewer = memo(({ selectedFile, entries }: LogViewerProps) => {
   if (entries.length === 0) {
     return (
-      <Box css={styles.noLogs}>
+      <div css={styles.noLogs}>
         {selectedFile ? "No matching log entries" : "No log files available"}
-      </Box>
+      </div>
     );
   }
 
   return (
-    <Table.Root>
-      <Table.Header>
-        <Table.Row>
-          <Table.ColumnHeaderCell>Timestamp</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell width="80px">Level</Table.ColumnHeaderCell>
-          <Table.ColumnHeaderCell>Message</Table.ColumnHeaderCell>
-        </Table.Row>
-      </Table.Header>
-      <Table.Body>
-        {entries.map((entry) => (
-          <Table.Row
-            key={`${entry.timestamp}-${entry.level}`}
-            css={styles.logRow}
-          >
-            <Table.Cell style={{ fontSize: "11px", fontFamily: "monospace" }}>
-              {formatTimestamp(entry.timestamp)}
-            </Table.Cell>
-            <Table.Cell>
-              <span css={styles.levelBadge(entry.level)}>{entry.level}</span>
-            </Table.Cell>
-            <Table.Cell
-              title={
-                entry.fields
-                  ? `${entry.message}\n\nFields: ${entry.fields}`
-                  : entry.message
-              }
-              style={{
-                whiteSpace: "pre-wrap",
-                wordBreak: "break-word",
-                overflowWrap: "anywhere",
-                lineHeight: 1.4,
-              }}
-            >
-              {entry.message}
-            </Table.Cell>
-          </Table.Row>
-        ))}
-      </Table.Body>
-    </Table.Root>
+    <div css={styles.container}>
+      {entries.map((entry) => (
+        <div
+          key={`${entry.timestamp}-${entry.level}-${entry.message.slice(0, 20)}`}
+          css={styles.logEntry}
+          title={
+            entry.fields
+              ? `${entry.message}\n\nFields: ${entry.fields}`
+              : entry.message
+          }
+        >
+          <span css={styles.timestamp}>{formatTimestamp(entry.timestamp)}</span>
+          <span css={styles.level(entry.level)}>{entry.level}</span>
+          <span css={styles.message}>{entry.message}</span>
+        </div>
+      ))}
+    </div>
   );
 });
 

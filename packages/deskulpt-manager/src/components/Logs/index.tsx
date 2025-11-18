@@ -1,6 +1,6 @@
-import { Box, Button, Flex, ScrollArea, TextField } from "@radix-ui/themes";
+import { Button, ScrollArea, TextField } from "@radix-ui/themes";
 import { memo, useCallback, useEffect, useMemo, useState } from "react";
-import { MdClear, MdFolderOpen, MdRefresh } from "react-icons/md";
+import { MdFolderOpen } from "react-icons/md";
 import { css } from "@emotion/react";
 import { deskulptCore } from "@deskulpt/bindings";
 import { toast } from "sonner";
@@ -14,64 +14,118 @@ const styles = {
     height: "100%",
     display: "flex",
     flexDirection: "column",
-    gap: "12px",
-    padding: "16px",
+    gap: "8px",
+    padding: "12px",
   }),
   header: css({
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "flex-end",
-    gap: "16px",
+    alignItems: "center",
+    gap: "12px",
+    paddingBottom: "8px",
   }),
   headerMeta: css({
     display: "flex",
     flexDirection: "column",
-    gap: "4px",
+    gap: "2px",
     flex: 1,
     minWidth: 0,
   }),
   headerMetaLabel: css({
-    fontSize: "12px",
-    textTransform: "uppercase",
-    letterSpacing: "0.04em",
+    fontSize: "11px",
     color: "var(--gray-11)",
   }),
   headerMetaInfo: css({
-    fontSize: "12px",
+    fontSize: "11px",
     color: "var(--gray-11)",
-  }),
-  controlsGroup: css({
-    display: "flex",
-    gap: "8px",
-    alignItems: "center",
   }),
   filters: css({
     display: "flex",
-    gap: "12px",
+    gap: "8px",
     flexWrap: "wrap",
   }),
+  textField: css({
+    boxShadow: "none !important",
+    border: "none !important",
+    backgroundColor: "transparent !important",
+    "& > div": {
+      boxShadow: "none !important",
+      backgroundColor: "transparent !important",
+    },
+    "& input": {
+      background: "transparent !important",
+      backgroundImage: "none !important",
+      border: "0.5px solid var(--gray-8) !important",
+      borderRadius: "4px !important",
+      padding: "6px 8px !important",
+      fontSize: "12px !important",
+      lineHeight: "1.5 !important",
+      height: "auto !important",
+      minHeight: "0 !important",
+      boxSizing: "border-box",
+      boxShadow: "none !important",
+      color: "inherit !important",
+    },
+    "& input:hover": {
+      border: "0.5px solid var(--gray-8) !important",
+      boxShadow: "none !important",
+    },
+    "& input:focus": {
+      border: "1px solid var(--gray-8) !important",
+      boxShadow: "none !important",
+      outline: "none !important",
+    },
+  }),
+  levelSelectWrapper: css({
+    position: "relative",
+    width: "180px",
+  }),
   levelSelect: css({
-    width: "220px",
-    padding: "8px 10px",
-    borderRadius: "8px",
-    border: "1px solid var(--gray-6)",
-    backgroundColor: "var(--color-surface)",
-    fontSize: "12px",
-    color: "inherit",
+    width: "100%",
+    padding: "6px 28px 6px 8px",
+    fontSize: "12px !important",
+    lineHeight: "1.5 !important",
+    color: "inherit !important",
+    backgroundColor: "transparent !important",
+    backgroundImage: "none !important",
+    border: "0.5px solid var(--gray-8) !important",
+    borderRadius: "4px !important",
+    outline: "none !important",
+    appearance: "none",
+    WebkitAppearance: "none",
+    MozAppearance: "none",
+    cursor: "pointer",
+    boxSizing: "border-box",
+    boxShadow: "none !important",
+    "&:hover": {
+      border: "0.5px solid var(--gray-8) !important",
+      boxShadow: "none !important",
+    },
+    "&:focus": {
+      outline: "none !important",
+      border: "1px solid var(--gray-8) !important",
+      boxShadow: "none !important",
+    },
+  }),
+  selectChevron: css({
+    position: "absolute",
+    right: "8px",
+    top: "50%",
+    transform: "translateY(-50%)",
+    pointerEvents: "none",
+    color: "var(--gray-11)",
+    fontSize: "10px",
   }),
   viewer: css({
     flex: 1,
-    border: "1px solid var(--gray-6)",
-    borderRadius: "8px",
     overflow: "hidden",
     display: "flex",
     flexDirection: "column",
   }),
   footer: css({
-    padding: "8px 12px",
-    fontSize: "12px",
+    padding: "4px 0",
+    fontSize: "11px",
     color: "var(--gray-11)",
-    borderTop: "1px solid var(--gray-6)",
     display: "flex",
     justifyContent: "space-between",
   }),
@@ -104,32 +158,25 @@ const Logs = memo(() => {
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
   const [filterLevel, setFilterLevel] = useState<string>(LEVEL_OPTIONS[0]);
   const [filterText, setFilterText] = useState<string>("");
-  const [loading, setLoading] = useState(false);
 
   const loadLogFiles = useCallback(async () => {
     try {
-      setLoading(true);
       const files = await deskulptCore.commands.listLogs();
       setLogFiles(files);
       setSelectedFile(files[0]?.name ?? "");
     } catch (error) {
       console.error("Failed to load log files:", error);
       toast.error("Failed to load log files");
-    } finally {
-      setLoading(false);
     }
   }, []);
 
   const loadLogEntries = useCallback(async (filename: string) => {
     try {
-      setLoading(true);
       const entries = await deskulptCore.commands.readLog(filename, 1000);
       setLogEntries(entries);
     } catch (error) {
       console.error("Failed to load log entries:", error);
       toast.error("Failed to load log entries");
-    } finally {
-      setLoading(false);
     }
   }, []);
 
@@ -143,28 +190,22 @@ const Logs = memo(() => {
     }
   }, [selectedFile, loadLogEntries]);
 
-  const handleClearLogs = useCallback(async () => {
-    if (!confirm("Are you sure you want to delete all log files?")) {
-      return;
-    }
-    try {
-      await deskulptCore.commands.clearLogs();
-      toast.success("Log files cleared");
-      setSelectedFile("");
-      setLogEntries([]);
-      void loadLogFiles();
-    } catch (error) {
-      console.error("Failed to clear logs:", error);
-      toast.error("Failed to clear logs");
-    }
-  }, [loadLogFiles]);
-
   const handleOpenLogsDir = useCallback(async () => {
     try {
       await deskulptCore.commands.openLogsDir();
     } catch (error) {
-      console.error("Failed to open logs directory:", error);
-      toast.error("Failed to open logs directory");
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : typeof error === "string"
+            ? error
+            : JSON.stringify(error);
+      console.error("Failed to open logs directory:", {
+        error,
+        message: errorMessage,
+        stack: error instanceof Error ? error.stack : undefined,
+      });
+      toast.error(`Failed to open logs directory: ${errorMessage}`);
     }
   }, []);
 
@@ -191,13 +232,12 @@ const Logs = memo(() => {
   const latestFile = logFiles[0];
 
   return (
-    <Box css={styles.container}>
-      <Box css={styles.header}>
+    <div css={styles.container}>
+      <div css={styles.header}>
         <div css={styles.headerMeta}>
-          <span css={styles.headerMetaLabel}>Newest log</span>
           {logFiles.length > 0 && latestFile ? (
             <>
-              <strong>{latestFile.name}</strong>
+              <span css={styles.headerMetaLabel}>{latestFile.name}</span>
               <span css={styles.headerMetaInfo}>
                 {formatBytes(latestFile.size)} • {latestFile.modified}
               </span>
@@ -206,51 +246,40 @@ const Logs = memo(() => {
             <span css={styles.noLogsHint}>No log files yet.</span>
           )}
         </div>
-        <Flex css={styles.controlsGroup}>
-          <Button
-            size="1"
-            onClick={() => void loadLogFiles()}
-            disabled={loading}
-          >
-            <MdRefresh size={16} />
-          </Button>
-          <Button
-            size="1"
-            onClick={handleOpenLogsDir}
-            disabled={logFiles.length === 0}
-            aria-label="Open logs directory"
-          >
-            <MdFolderOpen size={16} />
-          </Button>
-          <Button
-            size="1"
-            color="red"
-            onClick={handleClearLogs}
-            disabled={logFiles.length === 0}
-          >
-            <MdClear size={16} />
-          </Button>
-        </Flex>
-      </Box>
+        <Button
+          size="1"
+          variant="ghost"
+          onClick={handleOpenLogsDir}
+          disabled={logFiles.length === 0}
+          aria-label="Open logs directory"
+        >
+          <MdFolderOpen size={16} />
+        </Button>
+      </div>
 
       <div css={styles.filters}>
         <TextField.Root
           placeholder="Filter by message..."
           value={filterText}
           onChange={(e) => setFilterText(e.currentTarget.value)}
+          variant="surface"
+          css={styles.textField}
           style={{ flex: 1 }}
         />
-        <select
-          css={styles.levelSelect}
-          value={filterLevel}
-          onChange={(e) => setFilterLevel(e.currentTarget.value)}
-        >
-          {LEVEL_OPTIONS.map((option) => (
-            <option key={option} value={option}>
-              {option}
-            </option>
-          ))}
-        </select>
+        <div css={styles.levelSelectWrapper}>
+          <select
+            css={styles.levelSelect}
+            value={filterLevel}
+            onChange={(e) => setFilterLevel(e.currentTarget.value)}
+          >
+            {LEVEL_OPTIONS.map((option) => (
+              <option key={option} value={option}>
+                {option}
+              </option>
+            ))}
+          </select>
+          <span css={styles.selectChevron}>▼</span>
+        </div>
       </div>
 
       <div css={styles.viewer}>
@@ -259,12 +288,11 @@ const Logs = memo(() => {
         </ScrollArea>
         <div css={styles.footer}>
           <span>
-            Showing {filteredEntries.length} of {logEntries.length} entries
+            {filteredEntries.length} of {logEntries.length} entries
           </span>
-          {selectedFile && <span>{selectedFile}</span>}
         </div>
       </div>
-    </Box>
+    </div>
   );
 });
 
