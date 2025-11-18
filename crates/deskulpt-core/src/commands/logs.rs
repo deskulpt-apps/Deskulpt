@@ -178,6 +178,15 @@ pub fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
     Ok(())
 }
 
+#[command]
+#[specta::specta]
+#[instrument(skip(app_handle))]
+pub async fn open_logs_dir<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
+    let logs_dir = get_logs_dir(&app_handle)?;
+    open::that_detached(logs_dir)?;
+    Ok(())
+}
+
 fn parse_entry(line: &str) -> Option<LogEntry> {
     let value: serde_json::Value = match serde_json::from_str(line) {
         Ok(value) => value,

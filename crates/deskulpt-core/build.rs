@@ -3,6 +3,7 @@ fn main() {
         .commands(&[
             "call_plugin",
             "open_widget",
+            "open_logs_dir",
             "log",
             "list_logs",
             "read_log",

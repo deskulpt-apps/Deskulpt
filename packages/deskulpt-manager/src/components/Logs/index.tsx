@@ -1,6 +1,6 @@
 import { Box, Button, Flex, ScrollArea, TextField } from "@radix-ui/themes";
-import { memo, useCallback, useEffect, useState } from "react";
-import { MdClear, MdDownload, MdRefresh } from "react-icons/md";
+import { memo, useCallback, useEffect, useMemo, useState } from "react";
+import { MdClear, MdFolderOpen, MdRefresh } from "react-icons/md";
 import { css } from "@emotion/react";
 import { deskulptCore } from "@deskulpt/bindings";
 import { toast } from "sonner";
@@ -20,11 +20,25 @@ const styles = {
   header: css({
     display: "flex",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-end",
+    gap: "16px",
   }),
-  title: css({
-    fontSize: "16px",
-    fontWeight: 600,
+  headerMeta: css({
+    display: "flex",
+    flexDirection: "column",
+    gap: "4px",
+    flex: 1,
+    minWidth: 0,
+  }),
+  headerMetaLabel: css({
+    fontSize: "12px",
+    textTransform: "uppercase",
+    letterSpacing: "0.04em",
+    color: "var(--gray-11)",
+  }),
+  headerMetaInfo: css({
+    fontSize: "12px",
+    color: "var(--gray-11)",
   }),
   controlsGroup: css({
     display: "flex",
@@ -34,36 +48,16 @@ const styles = {
   filters: css({
     display: "flex",
     gap: "12px",
+    flexWrap: "wrap",
   }),
-  fileTray: css({
+  levelSelect: css({
+    width: "220px",
+    padding: "8px 10px",
     borderRadius: "8px",
     border: "1px solid var(--gray-6)",
-    padding: "8px",
-    backgroundColor: "var(--gray-2)",
-  }),
-  fileRow: css({
-    display: "flex",
-    gap: "8px",
-  }),
-  fileButton: (active: boolean) =>
-    css({
-      display: "flex",
-      flexDirection: "column",
-      minWidth: "160px",
-      padding: "8px 10px",
-      borderRadius: "8px",
-      border: "1px solid",
-      borderColor: active ? "var(--accent-9)" : "var(--gray-6)",
-      backgroundColor: active ? "var(--accent-3)" : "var(--color-surface)",
-      textAlign: "left",
-      cursor: "pointer",
-      fontSize: "12px",
-      lineHeight: 1.4,
-    }),
-  fileMeta: css({
-    fontSize: "11px",
-    color: "var(--gray-11)",
-    marginTop: "2px",
+    backgroundColor: "var(--color-surface)",
+    fontSize: "12px",
+    color: "inherit",
   }),
   viewer: css({
     flex: 1,
@@ -81,17 +75,10 @@ const styles = {
     display: "flex",
     justifyContent: "space-between",
   }),
-};
-
-const formatFields = (fields: LogEntry["fields"]) => {
-  if (!fields) {
-    return "";
-  }
-  try {
-    return JSON.stringify(fields);
-  } catch {
-    return String(fields);
-  }
+  noLogsHint: css({
+    fontSize: "12px",
+    color: "var(--gray-11)",
+  }),
 };
 
 const formatBytes = (bytes: number): string => {
@@ -102,11 +89,20 @@ const formatBytes = (bytes: number): string => {
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
+const LEVEL_OPTIONS = [
+  "All",
+  "Trace",
+  "Debug",
+  "Info",
+  "Warn",
+  "Error",
+] as const;
+
 const Logs = memo(() => {
   const [logFiles, setLogFiles] = useState<LogFileInfo[]>([]);
   const [selectedFile, setSelectedFile] = useState<string>("");
   const [logEntries, setLogEntries] = useState<LogEntry[]>([]);
-  const [filterLevel, setFilterLevel] = useState<string>("");
+  const [filterLevel, setFilterLevel] = useState<string>(LEVEL_OPTIONS[0]);
   const [filterText, setFilterText] = useState<string>("");
   const [loading, setLoading] = useState(false);
 
@@ -115,16 +111,14 @@ const Logs = memo(() => {
       setLoading(true);
       const files = await deskulptCore.commands.listLogs();
       setLogFiles(files);
-      if (files.length > 0 && !selectedFile) {
-        setSelectedFile(files[0]?.name ?? "");
-      }
+      setSelectedFile(files[0]?.name ?? "");
     } catch (error) {
       console.error("Failed to load log files:", error);
       toast.error("Failed to load log files");
     } finally {
       setLoading(false);
     }
-  }, [selectedFile]);
+  }, []);
 
   const loadLogEntries = useCallback(async (filename: string) => {
     try {
@@ -165,50 +159,53 @@ const Logs = memo(() => {
     }
   }, [loadLogFiles]);
 
-  const filteredEntries = logEntries.filter((entry) => {
-    if (
-      filterLevel &&
-      !entry.level.toUpperCase().includes(filterLevel.toUpperCase())
-    ) {
-      return false;
+  const handleOpenLogsDir = useCallback(async () => {
+    try {
+      await deskulptCore.commands.openLogsDir();
+    } catch (error) {
+      console.error("Failed to open logs directory:", error);
+      toast.error("Failed to open logs directory");
     }
-    if (
-      filterText &&
-      !entry.message.toLowerCase().includes(filterText.toLowerCase())
-    ) {
-      return false;
-    }
-    return true;
-  });
+  }, []);
 
-  const handleExportLogs = useCallback(() => {
-    const csv = [
-      ["Timestamp", "Level", "Message", "Fields"],
-      ...filteredEntries.map((entry) => [
-        entry.timestamp,
-        entry.level,
-        entry.message,
-        formatFields(entry.fields),
-      ]),
-    ]
-      .map((row) =>
-        row.map((cell) => `"${String(cell).replaceAll('"', '""')}"`).join(","),
-      )
-      .join("\n");
+  const filteredEntries = useMemo(() => {
+    return logEntries.filter((entry) => {
+      const normalizedFilter = filterLevel.toUpperCase();
+      if (
+        filterLevel &&
+        filterLevel !== "All" &&
+        entry.level.toUpperCase() !== normalizedFilter
+      ) {
+        return false;
+      }
+      if (
+        filterText &&
+        !entry.message.toLowerCase().includes(filterText.toLowerCase())
+      ) {
+        return false;
+      }
+      return true;
+    });
+  }, [logEntries, filterLevel, filterText]);
 
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `logs-${new Date().toISOString()}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-  }, [filteredEntries]);
+  const latestFile = logFiles[0];
 
   return (
     <Box css={styles.container}>
       <Box css={styles.header}>
-        <div css={styles.title}>Application Logs ({logFiles.length} files)</div>
+        <div css={styles.headerMeta}>
+          <span css={styles.headerMetaLabel}>Newest log</span>
+          {logFiles.length > 0 && latestFile ? (
+            <>
+              <strong>{latestFile.name}</strong>
+              <span css={styles.headerMetaInfo}>
+                {formatBytes(latestFile.size)} • {latestFile.modified}
+              </span>
+            </>
+          ) : (
+            <span css={styles.noLogsHint}>No log files yet.</span>
+          )}
+        </div>
         <Flex css={styles.controlsGroup}>
           <Button
             size="1"
@@ -219,10 +216,11 @@ const Logs = memo(() => {
           </Button>
           <Button
             size="1"
-            onClick={handleExportLogs}
-            disabled={filteredEntries.length === 0}
+            onClick={handleOpenLogsDir}
+            disabled={logFiles.length === 0}
+            aria-label="Open logs directory"
           >
-            <MdDownload size={16} />
+            <MdFolderOpen size={16} />
           </Button>
           <Button
             size="1"
@@ -242,37 +240,17 @@ const Logs = memo(() => {
           onChange={(e) => setFilterText(e.currentTarget.value)}
           style={{ flex: 1 }}
         />
-        <TextField.Root
-          placeholder="Filter by level (ERROR, WARN, INFO, DEBUG)"
+        <select
+          css={styles.levelSelect}
           value={filterLevel}
           onChange={(e) => setFilterLevel(e.currentTarget.value)}
-          style={{ width: "220px" }}
-        />
-      </div>
-
-      <div css={styles.fileTray}>
-        <ScrollArea>
-          <div css={styles.fileRow}>
-            {logFiles.length === 0 ? (
-              <span style={{ fontSize: "12px", color: "var(--gray-11)" }}>
-                No log files yet.
-              </span>
-            ) : (
-              logFiles.map((file) => (
-                <button
-                  key={file.name}
-                  css={styles.fileButton(selectedFile === file.name)}
-                  onClick={() => setSelectedFile(file.name)}
-                >
-                  <strong>{file.name}</strong>
-                  <span css={styles.fileMeta}>
-                    {formatBytes(file.size)} • {file.modified}
-                  </span>
-                </button>
-              ))
-            )}
-          </div>
-        </ScrollArea>
+        >
+          {LEVEL_OPTIONS.map((option) => (
+            <option key={option} value={option}>
+              {option}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div css={styles.viewer}>
