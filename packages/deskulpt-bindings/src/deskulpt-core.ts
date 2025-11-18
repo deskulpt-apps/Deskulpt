@@ -128,9 +128,7 @@ export const commands = {
     id,
   }),
 
-  /**
-   * Open the logs directory in the operating system's file explorer.
-   */
+
   openLogsDir: () => invoke<null>("plugin:deskulpt-core|open_logs_dir"),
 
 
