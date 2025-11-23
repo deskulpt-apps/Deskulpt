@@ -69,7 +69,7 @@ version?: string;
 /**
  * The authors of the widget.
  */
-authors?: string[]; 
+authors?: WidgetManifestAuthor[]; 
 /**
  * The license of the widget.
  */
@@ -78,6 +78,8 @@ license?: string;
  * A short description of the widget.
  */
 description?: string }
+
+export type WidgetManifestAuthor = { name: string; email?: string; url?: string } | string
 
 // =============================================================================
 // Events

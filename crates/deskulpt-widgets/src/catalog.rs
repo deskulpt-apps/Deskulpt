@@ -15,6 +15,22 @@ use serde::{Deserialize, Serialize};
 /// A directory containing this file is considered a Deskulpt widget.
 const WIDGET_MANIFEST_FILE: &str = "deskulpt.widget.json";
 
+#[derive(Debug, Deserialize, Serialize, specta::Type)]
+#[serde(untagged)]
+pub enum WidgetManifestAuthor {
+    #[serde(rename_all = "camelCase")]
+    Extended {
+        name: String,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[specta(type = String)]
+        email: Option<String>,
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[specta(type = String)]
+        url: Option<String>,
+    },
+    Name(String),
+}
+
 /// Deskulpt widget manifest.
 #[derive(Debug, Deserialize, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
@@ -27,8 +43,8 @@ pub struct WidgetManifest {
     pub version: Option<String>,
     /// The authors of the widget.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[specta(type = Vec<String>)]
-    pub authors: Option<Vec<String>>,
+    #[specta(type = Vec<WidgetManifestAuthor>)]
+    pub authors: Option<Vec<WidgetManifestAuthor>>,
     /// The license of the widget.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[specta(type = String)]
