@@ -59,7 +59,7 @@ pub fn run() {
 fn seed_welcome_widget_if_empty<R: tauri::Runtime>(app: &tauri::App<R>) -> tauri::Result<()> {
     let widgets_dir = app.widgets_dir()?;
     let mut dir_names = vec![];
-    for entry in fs::read_dir(&widgets_dir)?.filter_map(Result::ok) {
+    for entry in fs::read_dir(widgets_dir)?.filter_map(Result::ok) {
         if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
             let name = entry.file_name();
             let name = name.to_string_lossy().to_string();

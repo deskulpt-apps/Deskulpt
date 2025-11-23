@@ -48,8 +48,8 @@ export default function Widget() {
           From the app
         </Heading>
         <Text as="p" size="2" style={{ lineHeight: 1.5 }}>
-          Use the command/shortcut that opens the widgets folder (look for "Open
-          widgets folder" in the UI).
+          Use the command/shortcut that opens the widgets folder (look for
+          &ldquo;Open widgets folder&rdquo; in the UI).
         </Text>
       </Box>
 
