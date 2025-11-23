@@ -12,6 +12,7 @@ use deskulpt_core::shortcuts::ShortcutsExt;
 use deskulpt_core::states::{CanvasImodeStateExt, LoggingStateExt};
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
+use serde_json::Value;
 use tauri::{Builder, Manager, generate_context};
 
 /// Entry point for the Deskulpt backend.
@@ -57,27 +58,78 @@ pub fn run() {
 
 fn seed_welcome_widget_if_empty<R: tauri::Runtime>(app: &tauri::App<R>) -> tauri::Result<bool> {
     let widgets_dir = app.widgets_dir()?;
-    if widgets_dir.read_dir()?.next().is_some() {
-        return Ok(false);
+    let mut dir_names = vec![];
+    for entry in fs::read_dir(&widgets_dir)?.filter_map(Result::ok) {
+        if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
+            let name = entry.file_name();
+            let name = name.to_string_lossy().to_string();
+            if !name.starts_with('.') {
+                dir_names.push(name);
+            }
+        }
+    }
+
+    let mut needs_seed = dir_names.is_empty();
+    if !dir_names.is_empty() {
+        if dir_names.len() == 1 && dir_names[0] == "welcome" {
+            let manifest_path = widgets_dir.join("welcome/deskulpt.widget.json");
+            let manifest: Value =
+                serde_json::from_reader(fs::File::open(&manifest_path)?).unwrap_or_default();
+            let entry = manifest
+                .get("entry")
+                .and_then(|v| v.as_str())
+                .unwrap_or_default();
+            let index_exists = widgets_dir.join("welcome/index.tsx").exists();
+            needs_seed = entry != "index.tsx" || !index_exists;
+            if needs_seed {
+                println!(
+                    "Updating bundled welcome widget to latest format in {}",
+                    widgets_dir.display()
+                );
+            }
+        } else {
+            println!(
+                "Skipping welcome widget seeding; widgets directory not empty (dirs found): {:?}",
+                dir_names
+            );
+            return Ok(false);
+        }
     }
 
     let resource_dir = app.path().resource_dir()?;
     let src = resource_dir.join("default-widgets/welcome");
     if !src.exists() {
+        println!(
+            "Skipping welcome widget seeding; bundled welcome not found at: {}",
+            src.display()
+        );
         return Ok(false);
     }
 
     let dst = widgets_dir.join("welcome");
-    copy_widget_dir(&src, &dst)?;
-    Ok(true)
+    if needs_seed {
+        println!(
+            "Seeding bundled welcome widget from {} to {}",
+            src.display(),
+            dst.display()
+        );
+        copy_widget_dir(&src, &dst)?;
+        return Ok(true);
+    }
+
+    Ok(false)
 }
 
 fn copy_widget_dir(src: &Path, dst: &Path) -> tauri::Result<()> {
     fs::create_dir_all(dst)?;
-    for name in ["deskulpt.widget.json", "welcome.widget.js"] {
+    for name in ["deskulpt.widget.json", "index.tsx"] {
         let from = src.join(name);
         let to = dst.join(name);
         fs::copy(from, to)?;
+    }
+    let legacy = dst.join("welcome.widget.js");
+    if legacy.exists() {
+        let _ = fs::remove_file(legacy);
     }
     Ok(())
 }
