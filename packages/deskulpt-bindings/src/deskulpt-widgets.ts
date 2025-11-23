@@ -57,11 +57,7 @@ export type WidgetCatalog = { [key in string]: Outcome<WidgetManifest> }
 /**
  * Deskulpt widget manifest.
  */
-export type WidgetManifest = 
-/**
- * The metadata of the widget.
- */
-({ 
+export type WidgetManifest = { 
 /**
  * The display name of the widget.
  */
@@ -81,7 +77,7 @@ license?: string;
 /**
  * A short description of the widget.
  */
-description?: string })
+description?: string }
 
 // =============================================================================
 // Events
