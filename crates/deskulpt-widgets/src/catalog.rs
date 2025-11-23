@@ -15,6 +15,32 @@ use serde::{Deserialize, Serialize};
 /// A directory containing this file is considered a Deskulpt widget.
 const WIDGET_MANIFEST_FILE: &str = "deskulpt.widget.json";
 
+/// An author of a Deskulpt widget.
+#[derive(Debug, Deserialize, Serialize, specta::Type)]
+#[serde(untagged)]
+pub enum WidgetManifestAuthor {
+    /// An extended author with name, email, and homepage.
+    ///
+    /// If an object is given, it will be deserialized into this variant.
+    #[serde(rename_all = "camelCase")]
+    Extended {
+        /// The name of the author.
+        name: String,
+        /// An optional email of the author.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[specta(type = String)]
+        email: Option<String>,
+        /// An optional URL to the homepage of the author.
+        #[serde(default, skip_serializing_if = "Option::is_none")]
+        #[specta(type = String)]
+        homepage: Option<String>,
+    },
+    /// The name of the author.
+    ///
+    /// If a string is given, it will be deserialized into this variant.
+    Name(String),
+}
+
 /// Deskulpt widget manifest.
 #[derive(Debug, Deserialize, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
@@ -27,8 +53,8 @@ pub struct WidgetManifest {
     pub version: Option<String>,
     /// The authors of the widget.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[specta(type = Vec<String>)]
-    pub authors: Option<Vec<String>>,
+    #[specta(type = Vec<WidgetManifestAuthor>)]
+    pub authors: Option<Vec<WidgetManifestAuthor>>,
     /// The license of the widget.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[specta(type = String)]
