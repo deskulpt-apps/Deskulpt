@@ -22,7 +22,7 @@ pub enum RenderWorkerTask {
     Render {
         /// The widget ID.
         id: String,
-        /// The entry file path relative to the widget directory.
+        /// The entry file path relative to the root of the widget.
         entry: String,
     },
 }
