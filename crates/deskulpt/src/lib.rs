@@ -20,6 +20,10 @@ pub fn run() {
             app.init_logs_dir()?;
 
             app.manage_logging()?;
+            let widgets_dir = app.widgets_dir()?;
+            if widgets_dir.read_dir()?.next().is_none() {
+                tracing::warn!("Widgets directory is empty: {}", widgets_dir.display());
+            }
 
             // Hide the application from the dock on macOS because skipping
             // taskbar is not applicable for macOS
