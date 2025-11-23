@@ -49,36 +49,35 @@ export type UpdateEvent = WidgetCatalog
 /**
  * The catalog of Deskulpt widgets.
  * 
- * This keeps a mapping from widget IDs to their descriptors (if valid) or
- * error messages (if invalid).
+ * This keeps a mapping from widget IDs to their manifests (if valid) or error
+ * messages (if invalid).
  */
-export type WidgetCatalog = { [key in string]: Outcome<WidgetDescriptor> }
+export type WidgetCatalog = { [key in string]: Outcome<WidgetManifest> }
 
 /**
- * The descriptor for a Deskulpt widget.
- * 
- * This contains all widget metadata obtained from manifest files necessary for
- * bundling and rendering the widget.
+ * Deskulpt widget manifest.
  */
-export type WidgetDescriptor = { 
+export type WidgetManifest = { 
 /**
- * The name of the widget.
- * 
- * Obtained from the widget manifest.
+ * The display name of the widget.
  */
 name: string; 
 /**
- * The entry point of the widget.
- * 
- * Obtained from the widget manifest.
+ * The version of the widget.
  */
-entry: string; 
+version?: string; 
 /**
- * The dependencies of the widget.
- * 
- * Obtained from the node manifest.
+ * The authors of the widget.
  */
-dependencies: { [key in string]: string } }
+authors?: string[]; 
+/**
+ * The license of the widget.
+ */
+license?: string; 
+/**
+ * A short description of the widget.
+ */
+description?: string }
 
 // =============================================================================
 // Events

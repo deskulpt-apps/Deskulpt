@@ -10,7 +10,7 @@ use parking_lot::RwLock;
 use tauri::{AppHandle, Runtime, WebviewWindow};
 use tracing::{error, info, instrument};
 
-use crate::catalog::{WidgetCatalog, WidgetDescriptor};
+use crate::catalog::{WidgetCatalog, WidgetManifest};
 use crate::events::UpdateEvent;
 use crate::render::{RenderWorkerHandle, RenderWorkerTask};
 use crate::setup::SetupState;
@@ -46,25 +46,20 @@ impl<R: Runtime> WidgetsManager<R> {
 
     /// Reload a specific widget by its ID.
     ///
-    /// This method loads the widget descriptor from the corresponding widget
+    /// This method loads the widget manifest from the corresponding widget
     /// directory and updates the catalog entry for that widget. This could be
     /// an addition, removal, or modification. It then syncs the settings with
     /// the updated catalog. If any step fails, an error is returned.
     #[instrument(skip(self))]
     pub fn reload(&self, id: &str) -> Result<()> {
         let widget_dir = self.app_handle.widgets_dir()?.join(id);
-        let descriptor = WidgetDescriptor::load(&widget_dir);
+        let manifest = WidgetManifest::load(&widget_dir);
 
         let mut catalog = self.catalog.write();
-        match descriptor.transpose() {
-            Some(descriptor) => {
-                info!(widget_id = %id, "Widget descriptor updated");
-                catalog.0.insert(id.to_string(), descriptor.into());
-            },
-            None => {
-                info!(widget_id = %id, "Widget removed from catalog");
-                catalog.0.remove(id);
-            },
+        if let Some(manifest) = manifest.transpose() {
+            catalog.0.insert(id.to_string(), manifest.into());
+        } else {
+            catalog.0.remove(id);
         }
         UpdateEvent(&catalog).emit(&self.app_handle)?;
 

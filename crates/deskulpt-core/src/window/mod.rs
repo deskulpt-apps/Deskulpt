@@ -71,21 +71,8 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         // Unsupported on macOS; see below for activation policy
         .skip_taskbar(true)
         .initialization_script(&init_js)
+        .shadow(false)
         .build()?;
-
-        #[cfg(target_os = "macos")]
-        {
-            use objc2::msg_send;
-            use objc2::runtime::{AnyObject, Bool};
-
-            // Disable the window shadow on macOS; there will be shadows left on
-            // movement for transparent and undecorated windows that we are using;
-            // it seems that disabling shadows does not have significant visual impacts
-            unsafe {
-                let ns_window = canvas.ns_window()? as *mut AnyObject;
-                let () = msg_send![ns_window, setHasShadow:Bool::NO];
-            }
-        }
 
         // TODO: Remove when the following issue is fixed:
         // https://github.com/tauri-apps/tauri/issues/9597

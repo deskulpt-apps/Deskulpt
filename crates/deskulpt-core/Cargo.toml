@@ -41,9 +41,6 @@ deskulpt-plugin     = { workspace = true } # maybe remove
 deskulpt-plugin-fs  = { workspace = true }
 deskulpt-plugin-sys = { workspace = true }
 
-[target."cfg(target_os = \"macos\")".dependencies]
-objc2 = { workspace = true }
-
 [build-dependencies]
 deskulpt-build = { workspace = true }
 
