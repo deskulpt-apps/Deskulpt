@@ -49,7 +49,7 @@ impl WidgetManifest {
     ///
     /// If the directory does not contain a widget manifest file, this method
     /// returns `Ok(None)` (meaning this directory is **NOT A WIDGET**). If
-    /// loaidng or parsing the manifest file fails, an error is returned.
+    /// loading or parsing the widget manifest fails, an error is returned.
     /// Otherwise, the widget manifest is returned wrapped in `Ok(Some(...))`.
     ///
     /// Note that [`Result::transpose`] can bring `Option` out of `Result` for
@@ -61,10 +61,10 @@ impl WidgetManifest {
             return Ok(None);
         }
         let file = File::open(&path)
-            .with_context(|| format!("Failed to open manifest file: {}", path.display()))?;
+            .with_context(|| format!("Failed to open widget manifest: {}", path.display()))?;
         let reader = BufReader::new(file);
         let config = serde_json::from_reader(reader)
-            .with_context(|| format!("Failed to parse manifest file: {}", path.display()))?;
+            .with_context(|| format!("Failed to parse widget manifest: {}", path.display()))?;
         Ok(Some(config))
     }
 }
