@@ -8,7 +8,6 @@ mod catalog;
 mod commands;
 mod events;
 mod manager;
-mod manifest;
 mod render;
 mod setup;
 

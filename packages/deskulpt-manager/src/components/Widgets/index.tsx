@@ -4,7 +4,7 @@ import { memo } from "react";
 import { useShallow } from "zustand/shallow";
 import Trigger from "./Trigger";
 import GlobalActions from "./GlobalActions";
-import Config from "./Config";
+import Manifest from "./Manifest";
 import Settings from "./Settings";
 import Header from "./Header";
 import { css } from "@emotion/react";
@@ -53,7 +53,7 @@ const WidgetsTab = memo(() => {
             >
               <Flex height="100%" direction="column" pl="2" gap="2" width="75%">
                 <Header id={id} />
-                <Config id={id} />
+                <Manifest id={id} />
                 <Separator size="4" />
                 <Settings id={id} />
               </Flex>

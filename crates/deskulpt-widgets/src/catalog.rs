@@ -1,78 +1,87 @@
-//! Deskulpt widget descriptors and catalog.
+//! Deskulpt widget manifest and catalog.
 
-use std::collections::{BTreeMap, HashMap};
+use std::collections::BTreeMap;
+use std::fs::File;
+use std::io::BufReader;
 use std::path::Path;
 
-use anyhow::Result;
+use anyhow::{Context, Result};
 use deskulpt_common::outcome::Outcome;
 use deskulpt_settings::{Settings, SettingsPatch};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 
-use crate::manifest::{LoadManifest, NodeManifest, WidgetManifest};
-
-/// The descriptor for a Deskulpt widget.
+/// The name of the Deskulpt widget manifest file.
 ///
-/// This contains all widget metadata obtained from manifest files necessary for
-/// bundling and rendering the widget.
-#[derive(Debug, Serialize, specta::Type)]
+/// A directory containing this file is considered a Deskulpt widget.
+const WIDGET_MANIFEST_FILE: &str = "deskulpt.widget.json";
+
+/// Deskulpt widget manifest.
+#[derive(Debug, Deserialize, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct WidgetDescriptor {
-    /// The name of the widget.
-    ///
-    /// Obtained from the widget manifest.
+pub struct WidgetManifest {
+    /// The display name of the widget.
     pub name: String,
-    /// The entry point of the widget.
+    /// The version of the widget.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = String)]
+    pub version: Option<String>,
+    /// The authors of the widget.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = Vec<String>)]
+    pub authors: Option<Vec<String>>,
+    /// The license of the widget.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = String)]
+    pub license: Option<String>,
+    /// A short description of the widget.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = String)]
+    pub description: Option<String>,
+    /// The entry module of the widget that exports the widget component.
     ///
-    /// Obtained from the widget manifest.
+    /// This is a path relative to the root of the widget.
+    #[serde(skip_serializing)]
     pub entry: String,
-    /// The dependencies of the widget.
-    ///
-    /// Obtained from the node manifest.
-    pub dependencies: HashMap<String, String>,
 }
 
-impl WidgetDescriptor {
-    /// Load the widget descriptor from a directory.
+impl WidgetManifest {
+    /// Load the widget manifest from a directory.
     ///
-    /// This method attempts to load the widget and node manifests. If the
-    /// widget manifest is absent or marks the widget as ignored, this method
+    /// If the directory does not contain a widget manifest file, this method
     /// returns `Ok(None)` (meaning this directory is **NOT A WIDGET**). If
-    /// loading or parsing any manifest file fails, an error is returned.
-    /// Otherwise, the manifests are combined to create a full widget descriptor
-    /// which is returned wrapped in `Ok(Some(...))`.
+    /// loaidng or parsing the manifest file fails, an error is returned.
+    /// Otherwise, the widget manifest is returned wrapped in `Ok(Some(...))`.
     ///
     /// Note that [`Result::transpose`] can bring `Option` out of `Result` for
     /// the result of this method, so that non-widget directories can be
     /// filtered out without nested pattern matching.
     pub fn load(dir: &Path) -> Result<Option<Self>> {
-        let widget_manifest = match WidgetManifest::load(dir)? {
-            Some(widget_manifest) if !widget_manifest.ignore => widget_manifest,
-            _ => return Ok(None),
-        };
-
-        let node_manifest = NodeManifest::load(dir)?.unwrap_or_default();
-
-        Ok(Some(WidgetDescriptor {
-            name: widget_manifest.name,
-            entry: widget_manifest.entry,
-            dependencies: node_manifest.dependencies,
-        }))
+        let path = dir.join(WIDGET_MANIFEST_FILE);
+        if !path.exists() {
+            return Ok(None);
+        }
+        let file = File::open(&path)
+            .with_context(|| format!("Failed to open manifest file: {}", path.display()))?;
+        let reader = BufReader::new(file);
+        let config = serde_json::from_reader(reader)
+            .with_context(|| format!("Failed to parse manifest file: {}", path.display()))?;
+        Ok(Some(config))
     }
 }
 
 /// The catalog of Deskulpt widgets.
 ///
-/// This keeps a mapping from widget IDs to their descriptors (if valid) or
-/// error messages (if invalid).
+/// This keeps a mapping from widget IDs to their manifests (if valid) or error
+/// messages (if invalid).
 #[derive(Debug, Default, Serialize, specta::Type)]
-pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetDescriptor>>);
+pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetManifest>>);
 
 impl WidgetCatalog {
     /// Load the widget catalog from a directory.
     ///
     /// This scans all top-level subdirectories and attempts to load them as
     /// widgets. Widget IDs are derived from the directory names. Widget
-    /// descriptors or error messages are stored accordingly, depending on
+    /// manifests or error messages are stored accordingly, depending on
     /// whether the directory is successfully loaded as a widget. Non-widget
     /// directories are not included in the catalog.
     pub fn load(dir: &Path) -> Result<Self> {
@@ -87,12 +96,12 @@ impl WidgetCatalog {
                 continue; // Non-directory entries are not widgets, skip
             }
 
-            if let Some(descriptor) = WidgetDescriptor::load(&path).transpose() {
+            if let Some(manifest) = WidgetManifest::load(&path).transpose() {
                 // Since each widget must be at the top level of the widgets
                 // directory, the directory names must be unique and we can use
                 // them as widget IDs
                 let id = entry.file_name().to_string_lossy().to_string();
-                catalog.0.insert(id, descriptor.into());
+                catalog.0.insert(id, manifest.into());
             }
         }
 

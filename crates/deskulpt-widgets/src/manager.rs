@@ -8,7 +8,7 @@ use deskulpt_settings::SettingsExt;
 use parking_lot::RwLock;
 use tauri::{AppHandle, Runtime, WebviewWindow};
 
-use crate::catalog::{WidgetCatalog, WidgetDescriptor};
+use crate::catalog::{WidgetCatalog, WidgetManifest};
 use crate::events::UpdateEvent;
 use crate::render::{RenderWorkerHandle, RenderWorkerTask};
 use crate::setup::SetupState;
@@ -44,17 +44,17 @@ impl<R: Runtime> WidgetsManager<R> {
 
     /// Reload a specific widget by its ID.
     ///
-    /// This method loads the widget descriptor from the corresponding widget
+    /// This method loads the widget manifest from the corresponding widget
     /// directory and updates the catalog entry for that widget. This could be
     /// an addition, removal, or modification. It then syncs the settings with
     /// the updated catalog. If any step fails, an error is returned.
     pub fn reload(&self, id: &str) -> Result<()> {
         let widget_dir = self.app_handle.widgets_dir()?.join(id);
-        let descriptor = WidgetDescriptor::load(&widget_dir);
+        let manifest = WidgetManifest::load(&widget_dir);
 
         let mut catalog = self.catalog.write();
-        if let Some(descriptor) = descriptor.transpose() {
-            catalog.0.insert(id.to_string(), descriptor.into());
+        if let Some(manifest) = manifest.transpose() {
+            catalog.0.insert(id.to_string(), manifest.into());
         } else {
             catalog.0.remove(id);
         }
