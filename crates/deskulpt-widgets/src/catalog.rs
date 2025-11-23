@@ -7,7 +7,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use deskulpt_common::outcome::Outcome;
-use deskulpt_settings::{Settings, SettingsPatch};
+use deskulpt_settings::{Settings, SettingsPatch, WidgetSettingsPatch};
 use serde::{Deserialize, Serialize};
 
 /// The name of the Deskulpt widget manifest file.
@@ -42,6 +42,14 @@ pub struct WidgetManifest {
     /// This is a path relative to the root of the widget.
     #[serde(skip_serializing)]
     pub entry: String,
+    /// The default width of the widget.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = u32)]
+    pub default_width: Option<u32>,
+    /// The default height of the widget.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = u32)]
+    pub default_height: Option<u32>,
 }
 
 impl WidgetManifest {
@@ -131,8 +139,13 @@ impl WidgetCatalog {
                 itertools::EitherOrBoth::Left((id, _)) => {
                     patches.insert(id.clone(), None);
                 },
-                itertools::EitherOrBoth::Right((id, _)) => {
-                    patches.insert(id.clone(), Some(Default::default()));
+                itertools::EitherOrBoth::Right((id, outcome)) => {
+                    let mut patch = WidgetSettingsPatch::default();
+                    if let Outcome::Ok(manifest) = outcome {
+                        patch.width = manifest.default_width;
+                        patch.height = manifest.default_height;
+                    }
+                    patches.insert(id.clone(), Some(patch));
                 },
                 itertools::EitherOrBoth::Both(_, _) => {},
             }
