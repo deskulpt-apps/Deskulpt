@@ -29,6 +29,11 @@
         "$ref": "#/$defs/WidgetSettings"
       },
       "default": {}
+    },
+    "hasSeenStarterTutorial": {
+      "description": "Whether the starter/welcome tutorial has been seen.",
+      "type": "boolean",
+      "default": false
     }
   },
   "$defs": {

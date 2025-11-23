@@ -77,7 +77,15 @@ license?: string;
 /**
  * A short description of the widget.
  */
-description?: string }
+description?: string; 
+/**
+ * The default width of the widget.
+ */
+defaultWidth?: number; 
+/**
+ * The default height of the widget.
+ */
+defaultHeight?: number }
 
 /**
  * An author of a Deskulpt widget.
