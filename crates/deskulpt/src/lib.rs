@@ -140,7 +140,12 @@ fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
 
 fn copy_welcome_files(src: &Path, dst: &Path) -> std::io::Result<()> {
     fs::create_dir_all(dst)?;
-    for name in ["deskulpt.widget.json", "index.tsx"] {
+    for name in [
+        "deskulpt.widget.json",
+        "index.tsx",
+        "deskulpt.svg",
+        "deskulpt-dark.svg",
+    ] {
         let from = src.join(name);
         let to = dst.join(name);
         if from.exists() {
