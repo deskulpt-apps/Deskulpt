@@ -114,27 +114,8 @@ fn seed_welcome_widget_if_empty<R: tauri::Runtime>(app: &tauri::App<R>) -> tauri
             dst.display()
         );
         copy_welcome_files(&src, &dst)?;
-    } else {
-        println!(
-            "Skipping welcome widget seeding; bundled welcome not found at: {}",
-            src.display()
-        );
     }
 
-    Ok(())
-}
-
-fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
-    fs::create_dir_all(dst)?;
-    for entry in fs::read_dir(src)? {
-        let entry = entry?;
-        let file_type = entry.file_type()?;
-        if file_type.is_dir() {
-            copy_dir_recursive(&entry.path(), &dst.join(entry.file_name()))?;
-        } else {
-            fs::copy(entry.path(), dst.join(entry.file_name()))?;
-        }
-    }
     Ok(())
 }
 

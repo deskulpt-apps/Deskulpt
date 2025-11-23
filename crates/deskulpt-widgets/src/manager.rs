@@ -4,7 +4,7 @@ use anyhow::{Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use deskulpt_core::path::PathExt;
-use deskulpt_settings::SettingsExt;
+use deskulpt_settings::{SettingsExt, SettingsPatch};
 use parking_lot::RwLock;
 use tauri::{AppHandle, Runtime, WebviewWindow};
 
@@ -53,6 +53,22 @@ impl<R: Runtime> WidgetsManager<R> {
         let manifest = WidgetManifest::load(&widget_dir);
 
         let mut catalog = self.catalog.write();
+        let has_seen = self.app_handle.settings().read().has_seen_starter_tutorial;
+        if id == "welcome" {
+            if has_seen {
+                catalog.0.remove(id);
+                UpdateEvent(&catalog).emit(&self.app_handle)?;
+                self.app_handle
+                    .settings()
+                    .update_with(|settings| catalog.compute_settings_patch(settings))?;
+                return Ok(());
+            } else {
+                self.app_handle.settings().update_with(|_| SettingsPatch {
+                    has_seen_starter_tutorial: Some(true),
+                    ..Default::default()
+                })?;
+            }
+        }
         if let Some(manifest) = manifest.transpose() {
             catalog.0.insert(id.to_string(), manifest.into());
         } else {
@@ -73,7 +89,16 @@ impl<R: Runtime> WidgetsManager<R> {
     /// updated catalog. If any step fails, an error is returned.
     pub fn reload_all(&self) -> Result<()> {
         let widgets_dir = self.app_handle.widgets_dir()?;
-        let new_catalog = WidgetCatalog::load(widgets_dir)?;
+        let mut new_catalog = WidgetCatalog::load(widgets_dir)?;
+        let has_seen = self.app_handle.settings().read().has_seen_starter_tutorial;
+        if has_seen {
+            new_catalog.0.remove("welcome");
+        } else if new_catalog.0.contains_key("welcome") {
+            self.app_handle.settings().update_with(|_| SettingsPatch {
+                has_seen_starter_tutorial: Some(true),
+                ..Default::default()
+            })?;
+        }
 
         let mut catalog = self.catalog.write();
         *catalog = new_catalog;
