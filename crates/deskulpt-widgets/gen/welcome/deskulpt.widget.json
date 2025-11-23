@@ -1,0 +1,5 @@
+{
+  "name": "Welcome",
+  "entry": "welcome.widget.js",
+  "description": "Shown when no widgets are installed"
+}

@@ -4,12 +4,15 @@
     html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg"
 )]
 
+use std::fs;
+use std::path::Path;
+
 use deskulpt_core::path::PathExt;
 use deskulpt_core::shortcuts::ShortcutsExt;
 use deskulpt_core::states::{CanvasImodeStateExt, LoggingStateExt};
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
-use tauri::{Builder, generate_context};
+use tauri::{Builder, Manager, generate_context};
 
 /// Entry point for the Deskulpt backend.
 pub fn run() {
@@ -18,12 +21,8 @@ pub fn run() {
             app.init_widgets_dir()?;
             app.init_persist_dir()?;
             app.init_logs_dir()?;
-
             app.manage_logging()?;
-            let widgets_dir = app.widgets_dir()?;
-            if widgets_dir.read_dir()?.next().is_none() {
-                tracing::warn!("Widgets directory is empty: {}", widgets_dir.display());
-            }
+            seed_welcome_widget_if_empty(app)?;
 
             // Hide the application from the dock on macOS because skipping
             // taskbar is not applicable for macOS
@@ -54,4 +53,31 @@ pub fn run() {
         .plugin(deskulpt_widgets::init())
         .run(generate_context!())
         .expect("Error running the Deskulpt application");
+}
+
+fn seed_welcome_widget_if_empty<R: tauri::Runtime>(app: &tauri::App<R>) -> tauri::Result<bool> {
+    let widgets_dir = app.widgets_dir()?;
+    if widgets_dir.read_dir()?.next().is_some() {
+        return Ok(false);
+    }
+
+    let resource_dir = app.path().resource_dir()?;
+    let src = resource_dir.join("default-widgets/welcome");
+    if !src.exists() {
+        return Ok(false);
+    }
+
+    let dst = widgets_dir.join("welcome");
+    copy_widget_dir(&src, &dst)?;
+    Ok(true)
+}
+
+fn copy_widget_dir(src: &Path, dst: &Path) -> tauri::Result<()> {
+    fs::create_dir_all(dst)?;
+    for name in ["deskulpt.widget.json", "welcome.widget.js"] {
+        let from = src.join(name);
+        let to = dst.join(name);
+        fs::copy(from, to)?;
+    }
+    Ok(())
 }

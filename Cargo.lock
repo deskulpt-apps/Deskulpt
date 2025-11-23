@@ -1159,6 +1159,7 @@ dependencies = [
 name = "deskulpt"
 version = "0.2.0"
 dependencies = [
+ "anyhow",
  "deskulpt-core",
  "deskulpt-settings",
  "deskulpt-widgets",
