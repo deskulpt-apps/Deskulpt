@@ -79,7 +79,34 @@ license?: string;
  */
 description?: string }
 
-export type WidgetManifestAuthor = { name: string; email?: string; url?: string } | string
+/**
+ * An author of a Deskulpt widget.
+ */
+export type WidgetManifestAuthor = 
+/**
+ * An extended author with name, email, and homepage.
+ * 
+ * If an object is given, it will be deserialized into this variant.
+ */
+{ 
+/**
+ * The name of the author.
+ */
+name: string; 
+/**
+ * An optional email of the author.
+ */
+email?: string; 
+/**
+ * An optional URL to the homepage of the author.
+ */
+homepage?: string } | 
+/**
+ * The name of the author.
+ * 
+ * If a string is given, it will be deserialized into this variant.
+ */
+string
 
 // =============================================================================
 // Events
