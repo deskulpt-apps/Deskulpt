@@ -14,6 +14,7 @@ anyhow                         = { workspace = true }
 deskulpt-core                  = { workspace = true }
 deskulpt-settings              = { workspace = true }
 deskulpt-widgets               = { workspace = true }
+serde_json                     = { workspace = true }
 tauri                          = { workspace = true, features = ["macos-private-api"] }
 tauri-plugin-clipboard-manager = { workspace = true }
 tauri-plugin-global-shortcut   = { workspace = true }

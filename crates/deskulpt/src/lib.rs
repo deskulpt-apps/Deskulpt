@@ -56,7 +56,7 @@ pub fn run() {
         .expect("Error running the Deskulpt application");
 }
 
-fn seed_welcome_widget_if_empty<R: tauri::Runtime>(app: &tauri::App<R>) -> tauri::Result<bool> {
+fn seed_welcome_widget_if_empty<R: tauri::Runtime>(app: &tauri::App<R>) -> tauri::Result<()> {
     let widgets_dir = app.widgets_dir()?;
     let mut dir_names = vec![];
     for entry in fs::read_dir(&widgets_dir)?.filter_map(Result::ok) {
@@ -92,44 +92,64 @@ fn seed_welcome_widget_if_empty<R: tauri::Runtime>(app: &tauri::App<R>) -> tauri
                 "Skipping welcome widget seeding; widgets directory not empty (dirs found): {:?}",
                 dir_names
             );
-            return Ok(false);
+            return Ok(());
         }
+    }
+
+    if !needs_seed {
+        return Ok(());
     }
 
     let resource_dir = app.path().resource_dir()?;
     let src = resource_dir.join("default-widgets/welcome");
-    if !src.exists() {
-        println!(
-            "Skipping welcome widget seeding; bundled welcome not found at: {}",
-            src.display()
-        );
-        return Ok(false);
-    }
 
-    let dst = widgets_dir.join("welcome");
-    if needs_seed {
+    if src.exists() {
+        let dst = widgets_dir.join("welcome");
+        if dst.exists() {
+            fs::remove_dir_all(&dst)?;
+        }
         println!(
             "Seeding bundled welcome widget from {} to {}",
             src.display(),
             dst.display()
         );
-        copy_widget_dir(&src, &dst)?;
-        return Ok(true);
+        copy_welcome_files(&src, &dst)?;
+    } else {
+        println!(
+            "Skipping welcome widget seeding; bundled welcome not found at: {}",
+            src.display()
+        );
     }
 
-    Ok(false)
+    Ok(())
 }
 
-fn copy_widget_dir(src: &Path, dst: &Path) -> tauri::Result<()> {
+fn copy_dir_recursive(src: &Path, dst: &Path) -> std::io::Result<()> {
+    fs::create_dir_all(dst)?;
+    for entry in fs::read_dir(src)? {
+        let entry = entry?;
+        let file_type = entry.file_type()?;
+        if file_type.is_dir() {
+            copy_dir_recursive(&entry.path(), &dst.join(entry.file_name()))?;
+        } else {
+            fs::copy(entry.path(), dst.join(entry.file_name()))?;
+        }
+    }
+    Ok(())
+}
+
+fn copy_welcome_files(src: &Path, dst: &Path) -> std::io::Result<()> {
     fs::create_dir_all(dst)?;
     for name in ["deskulpt.widget.json", "index.tsx"] {
         let from = src.join(name);
         let to = dst.join(name);
-        fs::copy(from, to)?;
+        if from.exists() {
+            fs::copy(from, to)?;
+        }
     }
-    let legacy = dst.join("welcome.widget.js");
-    if legacy.exists() {
-        let _ = fs::remove_file(legacy);
+    let legacy_js = dst.join("index.js");
+    if legacy_js.exists() {
+        let _ = fs::remove_file(legacy_js);
     }
     Ok(())
 }

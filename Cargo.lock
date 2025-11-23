@@ -1163,6 +1163,7 @@ dependencies = [
  "deskulpt-core",
  "deskulpt-settings",
  "deskulpt-widgets",
+ "serde_json",
  "tauri",
  "tauri-build",
  "tauri-plugin-clipboard-manager",
