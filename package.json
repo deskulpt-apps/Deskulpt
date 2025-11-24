@@ -27,7 +27,9 @@
     "docs:preview": "pnpm --filter @deskulpt/docs preview",
     "docs:rs": "cargo +nightly doc --workspace --no-deps --exclude xtask-gen -Z rustdoc-map",
     "build": "tsc -b && vite build",
-    "build:packages": "pnpm run --sequential --filter @deskulpt-test/* build"
+    "build:packages": "pnpm run --sequential --filter @deskulpt-test/* build",
+    "ci:local": "cargo gen ci",
+    "ci:local:fast": "cargo gen ci --skip-build"
   },
   "dependencies": {
     "@emotion/react": "catalog:",
