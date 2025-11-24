@@ -115,21 +115,26 @@ const LogViewer = memo(({ selectedFile, entries }: LogViewerProps) => {
 
   return (
     <div css={styles.container}>
-      {entries.map((entry) => (
-        <div
-          key={`${entry.timestamp}-${entry.level}-${entry.message.slice(0, 20)}`}
-          css={styles.logEntry}
-          title={
-            entry.fields
-              ? `${entry.message}\n\nFields: ${entry.fields}`
-              : entry.message
-          }
-        >
-          <span css={styles.timestamp}>{formatTimestamp(entry.timestamp)}</span>
-          <span css={styles.level(entry.level)}>{entry.level}</span>
-          <span css={styles.message}>{entry.message}</span>
-        </div>
-      ))}
+      {entries
+        .slice()
+        .toReversed()
+        .map((entry) => (
+          <div
+            key={`${entry.timestamp}-${entry.level}-${entry.message.slice(0, 20)}`}
+            css={styles.logEntry}
+            title={
+              entry.fields
+                ? `${entry.message}\n\nFields: ${entry.fields}`
+                : entry.message
+            }
+          >
+            <span css={styles.timestamp}>
+              {formatTimestamp(entry.timestamp)}
+            </span>
+            <span css={styles.level(entry.level)}>{entry.level}</span>
+            <span css={styles.message}>{entry.message}</span>
+          </div>
+        ))}
     </div>
   );
 });
