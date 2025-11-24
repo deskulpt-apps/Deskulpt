@@ -10,21 +10,19 @@ You can run the full suite of CI checks locally to verify your changes before pu
 pnpm ci:local
 ```
 
+This command runs:
+
+- **Hygiene checks**: Formatting, unused dependencies (Node and Rust), and auto-generated files verification
+- **Linting checks**: JavaScript/TypeScript and Rust linting
+- **Build checks**: Package builds, Rust type checking, and Rust binary build
+
 If you want to skip the build and test steps for faster feedback (only checking hygiene, auto-generated files, and linting), you can use:
 
 ```bash
 pnpm ci:local:fast
 ```
 
-Alternatively, you can use the `cargo gen` command directly:
-
-```bash
-# Run all checks
-cargo gen ci
-
-# Skip build checks
-cargo gen ci --skip-build
-```
+This command runs hygiene checks and linting, but skips the build steps.
 
 ## Formatting
 
