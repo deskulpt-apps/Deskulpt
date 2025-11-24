@@ -1,5 +1,4 @@
 mod bindings;
-mod ci;
 mod schema;
 mod whatsnew;
 
@@ -12,8 +11,6 @@ enum Commands {
     Bindings,
     /// Generate JSON schemas.
     Schema,
-    /// Run local CI checks (same as GitHub Actions CI).
-    Ci(ci::Args),
     /// Generate a "What's New" template for the next release.
     Whatsnew(whatsnew::Args),
 }
@@ -31,7 +28,6 @@ fn main() -> Result<()> {
     match args.command {
         Commands::Bindings => bindings::run()?,
         Commands::Schema => schema::run()?,
-        Commands::Ci(args) => ci::run(args)?,
         Commands::Whatsnew(args) => whatsnew::run(args)?,
     }
     Ok(())
