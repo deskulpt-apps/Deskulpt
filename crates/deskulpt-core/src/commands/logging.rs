@@ -45,13 +45,8 @@ pub enum LoggingLevel {
 
 #[command]
 #[specta::specta]
-#[instrument(skip(_app_handle))]
-pub fn log<R: Runtime>(
-    _app_handle: AppHandle<R>,
-    level: LoggingLevel,
-    message: String,
-    fields: Option<Value>,
-) -> SerResult<()> {
+#[instrument]
+pub fn log(level: LoggingLevel, message: String, fields: Option<Value>) -> SerResult<()> {
     let fields = fields.unwrap_or(Value::Null);
 
     macro_rules! emit {

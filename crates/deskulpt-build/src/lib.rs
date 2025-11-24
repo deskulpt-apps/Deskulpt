@@ -13,6 +13,7 @@ use quote::{format_ident, quote};
 #[derive(Default)]
 pub struct Builder {
     commands: &'static [&'static str],
+    plain_commands: &'static [&'static str],
     events: &'static [&'static str],
     commands_mod: Option<&'static str>,
     events_mod: Option<&'static str>,
@@ -22,9 +23,19 @@ impl Builder {
     /// Set the commands for the builder.
     ///
     /// These will be used for configuring the bindings builder and the Tauri
-    /// plugin builder, and for generating plugin initialization code.
+    /// plugin builder, and for generating plugin initialization code. The
+    /// commands should be generic over the Tauri runtime. If not, use
+    /// [`Self::plain_commands`] instead.
     pub fn commands(&mut self, commands: &'static [&'static str]) -> &mut Self {
         self.commands = commands;
+        self
+    }
+
+    /// Set the plain commands for the builder..
+    ///
+    /// Same as [`Self::commands`], but for commands that are non-generic.
+    pub fn plain_commands(&mut self, commands: &'static [&'static str]) -> &mut Self {
+        self.plain_commands = commands;
         self
     }
 
@@ -70,6 +81,11 @@ impl Builder {
             .iter()
             .map(|c| format_ident!("{c}"))
             .collect::<Vec<_>>();
+        let plain_commands = self
+            .plain_commands
+            .iter()
+            .map(|c| format_ident!("{c}"))
+            .collect::<Vec<_>>();
         let events = self
             .events
             .iter()
@@ -81,7 +97,8 @@ impl Builder {
             pub fn build_bindings() -> ::deskulpt_common::bindings::Bindings {
                 ::deskulpt_common::bindings::BindingsBuilder::new(env!("CARGO_PKG_NAME"))
                     .commands(::deskulpt_common::bindings::collect_commands![
-                        #( #commands_mod::#commands::<::tauri::Wry> ),*
+                        #( #commands_mod::#commands::<::tauri::Wry> ),*,
+                        #( #commands_mod::#plain_commands ),*
                     ])
                     #( .event::<#events_mod::#events>() )*
                     .typ::<::deskulpt_common::window::DeskulptWindow>()
@@ -117,7 +134,11 @@ impl Builder {
             std::fs::remove_dir_all(permissions_dir)?;
         }
 
-        tauri_plugin::Builder::new(self.commands).try_build()?;
+        let mut all_commands = vec![];
+        all_commands.extend_from_slice(self.commands);
+        all_commands.extend_from_slice(self.plain_commands);
+
+        tauri_plugin::Builder::new(&all_commands).try_build()?;
         Ok(())
     }
 
