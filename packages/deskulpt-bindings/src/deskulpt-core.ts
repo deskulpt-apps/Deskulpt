@@ -20,11 +20,6 @@ export type DeskulptWindow =
  */
 "canvas"
 
-/**
- * Log levels accepted from the frontend.
- */
-export type FrontendLogLevel = "trace" | "debug" | "info" | "warn" | "error"
-
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key in string]: JsonValue }
 
 /**
@@ -36,6 +31,11 @@ export type LogEntry = { timestamp: string; level: string; message: string; fiel
  * Metadata describing a log file on disk.
  */
 export type LogFileInfo = { name: string; size: number; modified: string }
+
+/**
+ * Log levels accepted from the frontend.
+ */
+export type LoggingLevel = "trace" | "debug" | "info" | "warn" | "error"
 
 /**
  * Event for showing a toast notification.
@@ -132,17 +132,6 @@ export const commands = {
   openLogsDir: () => invoke<null>("plugin:deskulpt-core|open_logs_dir"),
 
 
-  log: (
-    level: FrontendLogLevel,
-    message: string,
-    fields: JsonValue | null,
-  ) => invoke<null>("plugin:deskulpt-core|log", {
-    level,
-    message,
-    fields,
-  }),
-
-
   listLogs: () => invoke<LogFileInfo[]>("plugin:deskulpt-core|list_logs"),
 
 
@@ -156,4 +145,15 @@ export const commands = {
 
 
   clearLogs: () => invoke<null>("plugin:deskulpt-core|clear_logs"),
+
+
+  log: (
+    level: LoggingLevel,
+    message: string,
+    fields: JsonValue | null,
+  ) => invoke<null>("plugin:deskulpt-core|log", {
+    level,
+    message,
+    fields,
+  }),
 };

@@ -46,7 +46,7 @@ pub enum LoggingLevel {
 #[command]
 #[specta::specta]
 #[instrument]
-pub fn log(level: LoggingLevel, message: String, fields: Option<Value>) -> SerResult<()> {
+pub async fn log(level: LoggingLevel, message: String, fields: Option<Value>) -> SerResult<()> {
     let fields = fields.unwrap_or(Value::Null);
 
     macro_rules! emit {
@@ -73,7 +73,7 @@ pub fn log(level: LoggingLevel, message: String, fields: Option<Value>) -> SerRe
 #[command]
 #[specta::specta]
 #[instrument(skip(app_handle))]
-pub fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileInfo>> {
+pub async fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileInfo>> {
     let mut files: Vec<_> = collect_log_files(&app_handle)?
         .into_iter()
         .filter_map(|(path, metadata)| {
@@ -97,7 +97,7 @@ pub fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileI
 #[command]
 #[specta::specta]
 #[instrument(skip(app_handle))]
-pub fn read_log<R: Runtime>(
+pub async fn read_log<R: Runtime>(
     app_handle: AppHandle<R>,
     filename: String,
     limit: u32,
@@ -140,7 +140,7 @@ pub fn read_log<R: Runtime>(
 #[command]
 #[specta::specta]
 #[instrument(skip(app_handle))]
-pub fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
+pub async fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
     for (path, _) in collect_log_files(&app_handle)? {
         if let Err(e) = std::fs::remove_file(&path) {
             error!(error = ?e, path = %path.display(), "Failed to remove log file");

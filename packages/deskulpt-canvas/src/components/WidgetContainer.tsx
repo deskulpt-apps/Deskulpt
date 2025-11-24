@@ -175,8 +175,8 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
     (error: Error, info: ErrorInfo) => {
       void logDiagnosticsEvent("error", "Widget render error", {
         widgetId: id,
-        stack: error.stack,
-        componentStack: info.componentStack,
+        stack: error.stack ?? null,
+        componentStack: info.componentStack ?? null,
       });
     },
     [id],

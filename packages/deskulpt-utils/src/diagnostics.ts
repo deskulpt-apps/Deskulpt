@@ -1,45 +1,16 @@
 import { deskulptCore } from "@deskulpt/bindings";
 import { stringifyError } from "./stringifyError";
-
-type LogLevel = "trace" | "debug" | "info" | "warn" | "error";
-type LogCommand = (
-  level: LogLevel,
-  message: string,
-  fields?: Record<string, unknown> | null,
-) => Promise<void>;
-
-let cachedCommand: LogCommand | null | undefined;
-
-function getLogCommand(): LogCommand | null {
-  if (cachedCommand !== undefined) {
-    return cachedCommand;
-  }
-  const command = (deskulptCore.commands as any).log;
-  cachedCommand = typeof command === "function" ? command : null;
-  return cachedCommand ?? null;
-}
+import { LoggingLevel } from "@deskulpt/bindings/src/deskulpt-core";
 
 export function logDiagnosticsEvent(
-  level: LogLevel,
+  level: deskulptCore.LoggingLevel,
   message: string,
-  fields?: Record<string, unknown>,
+  fields?: deskulptCore.JsonValue,
 ) {
-  const command = getLogCommand();
-  if (!command) {
-    return Promise.resolve();
-  }
-  return command(level, message, fields ?? null);
+  return deskulptCore.commands.log(level, message, fields ?? null);
 }
 
 export function setupDiagnosticsLogging(source: string) {
-  if (typeof window === "undefined") {
-    return;
-  }
-  const command = getLogCommand();
-  if (!command) {
-    return;
-  }
-
   const globalWindow = window as typeof window & {
     __deskulptDiagnosticsInstalled__?: boolean;
   };
@@ -49,11 +20,13 @@ export function setupDiagnosticsLogging(source: string) {
   globalWindow.__deskulptDiagnosticsInstalled__ = true;
 
   const emit = (
-    level: LogLevel,
+    level: LoggingLevel,
     message: string,
     extra?: Record<string, unknown>,
   ) => {
-    void command(level, message, { source, ...extra }).catch(() => {});
+    void deskulptCore.commands
+      .log(level, message, { source, ...extra })
+      .catch(() => {});
   };
 
   const formatArg = (arg: unknown) => {
@@ -73,7 +46,10 @@ export function setupDiagnosticsLogging(source: string) {
     return String(arg);
   };
 
-  const overrideConsole = (method: keyof Console, level: LogLevel) => {
+  const overrideConsole = (
+    method: keyof Console,
+    level: deskulptCore.LoggingLevel,
+  ) => {
     const original = console[method].bind(console) as (
       ...args: unknown[]
     ) => void;
