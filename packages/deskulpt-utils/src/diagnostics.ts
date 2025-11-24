@@ -1,32 +1,13 @@
 import { deskulptCore } from "@deskulpt/bindings";
 import { stringifyError } from "./stringifyError";
-import { LoggingLevel } from "@deskulpt/bindings/src/deskulpt-core";
-
-export function logDiagnosticsEvent(
-  level: deskulptCore.LoggingLevel,
-  message: string,
-  fields?: deskulptCore.JsonValue,
-) {
-  return deskulptCore.commands.log(level, message, fields ?? null);
-}
 
 export function setupDiagnosticsLogging(source: string) {
-  const globalWindow = window as typeof window & {
-    __deskulptDiagnosticsInstalled__?: boolean;
-  };
-  if (globalWindow.__deskulptDiagnosticsInstalled__) {
-    return;
-  }
-  globalWindow.__deskulptDiagnosticsInstalled__ = true;
-
   const emit = (
-    level: LoggingLevel,
+    level: deskulptCore.LoggingLevel,
     message: string,
     extra?: Record<string, unknown>,
   ) => {
-    void deskulptCore.commands
-      .log(level, message, { source, ...extra })
-      .catch(() => {});
+    void deskulptCore.commands.log(level, message, { source, ...extra });
   };
 
   const formatArg = (arg: unknown) => {

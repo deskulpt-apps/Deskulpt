@@ -4,6 +4,11 @@
   "description": "Capabilities of the manager window.",
   "windows": ["manager"],
   "permissions": [
+    "deskulpt-core:allow-log",
+    "deskulpt-core:allow-clear-logs",
+    "deskulpt-core:allow-list-logs",
+    "deskulpt-core:allow-read-log",
+    "deskulpt-core:allow-open-logs-dir",
     "deskulpt-core:allow-open-widget",
     "deskulpt-settings:allow-update",
     "deskulpt-widgets:allow-complete-setup",

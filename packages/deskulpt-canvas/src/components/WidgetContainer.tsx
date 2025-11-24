@@ -17,12 +17,12 @@ import {
 } from "re-resizable";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorDisplay from "./ErrorDisplay";
-import { logDiagnosticsEvent, stringifyError } from "@deskulpt/utils";
+import { stringifyError } from "@deskulpt/utils";
 import { LuGripVertical } from "react-icons/lu";
 import { Box } from "@radix-ui/themes";
 import { useSettingsStore, useWidgetsStore } from "../hooks";
 import { css } from "@emotion/react";
-import { deskulptSettings } from "@deskulpt/bindings";
+import { deskulptCore, deskulptSettings } from "@deskulpt/bindings";
 
 const styles = {
   wrapper: css({
@@ -173,7 +173,7 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
 
   const handleWidgetError = useCallback(
     (error: Error, info: ErrorInfo) => {
-      void logDiagnosticsEvent("error", "Widget render error", {
+      void deskulptCore.commands.log("error", "Widget render error", {
         widgetId: id,
         stack: error.stack ?? null,
         componentStack: info.componentStack ?? null,
