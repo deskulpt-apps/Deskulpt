@@ -105,7 +105,8 @@ interface LogViewerProps {
 }
 
 const LogViewer = memo(({ selectedFile, entries }: LogViewerProps) => {
-  if (entries.length === 0) {
+  const numEntries = entries.length;
+  if (numEntries === 0) {
     return (
       <div css={styles.noLogs}>
         {selectedFile ? "No matching log entries" : "No log files available"}
@@ -115,10 +116,12 @@ const LogViewer = memo(({ selectedFile, entries }: LogViewerProps) => {
 
   return (
     <div css={styles.container}>
-      {entries
-        .slice()
-        .toReversed()
-        .map((entry) => (
+      {Array.from(
+        { length: numEntries },
+        (_, index) => numEntries - index - 1,
+      ).map((index) => {
+        const entry = entries[index]!;
+        return (
           <div
             key={`${entry.timestamp}-${entry.level}-${entry.message.slice(0, 20)}`}
             css={styles.logEntry}
@@ -134,7 +137,8 @@ const LogViewer = memo(({ selectedFile, entries }: LogViewerProps) => {
             <span css={styles.level(entry.level)}>{entry.level}</span>
             <span css={styles.message}>{entry.message}</span>
           </div>
-        ))}
+        );
+      })}
     </div>
   );
 });

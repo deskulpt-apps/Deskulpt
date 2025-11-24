@@ -238,7 +238,7 @@ const Logs = memo(() => {
             <>
               <span css={styles.headerMetaLabel}>{latestFile.name}</span>
               <span css={styles.headerMetaInfo}>
-                {formatBytes(latestFile.size)} • {latestFile.modified}
+                {formatBytes(latestFile.size)}
               </span>
             </>
           ) : (

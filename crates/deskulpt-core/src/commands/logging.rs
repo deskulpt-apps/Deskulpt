@@ -1,5 +1,5 @@
 use std::collections::VecDeque;
-use std::fs::{self, File};
+use std::fs::File;
 use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
@@ -11,14 +11,6 @@ use tauri::{AppHandle, Runtime, command};
 use tracing::{Level, error, instrument, warn};
 
 use crate::path::PathExt;
-
-/// Helper to get the logs directory with consistent error handling.
-fn get_logs_dir<R: Runtime>(app_handle: &AppHandle<R>) -> SerResult<std::path::PathBuf> {
-    app_handle.logs_dir().map(|p| p.to_path_buf()).map_err(|e| {
-        error!(error = ?e, "Failed to resolve logs directory");
-        e.into()
-    })
-}
 
 /// Metadata describing a log file on disk.
 #[derive(Debug, Serialize, specta::Type)]
@@ -134,7 +126,7 @@ pub fn read_log<R: Runtime>(
     ensure_single_component(&filename)?;
 
     let limit = limit.max(1) as usize;
-    let logs_dir = get_logs_dir(&app_handle)?;
+    let logs_dir = app_handle.logs_dir()?;
     let path = logs_dir.join(&filename);
     let file = match File::open(&path) {
         Ok(file) => file,
@@ -171,7 +163,7 @@ pub fn read_log<R: Runtime>(
 #[instrument(skip(app_handle))]
 pub fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
     for (path, _) in collect_log_files(&app_handle)? {
-        if let Err(e) = fs::remove_file(&path) {
+        if let Err(e) = std::fs::remove_file(&path) {
             error!(error = ?e, path = %path.display(), "Failed to remove log file");
         }
     }
@@ -182,7 +174,7 @@ pub fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
 #[specta::specta]
 #[instrument(skip(app_handle))]
 pub async fn open_logs_dir<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
-    let logs_dir = get_logs_dir(&app_handle)?;
+    let logs_dir = app_handle.logs_dir()?;
     open::that_detached(logs_dir)?;
     Ok(())
 }
@@ -240,9 +232,9 @@ fn ensure_single_component(filename: &str) -> SerResult<()> {
 
 fn collect_log_files<R: Runtime>(
     app_handle: &AppHandle<R>,
-) -> SerResult<Vec<(PathBuf, fs::Metadata)>> {
-    let logs_dir = get_logs_dir(app_handle)?;
-    let entries = match fs::read_dir(&logs_dir) {
+) -> SerResult<Vec<(PathBuf, std::fs::Metadata)>> {
+    let logs_dir = app_handle.logs_dir()?;
+    let entries = match std::fs::read_dir(&logs_dir) {
         Ok(entries) => entries,
         Err(e) => {
             error!(error = ?e, directory = %logs_dir.display(), "Failed to read logs directory");
@@ -273,7 +265,7 @@ fn collect_log_files<R: Runtime>(
 
     Ok(files)
 }
-#[allow(dead_code)]
+
 fn format_system_time(time: SystemTime) -> String {
     match time.duration_since(UNIX_EPOCH) {
         Ok(duration) => duration.as_secs().to_string(),
