@@ -45,7 +45,11 @@ const Manifest = memo(({ id }: ManifestProps) => {
                 <Table.Row align="start">
                   <Table.RowHeaderCell>Authors</Table.RowHeaderCell>
                   <Table.Cell>
-                    {manifest.content.authors?.join(", ")}
+                    {manifest.content
+                      .authors!.map((author) =>
+                        typeof author === "string" ? author : author.name,
+                      )
+                      .join(", ")}
                   </Table.Cell>
                 </Table.Row>
               )}
