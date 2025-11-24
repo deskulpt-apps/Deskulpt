@@ -1,4 +1,11 @@
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import {
+  ErrorInfo,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { flushSync } from "react-dom";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import {
@@ -165,7 +172,7 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
   );
 
   const handleWidgetError = useCallback(
-    (error: Error, info: { componentStack: string }) => {
+    (error: Error, info: ErrorInfo) => {
       void logDiagnosticsEvent("error", "Widget render error", {
         widgetId: id,
         stack: error.stack,
