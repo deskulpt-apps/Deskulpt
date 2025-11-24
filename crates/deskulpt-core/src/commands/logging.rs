@@ -8,7 +8,7 @@ use deskulpt_common::{SerResult, ser_bail};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use tauri::{AppHandle, Runtime, command};
-use tracing::{Level, error, instrument, warn};
+use tracing::{error, instrument, warn};
 
 use crate::path::PathExt;
 
@@ -35,7 +35,7 @@ pub struct LogEntry {
 /// Log levels accepted from the frontend.
 #[derive(Debug, Deserialize, specta::Type)]
 #[serde(rename_all = "lowercase")]
-pub enum FrontendLogLevel {
+pub enum LoggingLevel {
     Trace,
     Debug,
     Info,
@@ -43,35 +43,17 @@ pub enum FrontendLogLevel {
     Error,
 }
 
-impl From<FrontendLogLevel> for Level {
-    fn from(level: FrontendLogLevel) -> Self {
-        match level {
-            FrontendLogLevel::Trace => Level::TRACE,
-            FrontendLogLevel::Debug => Level::DEBUG,
-            FrontendLogLevel::Info => Level::INFO,
-            FrontendLogLevel::Warn => Level::WARN,
-            FrontendLogLevel::Error => Level::ERROR,
-        }
-    }
-}
-
 #[command]
 #[specta::specta]
-#[instrument(skip(app_handle))]
+#[instrument(skip(_app_handle))]
 pub fn log<R: Runtime>(
-    app_handle: AppHandle<R>,
-    level: FrontendLogLevel,
+    _app_handle: AppHandle<R>,
+    level: LoggingLevel,
     message: String,
     fields: Option<Value>,
 ) -> SerResult<()> {
-    let _ = app_handle;
-    let level: Level = level.into();
     let fields = fields.unwrap_or(Value::Null);
-    log_frontend_event(level, &message, &fields);
-    Ok(())
-}
 
-fn log_frontend_event(level: Level, message: &str, fields: &Value) {
     macro_rules! emit {
         ($macro:ident) => {
             tracing::$macro!(
@@ -83,12 +65,14 @@ fn log_frontend_event(level: Level, message: &str, fields: &Value) {
     }
 
     match level {
-        Level::TRACE => emit!(trace),
-        Level::DEBUG => emit!(debug),
-        Level::INFO => emit!(info),
-        Level::WARN => emit!(warn),
-        Level::ERROR => emit!(error),
+        LoggingLevel::Trace => emit!(trace),
+        LoggingLevel::Debug => emit!(debug),
+        LoggingLevel::Info => emit!(info),
+        LoggingLevel::Warn => emit!(warn),
+        LoggingLevel::Error => emit!(error),
     }
+
+    Ok(())
 }
 
 #[command]
