@@ -4,7 +4,6 @@ packages:
 
 catalog:
   "@emotion/react": ^11.14.0
-  "@emotion/babel-plugin": ^11.13.5
   "@radix-ui/themes": ^3.2.0
   "@rollup/plugin-replace": ^6.0.3
   "@rollup/plugin-terser": ^0.4.4
