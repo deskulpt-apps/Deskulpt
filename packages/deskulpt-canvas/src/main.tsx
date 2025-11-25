@@ -3,7 +3,7 @@ import { createRoot } from "react-dom/client";
 import {
   DeepReadonly,
   enforceOpenNewTab,
-  setupDiagnosticsLogging,
+  setupGlobalLoggingHooks,
 } from "@deskulpt/utils";
 import { deskulptSettings } from "@deskulpt/bindings";
 import App from "./App";
@@ -20,7 +20,7 @@ declare global {
 }
 
 enforceOpenNewTab();
-setupDiagnosticsLogging("canvas");
+setupGlobalLoggingHooks();
 
 createRoot(document.querySelector("#root")!).render(
   <StrictMode>

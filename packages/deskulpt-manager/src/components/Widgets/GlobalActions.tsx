@@ -2,14 +2,15 @@ import { Flex, IconButton } from "@radix-ui/themes";
 import { memo, useCallback } from "react";
 import { LuFolderOpen, LuRepeat } from "react-icons/lu";
 import { deskulptCore, deskulptWidgets } from "@deskulpt/bindings";
+import { logger } from "@deskulpt/utils";
 
 const GlobalActions = memo(() => {
   const refreshAction = useCallback(() => {
-    deskulptWidgets.commands.refreshAll().catch(console.error);
+    deskulptWidgets.commands.refreshAll().catch(logger.error);
   }, []);
 
   const openAction = useCallback(() => {
-    deskulptCore.commands.openWidget(null).catch(console.error);
+    deskulptCore.commands.openWidget(null).catch(logger.error);
   }, []);
 
   return (

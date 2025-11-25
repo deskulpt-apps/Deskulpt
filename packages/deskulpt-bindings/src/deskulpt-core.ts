@@ -132,6 +132,17 @@ export const commands = {
   openLogsDir: () => invoke<null>("plugin:deskulpt-core|open_logs_dir"),
 
 
+  log: (
+    level: LoggingLevel,
+    message: string,
+    meta: JsonValue,
+  ) => invoke<null>("plugin:deskulpt-core|log", {
+    level,
+    message,
+    meta,
+  }),
+
+
   listLogs: () => invoke<LogFileInfo[]>("plugin:deskulpt-core|list_logs"),
 
 
@@ -145,15 +156,4 @@ export const commands = {
 
 
   clearLogs: () => invoke<null>("plugin:deskulpt-core|clear_logs"),
-
-
-  log: (
-    level: LoggingLevel,
-    message: string,
-    fields: JsonValue | null,
-  ) => invoke<null>("plugin:deskulpt-core|log", {
-    level,
-    message,
-    fields,
-  }),
 };

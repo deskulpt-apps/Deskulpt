@@ -8,7 +8,7 @@ use tracing_appender::rolling::{RollingFileAppender, Rotation};
 use tracing_subscriber::filter::Targets;
 use tracing_subscriber::fmt::time::UtcTime;
 use tracing_subscriber::layer::SubscriberExt;
-use tracing_subscriber::{Registry, fmt};
+use tracing_subscriber::{Layer, Registry, fmt};
 
 use crate::path::PathExt;
 
@@ -31,10 +31,6 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
     fn manage_logging(&self) -> Result<()> {
         let logs_dir = self.logs_dir()?;
 
-        // TODO: load proper log level from settings and support dynamically
-        // changing at runtime; set to lowest level now for debugging purposes
-        let filter = Targets::new().with_target("deskulpt", Level::TRACE);
-
         let appender = RollingFileAppender::builder()
             .rotation(Rotation::DAILY)
             .max_log_files(MAX_LOG_FILES)
@@ -42,15 +38,32 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
             .filename_suffix("log")
             .build(logs_dir)?;
         let (writer, guard) = NonBlockingBuilder::default().finish(appender);
-        let fmt_layer = fmt::layer()
+
+        let backend_file_layer = fmt::layer()
             .json()
             .with_ansi(false)
             .with_file(true)
             .with_line_number(true)
             .with_timer(UtcTime::rfc_3339())
             .flatten_event(true)
-            .with_writer(writer);
-        let subscriber = Registry::default().with(filter).with(fmt_layer);
+            .with_writer(writer.clone())
+            .with_filter(Targets::new().with_target("deskulpt", Level::TRACE));
+
+        let frontend_file_layer = fmt::layer()
+            .json()
+            .with_ansi(false)
+            .with_timer(UtcTime::rfc_3339())
+            .flatten_event(true)
+            .with_writer(writer)
+            .with_filter(
+                Targets::new()
+                    .with_target("frontend::canvas", Level::TRACE)
+                    .with_target("frontend::manager", Level::TRACE),
+            );
+
+        let subscriber = Registry::default()
+            .with(frontend_file_layer)
+            .with(backend_file_layer);
         tracing::subscriber::set_global_default(subscriber)?;
 
         let previous_hook = std::panic::take_hook();

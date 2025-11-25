@@ -17,12 +17,12 @@ import {
 } from "re-resizable";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorDisplay from "./ErrorDisplay";
-import { stringifyError } from "@deskulpt/utils";
+import { logger, stringify } from "@deskulpt/utils";
 import { LuGripVertical } from "react-icons/lu";
 import { Box } from "@radix-ui/themes";
 import { useSettingsStore, useWidgetsStore } from "../hooks";
 import { css } from "@emotion/react";
-import { deskulptCore, deskulptSettings } from "@deskulpt/bindings";
+import { deskulptSettings } from "@deskulpt/bindings";
 
 const styles = {
   wrapper: css({
@@ -171,12 +171,12 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
     [id],
   );
 
-  const handleWidgetError = useCallback(
+  const onRenderError = useCallback(
     (error: Error, info: ErrorInfo) => {
-      void deskulptCore.commands.log("error", "Widget render error", {
+      logger.error(`Error rendering widget: ${id}`, {
         widgetId: id,
-        stack: error.stack ?? null,
-        componentStack: info.componentStack ?? null,
+        error,
+        info,
       });
     },
     [id],
@@ -223,14 +223,14 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
         >
           <ErrorBoundary
             resetKeys={[Widget]}
+            onError={onRenderError}
             fallbackRender={({ error }) => (
               <ErrorDisplay
                 id={id}
                 error="Error in the widget component [React error boundary]"
-                message={stringifyError(error)}
+                message={stringify(error)}
               />
             )}
-            onError={handleWidgetError}
           >
             <Widget
               id={id}

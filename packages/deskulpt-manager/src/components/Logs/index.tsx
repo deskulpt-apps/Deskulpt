@@ -5,6 +5,7 @@ import { css } from "@emotion/react";
 import { deskulptCore } from "@deskulpt/bindings";
 import { toast } from "sonner";
 import LogViewer from "./LogViewer";
+import { logger } from "@deskulpt/utils";
 
 type LogFileInfo = deskulptCore.LogFileInfo;
 type LogEntry = deskulptCore.LogEntry;
@@ -164,7 +165,7 @@ const Logs = memo(() => {
       setLogFiles(files);
       setSelectedFile(files[0]?.name ?? "");
     } catch (error) {
-      console.error("Failed to load log files:", error);
+      logger.error("Failed to load log files", { error });
       toast.error("Failed to load log files");
     }
   }, []);
@@ -174,7 +175,7 @@ const Logs = memo(() => {
       const entries = await deskulptCore.commands.readLog(filename, 1000);
       setLogEntries(entries);
     } catch (error) {
-      console.error("Failed to load log entries:", error);
+      logger.error("Failed to load log entries", { error });
       toast.error("Failed to load log entries");
     }
   }, []);
@@ -193,18 +194,8 @@ const Logs = memo(() => {
     try {
       await deskulptCore.commands.openLogsDir();
     } catch (error) {
-      const errorMessage =
-        error instanceof Error
-          ? error.message
-          : typeof error === "string"
-            ? error
-            : JSON.stringify(error);
-      console.error("Failed to open logs directory:", {
-        error,
-        message: errorMessage,
-        stack: error instanceof Error ? error.stack : undefined,
-      });
-      toast.error(`Failed to open logs directory: ${errorMessage}`);
+      logger.error("Failed to open logs directory", { error });
+      toast.error("Failed to open logs directory");
     }
   }, []);
 

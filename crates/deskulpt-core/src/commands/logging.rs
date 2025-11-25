@@ -6,9 +6,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use deskulpt_common::{SerResult, ser_bail};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
-use tauri::{AppHandle, Runtime, command};
-use tracing::{error, instrument, warn};
+use tauri::{AppHandle, Runtime, WebviewWindow, command};
+use tracing::{debug, error, info, instrument, trace, warn};
 
 use crate::path::PathExt;
 
@@ -45,28 +44,29 @@ pub enum LoggingLevel {
 
 #[command]
 #[specta::specta]
-#[instrument]
-pub async fn log(level: LoggingLevel, message: String, fields: Option<Value>) -> SerResult<()> {
-    let fields = fields.unwrap_or(Value::Null);
-
-    macro_rules! emit {
-        ($macro:ident) => {
-            tracing::$macro!(
-                target: "deskulpt::frontend",
-                frontend_message = %message,
-                frontend_fields = tracing::field::debug(fields),
-            )
-        };
+pub async fn log<R: Runtime>(
+    window: WebviewWindow<R>,
+    level: LoggingLevel,
+    message: String,
+    meta: serde_json::Value,
+) -> SerResult<()> {
+    match window.label() {
+        "canvas" => match level {
+            LoggingLevel::Trace => trace!(target: "frontend::canvas", %meta, message),
+            LoggingLevel::Debug => debug!(target: "frontend::canvas", %meta, message),
+            LoggingLevel::Info => info!(target: "frontend::canvas", %meta, message),
+            LoggingLevel::Warn => warn!(target: "frontend::canvas", %meta, message),
+            LoggingLevel::Error => error!(target: "frontend::canvas", %meta, message),
+        },
+        "manager" => match level {
+            LoggingLevel::Trace => trace!(target: "frontend::manager", %meta, message),
+            LoggingLevel::Debug => debug!(target: "frontend::manager", %meta, message),
+            LoggingLevel::Info => info!(target: "frontend::manager", %meta, message),
+            LoggingLevel::Warn => warn!(target: "frontend::manager", %meta, message),
+            LoggingLevel::Error => error!(target: "frontend::manager", %meta, message),
+        },
+        _ => {},
     }
-
-    match level {
-        LoggingLevel::Trace => emit!(trace),
-        LoggingLevel::Debug => emit!(debug),
-        LoggingLevel::Info => emit!(info),
-        LoggingLevel::Warn => emit!(warn),
-        LoggingLevel::Error => emit!(error),
-    }
-
     Ok(())
 }
 
