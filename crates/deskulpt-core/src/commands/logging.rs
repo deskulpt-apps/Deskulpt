@@ -213,7 +213,7 @@ fn collect_log_files<R: Runtime>(
     app_handle: &AppHandle<R>,
 ) -> SerResult<Vec<(PathBuf, std::fs::Metadata)>> {
     let logs_dir = app_handle.logs_dir()?;
-    let entries = match std::fs::read_dir(&logs_dir) {
+    let entries = match std::fs::read_dir(logs_dir) {
         Ok(entries) => entries,
         Err(e) => {
             error!(error = ?e, directory = %logs_dir.display(), "Failed to read logs directory");
