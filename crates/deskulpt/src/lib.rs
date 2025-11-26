@@ -18,6 +18,7 @@ pub fn run() {
             app.init_widgets_dir()?;
             app.init_persist_dir()?;
             app.init_logs_dir()?;
+
             app.manage_logging()?;
 
             // Hide the application from the dock on macOS because skipping

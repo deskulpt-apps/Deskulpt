@@ -1,5 +1,7 @@
 //! Deskulpt widgets manager and its APIs.
 
+use std::sync::Once;
+
 use anyhow::{Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
@@ -23,6 +25,8 @@ pub struct WidgetsManager<R: Runtime> {
     render_worker: RenderWorkerHandle,
     /// The setup state for frontend windows.
     setup_state: SetupState,
+    /// Ensures the initial refresh only runs once.
+    refresh_once: Once,
 }
 
 impl<R: Runtime> WidgetsManager<R> {
@@ -39,6 +43,7 @@ impl<R: Runtime> WidgetsManager<R> {
             catalog: Default::default(),
             render_worker,
             setup_state: Default::default(),
+            refresh_once: Once::new(),
         }
     }
 
@@ -192,14 +197,17 @@ impl<R: Runtime> WidgetsManager<R> {
     /// Mark a window as having completed setup.
     ///
     /// If all windows have completed setup after this call, an initial refresh
-    /// of all widgets is trigger via [`Self::refresh_all`].
+    /// of all widgets is trigger via [`Self::refresh_all`]. This refresh will
+    /// only run once, even if this method is called multiple times.
     ///
     /// Tauri command: [`crate::commands::complete_setup`].
     pub fn complete_setup(&self, window: WebviewWindow<R>) -> Result<()> {
         let window = window.label().try_into().unwrap();
         let complete = self.setup_state.complete(window);
         if complete {
-            self.refresh_all()?;
+            self.refresh_once.call_once(|| {
+                let _ = self.refresh_all();
+            });
         }
         Ok(())
     }
