@@ -158,7 +158,7 @@ impl WidgetCatalog {
                     patches.insert(id.clone(), None);
                 },
                 itertools::EitherOrBoth::Right((id, _)) => {
-                    patches.insert(id.clone(), Some(WidgetSettingsPatch::default()));
+                    patches.insert(id.clone(), Some(Default::default()));
                 },
                 itertools::EitherOrBoth::Both(_, _) => {},
             }

@@ -11,8 +11,6 @@ mod manager;
 mod render;
 mod setup;
 
-use std::fs;
-
 use deskulpt_core::path::PathExt;
 use deskulpt_settings::SettingsExt;
 pub use manager::WidgetsManager;
@@ -53,12 +51,7 @@ fn seed_welcome_widget_if_needed<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri
     let src = app.path().resource_dir()?.join("default-widgets/welcome");
     let dst = app.widgets_dir()?.join("welcome");
 
-    fs::create_dir_all(&dst)?;
-    for entry in fs::read_dir(&src)?.filter_map(Result::ok) {
-        if entry.file_type().map(|ft| ft.is_file()).unwrap_or(false) {
-            fs::copy(entry.path(), dst.join(entry.file_name()))?;
-        }
-    }
+    copy_dir::copy_dir(&src, &dst).map_err(|e| tauri::Error::Io(e.into()))?;
 
     Ok(())
 }

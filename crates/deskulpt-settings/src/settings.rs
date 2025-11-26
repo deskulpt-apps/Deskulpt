@@ -178,6 +178,7 @@ pub struct Settings {
     pub widgets: BTreeMap<String, WidgetSettings>,
 
     /// Whether the starter/welcome tutorial has been seen.
+    #[serde(skip_serializing)]
     pub has_seen_starter_tutorial: bool,
 }
 
@@ -208,7 +209,7 @@ pub struct SettingsPatch {
     #[specta(optional, type = BTreeMap<String, Option<WidgetSettingsPatch>>)]
     pub widgets: Option<BTreeMap<String, Option<WidgetSettingsPatch>>>,
     /// If not `None`, update [`Settings::has_seen_starter_tutorial`].
-    #[specta(optional, type = bool)]
+    #[serde(skip)]
     pub has_seen_starter_tutorial: Option<bool>,
 }
 
