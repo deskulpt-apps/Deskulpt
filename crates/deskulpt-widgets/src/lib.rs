@@ -15,8 +15,8 @@ use std::fs;
 use std::path::Path;
 
 use deskulpt_core::path::PathExt;
+use deskulpt_settings::SettingsExt;
 pub use manager::WidgetsManager;
-use serde_json::Value;
 use tauri::plugin::TauriPlugin;
 use tauri::{Manager, Runtime};
 
@@ -26,7 +26,7 @@ deskulpt_common::bindings::build_bindings!();
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     deskulpt_common::init::init_builder!()
         .setup(|app_handle, _| {
-            seed_welcome_widget_if_empty(app_handle)?;
+            seed_welcome_widget_if_needed(app_handle)?;
             app_handle.manage(WidgetsManager::new(app_handle.clone()));
             Ok(())
         })
@@ -45,64 +45,28 @@ impl<R: Runtime, M: Manager<R>> WidgetsExt<R> for M {
     }
 }
 
-fn seed_welcome_widget_if_empty<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
-    let widgets_dir = app.widgets_dir()?;
-    let mut dir_names = vec![];
-    for entry in fs::read_dir(widgets_dir)?.filter_map(Result::ok) {
-        if entry.file_type().map(|ft| ft.is_dir()).unwrap_or(false) {
-            let name = entry.file_name();
-            let name = name.to_string_lossy().to_string();
-            if !name.starts_with('.') {
-                dir_names.push(name);
-            }
-        }
-    }
-
-    let mut needs_seed = dir_names.is_empty();
-    if !dir_names.is_empty() {
-        if dir_names.len() == 1 && dir_names[0] == "welcome" {
-            let manifest_path = widgets_dir.join("welcome/deskulpt.widget.json");
-            let manifest: Value =
-                serde_json::from_reader(fs::File::open(&manifest_path)?).unwrap_or_default();
-            let entry = manifest
-                .get("entry")
-                .and_then(|v| v.as_str())
-                .unwrap_or_default();
-            let index_exists = widgets_dir.join("welcome/index.tsx").exists();
-            needs_seed = entry != "index.tsx" || !index_exists;
-            if needs_seed {
-                println!(
-                    "Updating bundled welcome widget to latest format in {}",
-                    widgets_dir.display()
-                );
-            }
-        } else {
-            println!(
-                "Skipping welcome widget seeding; widgets directory not empty (dirs found): {:?}",
-                dir_names
-            );
-            return Ok(());
-        }
-    }
-
-    if !needs_seed {
+fn seed_welcome_widget_if_needed<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri::Result<()> {
+    // Check the flag from settings
+    let has_seen = app.settings().read().has_seen_starter_tutorial;
+    if has_seen {
         return Ok(());
     }
 
+    // Seed the welcome widget
+    let widgets_dir = app.widgets_dir()?;
     let resource_dir = app.path().resource_dir()?;
     let src = resource_dir.join("default-widgets/welcome");
 
     if src.exists() {
         let dst = widgets_dir.join("welcome");
-        if dst.exists() {
-            fs::remove_dir_all(&dst)?;
+        if !dst.exists() {
+            println!(
+                "Seeding bundled welcome widget from {} to {}",
+                src.display(),
+                dst.display()
+            );
+            copy_welcome_files(&src, &dst)?;
         }
-        println!(
-            "Seeding bundled welcome widget from {} to {}",
-            src.display(),
-            dst.display()
-        );
-        copy_welcome_files(&src, &dst)?;
     }
 
     Ok(())

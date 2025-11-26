@@ -9,7 +9,7 @@ use deskulpt_core::shortcuts::ShortcutsExt;
 use deskulpt_core::states::{CanvasImodeStateExt, LoggingStateExt};
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
-use tauri::{Builder, Manager, generate_context};
+use tauri::{Builder, generate_context};
 
 /// Entry point for the Deskulpt backend.
 pub fn run() {
