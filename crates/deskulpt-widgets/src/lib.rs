@@ -53,14 +53,6 @@ fn seed_welcome_widget_if_needed<R: Runtime>(app: &tauri::AppHandle<R>) -> tauri
     let src = app.path().resource_dir()?.join("default-widgets/welcome");
     let dst = app.widgets_dir()?.join("welcome");
 
-    if !src.exists() {
-        return Ok(());
-    }
-
-    if dst.exists() {
-        fs::remove_dir_all(&dst)?;
-    }
-
     fs::create_dir_all(&dst)?;
     for entry in fs::read_dir(&src)?.filter_map(Result::ok) {
         if entry.file_type().map(|ft| ft.is_file()).unwrap_or(false) {
