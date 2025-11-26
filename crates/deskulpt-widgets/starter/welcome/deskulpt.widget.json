@@ -2,7 +2,5 @@
   "name": "Welcome",
   "entry": "index.tsx",
   "description": "Shown when no widgets are installed",
-  "ignore": true,
-  "defaultWidth": 450,
-  "defaultHeight": 600
+  "ignore": true
 }
