@@ -179,11 +179,7 @@ impl<R: Runtime> WidgetsManager<R> {
         Ok(())
     }
 
-    /// Seed the welcome widget if the user hasn't seen the starter tutorial.
-    ///
-    /// This copies the bundled welcome widget to the widgets directory if:
-    /// - The user hasn't seen the starter tutorial yet
-    /// - The welcome widget doesn't already exist
+    /// Seed the welcome widget.
     pub fn seed_starter_if_needed(&self) -> Result<()> {
         use deskulpt_settings::SettingsExt;
         use tauri::Manager;
