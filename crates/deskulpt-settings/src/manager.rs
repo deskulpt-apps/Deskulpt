@@ -252,6 +252,13 @@ impl<R: Runtime> SettingsManager<R> {
             }
         }
 
+        if let Some(has_seen) = patch.has_seen_starter_tutorial
+            && settings.has_seen_starter_tutorial != has_seen
+        {
+            settings.has_seen_starter_tutorial = has_seen;
+            dirty = true;
+        }
+
         if dirty {
             UpdateEvent(&settings).emit(&self.app_handle)?;
             tasks.push(WorkerTask::Persist);

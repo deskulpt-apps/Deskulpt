@@ -12,6 +12,9 @@
     "macOSPrivateApi": true
   },
   "bundle": {
+    "resources": {
+      "../deskulpt-widgets/starter/welcome": "default-widgets/welcome"
+    },
     "active": true,
     "targets": "all",
     "icon": [

@@ -1,0 +1,5 @@
+{
+  "name": "Welcome",
+  "entry": "index.jsx",
+  "description": "Welcome widget for Deskulpt."
+}

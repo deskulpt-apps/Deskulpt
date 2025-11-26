@@ -178,4 +178,29 @@ impl<R: Runtime> WidgetsManager<R> {
         }
         Ok(())
     }
+
+    /// Seed the welcome widget.
+    pub fn seed_starter_if_needed(&self) -> Result<()> {
+        use deskulpt_settings::SettingsExt;
+        use tauri::Manager;
+
+        if self.app_handle.settings().read().has_seen_starter_tutorial {
+            return Ok(());
+        }
+
+        let src = self
+            .app_handle
+            .path()
+            .resource_dir()?
+            .join("default-widgets/welcome");
+        let dst = self.app_handle.widgets_dir()?.join("welcome");
+
+        if dst.exists() {
+            return Ok(());
+        }
+
+        copy_dir::copy_dir(&src, &dst).map_err(|e| anyhow::anyhow!("{}", e))?;
+
+        Ok(())
+    }
 }
