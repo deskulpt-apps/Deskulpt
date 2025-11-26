@@ -25,6 +25,7 @@ deskulpt_common::bindings::build_bindings!();
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     deskulpt_common::init::init_builder!()
         .setup(|app_handle, _| {
+            app_handle.init_widgets_dir()?;
             seed_welcome_widget_if_needed(app_handle)?;
             app_handle.manage(WidgetsManager::new(app_handle.clone()));
             Ok(())
