@@ -56,7 +56,6 @@ export const useRenderWidgetListener = createSetupTaskHook({
       let moduleCode = report.content
         .replaceAll("__DESKULPT_BASE_URL__", BASE_URL)
         .replaceAll("__DESKULPT_APIS_BLOB_URL__", apisBlobUrl);
-      console.log(moduleCode);
       const moduleBlob = new Blob([moduleCode], {
         type: "application/javascript",
       });
