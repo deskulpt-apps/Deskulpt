@@ -41,8 +41,7 @@ impl SetupState {
         // Set the corresponding bit and retrieve the previous state; we only
         // need AcqRel not SeqCst because we don't care about total ordering
         let prev = self.0.fetch_or(flag.bits(), Ordering::AcqRel);
-        let prev_flags = SetupFlags::from_bits_truncate(prev);
-        let current = prev_flags | flag;
+        let current = SetupFlags::from_bits_truncate(prev) | flag;
         current.is_all()
     }
 }

@@ -198,8 +198,6 @@ impl<R: Runtime> WidgetsManager<R> {
     ///
     /// If all windows have completed setup after this call, an initial refresh
     /// of all widgets is trigger via [`Self::refresh_all`]. This refresh will
-    /// only run once, even if this method is called multiple times.
-    ///
     /// Tauri command: [`crate::commands::complete_setup`].
     pub fn complete_setup(&self, window: WebviewWindow<R>) -> Result<()> {
         let window = window.label().try_into().unwrap();

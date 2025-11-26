@@ -1,6 +1,6 @@
 {
   "name": "Welcome",
   "entry": "index.tsx",
-  "description": "Shown when no widgets are installed",
+  "description": "Tutorial widget for Deskulpt",
   "ignore": true
 }
