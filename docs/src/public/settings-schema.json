@@ -33,7 +33,7 @@
     "hasSeenStarterTutorial": {
       "description": "Whether the starter/welcome tutorial has been seen.",
       "type": "boolean",
-      "default": false
+      "writeOnly": true
     }
   },
   "$defs": {
