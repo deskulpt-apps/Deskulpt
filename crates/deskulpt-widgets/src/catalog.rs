@@ -7,7 +7,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use deskulpt_common::outcome::Outcome;
-use deskulpt_settings::{Settings, SettingsPatch, WidgetSettingsPatch};
+use deskulpt_settings::{Settings, SettingsPatch};
 use serde::{Deserialize, Serialize};
 
 /// The name of the Deskulpt widget manifest file.

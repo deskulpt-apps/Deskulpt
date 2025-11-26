@@ -1,6 +1,5 @@
 {
   "name": "Welcome",
-  "entry": "index.tsx",
-  "description": "Tutorial widget for Deskulpt",
-  "ignore": true
+  "entry": "index.jsx",
+  "description": "Welcome widget for Deskulpt."
 }

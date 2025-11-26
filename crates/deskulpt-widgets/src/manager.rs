@@ -1,12 +1,10 @@
 //! Deskulpt widgets manager and its APIs.
 
-use std::sync::Once;
-
 use anyhow::{Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use deskulpt_core::path::PathExt;
-use deskulpt_settings::{SettingsExt, SettingsPatch};
+use deskulpt_settings::SettingsExt;
 use parking_lot::RwLock;
 use tauri::{AppHandle, Runtime, WebviewWindow};
 
@@ -25,8 +23,6 @@ pub struct WidgetsManager<R: Runtime> {
     render_worker: RenderWorkerHandle,
     /// The setup state for frontend windows.
     setup_state: SetupState,
-    /// Ensures the initial refresh only runs once.
-    refresh_once: Once,
 }
 
 impl<R: Runtime> WidgetsManager<R> {
@@ -43,7 +39,6 @@ impl<R: Runtime> WidgetsManager<R> {
             catalog: Default::default(),
             render_worker,
             setup_state: Default::default(),
-            refresh_once: Once::new(),
         }
     }
 
@@ -58,22 +53,6 @@ impl<R: Runtime> WidgetsManager<R> {
         let manifest = WidgetManifest::load(&widget_dir);
 
         let mut catalog = self.catalog.write();
-        let has_seen = self.app_handle.settings().read().has_seen_starter_tutorial;
-        if id == "welcome" {
-            if has_seen {
-                catalog.0.remove(id);
-                UpdateEvent(&catalog).emit(&self.app_handle)?;
-                self.app_handle
-                    .settings()
-                    .update_with(|settings| catalog.compute_settings_patch(settings))?;
-                return Ok(());
-            } else {
-                self.app_handle.settings().update_with(|_| SettingsPatch {
-                    has_seen_starter_tutorial: Some(true),
-                    ..Default::default()
-                })?;
-            }
-        }
         if let Some(manifest) = manifest.transpose() {
             catalog.0.insert(id.to_string(), manifest.into());
         } else {
@@ -94,16 +73,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// updated catalog. If any step fails, an error is returned.
     pub fn reload_all(&self) -> Result<()> {
         let widgets_dir = self.app_handle.widgets_dir()?;
-        let mut new_catalog = WidgetCatalog::load(widgets_dir)?;
-        let has_seen = self.app_handle.settings().read().has_seen_starter_tutorial;
-        if has_seen {
-            new_catalog.0.remove("welcome");
-        } else if new_catalog.0.contains_key("welcome") {
-            self.app_handle.settings().update_with(|_| SettingsPatch {
-                has_seen_starter_tutorial: Some(true),
-                ..Default::default()
-            })?;
-        }
+        let new_catalog = WidgetCatalog::load(widgets_dir)?;
 
         let mut catalog = self.catalog.write();
         *catalog = new_catalog;
@@ -197,16 +167,44 @@ impl<R: Runtime> WidgetsManager<R> {
     /// Mark a window as having completed setup.
     ///
     /// If all windows have completed setup after this call, an initial refresh
-    /// of all widgets is trigger via [`Self::refresh_all`]. This refresh will
+    /// of all widgets is trigger via [`Self::refresh_all`].
+    ///
     /// Tauri command: [`crate::commands::complete_setup`].
     pub fn complete_setup(&self, window: WebviewWindow<R>) -> Result<()> {
         let window = window.label().try_into().unwrap();
         let complete = self.setup_state.complete(window);
         if complete {
-            self.refresh_once.call_once(|| {
-                let _ = self.refresh_all();
-            });
+            self.refresh_all()?;
         }
+        Ok(())
+    }
+
+    /// Seed the welcome widget if the user hasn't seen the starter tutorial.
+    ///
+    /// This copies the bundled welcome widget to the widgets directory if:
+    /// - The user hasn't seen the starter tutorial yet
+    /// - The welcome widget doesn't already exist
+    pub fn seed_starter_if_needed(&self) -> Result<()> {
+        use deskulpt_settings::SettingsExt;
+        use tauri::Manager;
+
+        if self.app_handle.settings().read().has_seen_starter_tutorial {
+            return Ok(());
+        }
+
+        let src = self
+            .app_handle
+            .path()
+            .resource_dir()?
+            .join("default-widgets/welcome");
+        let dst = self.app_handle.widgets_dir()?.join("welcome");
+
+        if dst.exists() {
+            return Ok(());
+        }
+
+        copy_dir::copy_dir(&src, &dst).map_err(|e| anyhow::anyhow!("{}", e))?;
+
         Ok(())
     }
 }
