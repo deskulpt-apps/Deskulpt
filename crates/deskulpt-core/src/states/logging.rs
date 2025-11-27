@@ -106,20 +106,17 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
             .skip(1)
             .filter_map(|file| {
                 let size = file.metadata().ok().map(|m| m.len());
-                if let Ok(_) = std::fs::remove_file(file) {
-                    size
-                } else {
-                    None
-                }
+                std::fs::remove_file(file).ok().and(size)
             })
             .sum();
 
         if let Some(latest_file) = log_files.first() {
             let size = latest_file.metadata()?.len();
-            if let Ok(_) = std::fs::OpenOptions::new()
+            if std::fs::OpenOptions::new()
                 .write(true)
                 .truncate(true)
                 .open(latest_file)
+                .is_ok()
             {
                 total_size += size;
             }

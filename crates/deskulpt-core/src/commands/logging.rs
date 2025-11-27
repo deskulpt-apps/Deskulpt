@@ -229,7 +229,7 @@ fn scan_file_for_matches(
                     let line_bytes = std::mem::take(&mut current_line_rev);
 
                     if let Some(entry) = LogEntry::from_bytes(&line_bytes)
-                        && entry.meets_min_level(&min_level)
+                        && entry.meets_min_level(min_level)
                     {
                         matches.push(entry);
                         if matches.len() >= limit_remaining {
@@ -254,7 +254,7 @@ fn scan_file_for_matches(
         let line_bytes = std::mem::take(&mut current_line_rev);
 
         if let Some(entry) = LogEntry::from_bytes(&line_bytes)
-            && entry.meets_min_level(&min_level)
+            && entry.meets_min_level(min_level)
         {
             matches.push(entry);
         }
@@ -308,7 +308,7 @@ pub async fn fetch_logs<R: Runtime>(
         }
 
         let (mut file_entries, cursor_in_file) = scan_file_for_matches(
-            &path,
+            path,
             effective_end,
             limit - entries.len(),
             &min_level,
