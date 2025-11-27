@@ -18,9 +18,12 @@ import { css } from "@emotion/react";
 import { deskulptSettings } from "@deskulpt/bindings";
 
 const styles = {
-  wrapper: css({
-    "&:hover": { ".handle": { opacity: 1 } },
-  }),
+  wrapper: (isHovered: boolean) =>
+    css({
+      "&:hover": { ".handle": { opacity: 1 } },
+      border: isHovered ? "2px solid var(--accent-9)" : "none",
+      borderRadius: isHovered ? "4px" : "0",
+    }),
   handle: css({
     cursor: "grab",
     opacity: 0,
@@ -78,6 +81,7 @@ function computeResizedGeometry(
 const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
   const draggableRef = useRef<HTMLDivElement>(null);
   const resizeStartRef = useRef<WidgetGeometry>(null);
+  const [isHovered, setIsHovered] = useState(false);
 
   // This non-null assertion is safe because the IDs are obtained from the keys
   // of the widgets store
@@ -97,6 +101,12 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
           height: settings.height,
         },
   );
+
+  useEffect(() => {
+    // This effect ensures the border highlight is applied when hover state changes
+    // The actual styling is handled via CSS-in-JS, but this can be used for
+    // additional side effects if needed (e.g., analytics, logging)
+  }, [isHovered]);
 
   useEffect(() => {
     if (settings === undefined) {
@@ -183,7 +193,9 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
         ref={draggableRef}
         overflow="hidden"
         position="absolute"
-        css={styles.wrapper}
+        css={styles.wrapper(isHovered)}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
       >
         <Box
           className="handle"
