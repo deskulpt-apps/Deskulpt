@@ -78,6 +78,13 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
         Ok(())
     }
 
+    /// Discover log files and return their paths by newest first.
+    ///
+    /// This looks for log files in the logs directory with names matching the
+    /// pattern `deskulpt.*.log`, where `*` should be a timestamp though this is
+    /// not verified here. The returned list is sorted by filename in descending
+    /// order, which should correspond to most recent first if the `*`s are
+    /// indeed timestamps.
     fn collect_logs(&self) -> Result<Vec<PathBuf>> {
         let logs_dir = self.logs_dir()?;
 
@@ -98,6 +105,16 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
         Ok(files)
     }
 
+    /// Clear all log files and return the freed disk space in bytes.
+    ///
+    /// The latest log file is truncated instead of deleted to ensure that
+    /// logging can continue without interruption. All older log files are
+    /// deleted. The total freed disk space is returned.
+    ///
+    /// Note that failure to delete or truncate a log file will not result in an
+    /// error, but will not contribute to the computed freed space. Failure to
+    /// discover the log files in the first place (before actual clearing
+    /// begins), however, willl result in an error.
     fn clear_logs(&self) -> Result<u64> {
         let log_files = self.collect_logs()?;
 
@@ -111,7 +128,7 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
             .sum();
 
         if let Some(latest_file) = log_files.first() {
-            let size = latest_file.metadata()?.len();
+            let size = latest_file.metadata().map(|m| m.len()).unwrap_or(0);
             if std::fs::OpenOptions::new()
                 .write(true)
                 .truncate(true)

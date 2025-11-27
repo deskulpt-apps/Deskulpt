@@ -84,6 +84,10 @@ pub struct LogEntry {
 }
 
 impl LogEntry {
+    /// Parse a log entry from bytes.
+    ///
+    /// If the bytes cannot be parsed as valid JSON or required log fields are
+    /// missing, this returns `None`.
     fn from_bytes(bytes: &[u8]) -> Option<Self> {
         let raw: serde_json::Value = serde_json::from_slice(bytes).ok()?;
 
@@ -99,6 +103,7 @@ impl LogEntry {
         })
     }
 
+    /// Check if the log entry meets the minimum logging level.
     fn meets_min_level(&self, min_level: &LoggingLevel) -> bool {
         let min_level = match min_level {
             LoggingLevel::Trace => tracing::Level::TRACE,
@@ -201,6 +206,17 @@ fn resolve_initial_position(
     }
 }
 
+/// Scan a log file backwards for matching log entries.
+///
+/// This reads the file in blocks from the given end offset towards the start,
+/// extracting log entries that meet the minimum logging level until either
+/// the start of the file is reached or the limit of remaining entries is met.
+/// The buffer `buf` is used for reading file data and should be at least
+/// [`BLOCK_SIZE`] bytes in length.
+///
+/// This function returns a vector of matching [`LogEntry`]s and an optional
+/// byte offset indicating where to continue scanning in the next call. If the
+/// entire file has been scanned, the offset is `None`.
 fn scan_file_for_matches(
     path: &Path,
     mut end_offset: u64,
@@ -210,6 +226,9 @@ fn scan_file_for_matches(
 ) -> Result<(Vec<LogEntry>, Option<u64>)> {
     let mut file = File::open(path)?;
     let mut matches = vec![];
+
+    // Buffer to accumulate bytes for the current line, but because we read
+    // backwards the bytes would be in reverse order
     let mut current_line_rev = vec![];
 
     while end_offset > 0 && matches.len() < limit_remaining {
@@ -225,6 +244,9 @@ fn scan_file_for_matches(
 
             if byte == b'\n' {
                 if !current_line_rev.is_empty() {
+                    // Reverse the accumulated line bytes to the correct order;
+                    // we don't need to care about CR because trailing CR is
+                    // still acceptable JSON
                     current_line_rev.reverse();
                     let line_bytes = std::mem::take(&mut current_line_rev);
 
@@ -233,6 +255,9 @@ fn scan_file_for_matches(
                     {
                         matches.push(entry);
                         if matches.len() >= limit_remaining {
+                            // `abs_pos` is the position of the newline before
+                            // this processed line, so the next read should
+                            // start (backwards) from there
                             return Ok((matches, Some(abs_pos)));
                         }
                     }
@@ -242,13 +267,16 @@ fn scan_file_for_matches(
             }
 
             if abs_pos == 0 {
-                break;
+                break; // Reached the start of the file
             }
         }
 
         end_offset = block_start;
     }
 
+    // When we reach offset 0 and break out of the loop, the very first line of
+    // the file may still be pending processing because it typically won't have
+    // a preceding newline character
     if end_offset == 0 && !current_line_rev.is_empty() && matches.len() < limit_remaining {
         current_line_rev.reverse();
         let line_bytes = std::mem::take(&mut current_line_rev);
@@ -260,9 +288,23 @@ fn scan_file_for_matches(
         }
     }
 
-    Ok((matches, None))
+    Ok((matches, None)) // Entire file scanned without exceeding limit
 }
 
+/// Fetch a page of log entries.
+///
+/// The limit specifies the maximum number of log entries to retrieve and must
+/// be strictly positive. The cursor is for pagination. The first call should
+/// pass `None` for the cursor to start from the newest log entries, and
+/// subsequent calls should use the cursor returned from the previous call to
+/// fetch older entries. `min_level` filters log entries to only those at or
+/// above the specified logging level (ordered by severity).
+///
+/// ### Errors
+///
+/// - The limit is zero.
+/// - Failed to retrieve metadata of log files.
+/// - Failed to read log files.
 #[command]
 #[specta::specta]
 pub async fn fetch_logs<R: Runtime>(
@@ -271,14 +313,7 @@ pub async fn fetch_logs<R: Runtime>(
     cursor: Option<LogCursor>,
     min_level: LoggingLevel,
 ) -> SerResult<LogPage> {
-    if limit == 0 {
-        let has_more = cursor.is_some();
-        return Ok(LogPage {
-            entries: Vec::new(),
-            cursor,
-            has_more,
-        });
-    }
+    assert!(limit > 0, "Limit must be strictly positive");
 
     let files = app_handle.collect_logs()?;
     if files.is_empty() {
@@ -290,18 +325,21 @@ pub async fn fetch_logs<R: Runtime>(
     }
 
     let mut entries = vec![];
-    let mut scan_buf = vec![0u8; BLOCK_SIZE as usize];
+    let mut scan_buf = vec![0u8; BLOCK_SIZE as usize]; // Reusable buffer
     let mut position = resolve_initial_position(&files, &cursor)?;
 
     while let Some((file_idx, end_offset)) = position {
         if entries.len() >= limit {
-            break;
+            break; // Reached the requested limit
         }
 
         let path = &files[file_idx];
         let file_len = path.metadata()?.len();
-        let effective_end = end_offset.min(file_len);
 
+        // Sanity checks that we don't read past the end of file (if cursor is
+        // somehow beyond file length), and we automatically move to the next
+        // file if the cursor is already at 0
+        let effective_end = end_offset.min(file_len);
         if effective_end == 0 {
             position = find_next_nonempty_file(&files, file_idx + 1)?;
             continue;
@@ -318,6 +356,8 @@ pub async fn fetch_logs<R: Runtime>(
         entries.append(&mut file_entries);
 
         if let Some(next_offset) = cursor_in_file {
+            // We have filled the quota while still within this file, so we
+            // return a cursor pointing to where we left off
             let next_cursor = LogCursor {
                 path: path.clone(),
                 offset: next_offset,
@@ -329,9 +369,13 @@ pub async fn fetch_logs<R: Runtime>(
             });
         }
 
+        // Finished scanning this file without reaching quota, move to the next
+        // and loop again
         position = find_next_nonempty_file(&files, file_idx + 1)?;
     }
 
+    // We ran out of files or reached the limit, either case we declare no more
+    // further entries
     Ok(LogPage {
         entries,
         cursor: None,
@@ -339,6 +383,11 @@ pub async fn fetch_logs<R: Runtime>(
     })
 }
 
+/// Clear all log files and return the freed disk space in bytes.
+///
+/// ### Errors
+///
+/// - Error discovering log files.
 #[command]
 #[specta::specta]
 pub async fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<u64> {
