@@ -1,39 +1,28 @@
-use std::collections::VecDeque;
 use std::fs::File;
-use std::io::{BufRead, BufReader};
-use std::path::PathBuf;
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::io::{Read, Seek, SeekFrom};
+use std::path::{Path, PathBuf};
+use std::str::FromStr;
 
-use deskulpt_common::{SerResult, ser_bail};
+use anyhow::Result;
+use deskulpt_common::SerResult;
 use serde::{Deserialize, Serialize};
 use tauri::{AppHandle, Runtime, WebviewWindow, command};
-use tracing::{debug, error, info, instrument, trace, warn};
+use tracing::{debug, error, info, trace, warn};
 
-use crate::path::PathExt;
+use crate::states::LoggingStateExt;
 
-/// Metadata describing a log file on disk.
-#[derive(Debug, Serialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-#[allow(dead_code)]
-pub struct LogFileInfo {
-    pub name: String,
-    pub size: u32,
-    pub modified: String,
-}
+/// Size of each log block to read.
+///
+/// This is set to 16 KiB to balance between performance and memory usage.
+/// Larger blocks reduce the number of read operations but increase memory
+/// consumption.
+const BLOCK_SIZE: u64 = 1 << 14;
 
-/// A single parsed log entry.
-#[derive(Debug, Serialize, specta::Type)]
-#[serde(rename_all = "camelCase")]
-pub struct LogEntry {
-    pub timestamp: String,
-    pub level: String,
-    pub message: String,
-    pub fields: Option<String>,
-}
-
-/// Log levels accepted from the frontend.
+/// Logging levels supported.
+///
+/// They correspond to the [`tracing::Level`] variants.
 #[derive(Debug, Deserialize, specta::Type)]
-#[serde(rename_all = "lowercase")]
+#[serde(rename_all = "camelCase")]
 pub enum LoggingLevel {
     Trace,
     Debug,
@@ -42,6 +31,95 @@ pub enum LoggingLevel {
     Error,
 }
 
+impl From<LoggingLevel> for tracing::Level {
+    fn from(level: LoggingLevel) -> Self {
+        match level {
+            LoggingLevel::Trace => tracing::Level::TRACE,
+            LoggingLevel::Debug => tracing::Level::DEBUG,
+            LoggingLevel::Info => tracing::Level::INFO,
+            LoggingLevel::Warn => tracing::Level::WARN,
+            LoggingLevel::Error => tracing::Level::ERROR,
+        }
+    }
+}
+
+/// A page of log entries.
+#[derive(Debug, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct LogPage {
+    /// Log entries in reverse chronological order, i.e., newest first.
+    pub entries: Vec<LogEntry>,
+    /// Cursor for fetching the next page of older log entries.
+    pub cursor: Option<LogCursor>,
+    /// Whether there are more log entries available beyond this page.
+    pub has_more: bool,
+}
+
+/// Cursor for log pagination.
+#[derive(Debug, Deserialize, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct LogCursor {
+    /// The rotating log file path.
+    pub path: PathBuf,
+    /// The byte offset within the log file.
+    ///
+    /// If offset is non-zero, there is older data in this file in [0, offset).
+    /// If offset is zero, this file is fully consumed and the next older
+    /// non-empty file should be read.
+    pub offset: u64,
+}
+
+/// A single log entry.
+#[derive(Debug, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
+pub struct LogEntry {
+    /// Timestamp of the log entry in RFC 3339 format.
+    pub timestamp: String,
+    /// The logging level, all capitals.
+    pub level: String,
+    /// The log message.
+    pub message: String,
+    /// The raw JSON representation of the log entry.
+    pub raw: serde_json::Value,
+}
+
+impl LogEntry {
+    fn from_bytes(bytes: &[u8]) -> Option<Self> {
+        let raw: serde_json::Value = serde_json::from_slice(bytes).ok()?;
+
+        let timestamp = raw.get("timestamp")?.as_str()?.to_string();
+        let level = raw.get("level")?.as_str()?.to_string();
+        let message = raw.get("message")?.as_str()?.to_string();
+
+        Some(Self {
+            timestamp,
+            level,
+            message,
+            raw,
+        })
+    }
+
+    fn meets_min_level(&self, min_level: &LoggingLevel) -> bool {
+        let min_level = match min_level {
+            LoggingLevel::Trace => tracing::Level::TRACE,
+            LoggingLevel::Debug => tracing::Level::DEBUG,
+            LoggingLevel::Info => tracing::Level::INFO,
+            LoggingLevel::Warn => tracing::Level::WARN,
+            LoggingLevel::Error => tracing::Level::ERROR,
+        };
+
+        match tracing::Level::from_str(&self.level) {
+            // Tracing levels are ordered by verbosity but we order by severity
+            Ok(self_level) => self_level <= min_level,
+            Err(_) => false,
+        }
+    }
+}
+
+/// Log a message at the specified level from the frontend.
+///
+/// Optional metadata can be provided as a JSON value. If no metadata is needed,
+/// pass null.
 #[command]
 #[specta::specta]
 pub async fn log<R: Runtime>(
@@ -70,184 +148,200 @@ pub async fn log<R: Runtime>(
     Ok(())
 }
 
-#[command]
-#[specta::specta]
-#[instrument(skip(app_handle))]
-pub async fn list_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Vec<LogFileInfo>> {
-    let mut files: Vec<_> = collect_log_files(&app_handle)?
-        .into_iter()
-        .filter_map(|(path, metadata)| {
-            let modified = metadata.modified().unwrap_or(SystemTime::UNIX_EPOCH);
-            let name = path.file_name()?.to_string_lossy().into_owned();
-            Some((
-                modified,
-                LogFileInfo {
-                    name,
-                    size: metadata.len().try_into().unwrap_or(u32::MAX),
-                    modified: format_system_time(modified),
-                },
-            ))
-        })
-        .collect();
-
-    files.sort_by(|a, b| b.0.cmp(&a.0));
-    Ok(files.into_iter().map(|(_, info)| info).collect())
-}
-
-#[command]
-#[specta::specta]
-#[instrument(skip(app_handle))]
-pub async fn read_log<R: Runtime>(
-    app_handle: AppHandle<R>,
-    filename: String,
-    limit: u32,
-) -> SerResult<Vec<LogEntry>> {
-    ensure_single_component(&filename)?;
-
-    let limit = limit.max(1) as usize;
-    let logs_dir = app_handle.logs_dir()?;
-    let path = logs_dir.join(&filename);
-    let file = match File::open(&path) {
-        Ok(file) => file,
-        Err(e) => {
-            error!(error = ?e, path = %path.display(), "Failed to open log file");
-            return Err(e.into());
-        },
-    };
-    let reader = BufReader::new(file);
-
-    let mut buffer = VecDeque::with_capacity(limit);
-    for line in reader.lines() {
-        let line = match line {
-            Ok(line) => line,
-            Err(e) => {
-                error!(error = ?e, path = %path.display(), "Failed to read line from log file");
-                continue;
-            },
-        };
-        if buffer.len() >= limit {
-            buffer.pop_front();
+/// Find the next non-empty log file starting from the given index.
+///
+/// If found, this returns `Ok(Some(...))` with the index in the given files
+/// list and the length of the found file. If no non-empty file is found, this
+/// returns `Ok(None)`. If any error occurs during file metadata retrieval, it
+/// an error.
+fn find_next_nonempty_file(files: &[PathBuf], start_idx: usize) -> Result<Option<(usize, u64)>> {
+    let mut idx = start_idx;
+    while idx < files.len() {
+        let len = files[idx].metadata()?.len();
+        if len > 0 {
+            return Ok(Some((idx, len)));
         }
-        buffer.push_back(line);
+        idx += 1;
     }
-
-    Ok(buffer
-        .into_iter()
-        .filter_map(|line| parse_entry(&line))
-        .collect())
+    Ok(None)
 }
 
-#[command]
-#[specta::specta]
-#[instrument(skip(app_handle))]
-pub async fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
-    for (path, _) in collect_log_files(&app_handle)? {
-        if let Err(e) = std::fs::remove_file(&path) {
-            error!(error = ?e, path = %path.display(), "Failed to remove log file");
-        }
-    }
-    Ok(())
-}
-
-#[command]
-#[specta::specta]
-#[instrument(skip(app_handle))]
-pub async fn open_logs_dir<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
-    let logs_dir = app_handle.logs_dir()?;
-    open::that_detached(logs_dir)?;
-    Ok(())
-}
-
-fn parse_entry(line: &str) -> Option<LogEntry> {
-    let value: serde_json::Value = match serde_json::from_str(line) {
-        Ok(value) => value,
-        Err(e) => {
-            warn!(error = ?e, "Failed to parse log entry line");
-            return None;
-        },
-    };
-
-    let get_str = |key: &str| {
-        value
-            .get(key)
-            .and_then(|v| v.as_str())
-            .unwrap_or_default()
-            .to_string()
-    };
-
-    let timestamp = get_str("timestamp");
-    let level = get_str("level");
-    let message = get_str("message");
-
-    let fields = value.as_object().and_then(|object| {
-        let mut rest = serde_json::Map::new();
-        for (key, val) in object {
-            if matches!(key.as_str(), "timestamp" | "level" | "message") {
-                continue;
+/// Figure out where to start reading logs.
+///
+/// If no cursor is provided, this finds the newest non-empty log file. If a
+/// cursor is provided, it locates the specified file and offset. If the offset
+/// is zero, it finds the next non-empty file after that one.
+///
+/// If no suitable starting position is found, this returns `Ok(None)`, meaning
+/// there are no logs to read. Otherwise, it returns `Ok(Some(...))` with the
+/// file index and offset within that file. If any error occurs during the
+/// process, it returns an error.
+fn resolve_initial_position(
+    files: &[PathBuf],
+    cursor: &Option<LogCursor>,
+) -> Result<Option<(usize, u64)>> {
+    match cursor {
+        None => find_next_nonempty_file(files, 0),
+        Some(c) => {
+            let mut found_idx = None;
+            for (i, p) in files.iter().enumerate() {
+                if p == &c.path {
+                    found_idx = Some(i);
+                    break;
+                }
             }
-            rest.insert(key.clone(), val.clone());
-        }
-        if rest.is_empty() {
-            None
-        } else {
-            serde_json::to_string(&rest).ok()
-        }
-    });
 
-    Some(LogEntry {
-        timestamp,
-        level,
-        message,
-        fields,
+            let idx = found_idx.unwrap_or(0);
+            if c.offset > 0 {
+                Ok(Some((idx, c.offset)))
+            } else {
+                find_next_nonempty_file(files, idx + 1)
+            }
+        },
+    }
+}
+
+fn scan_file_for_matches(
+    path: &Path,
+    mut end_offset: u64,
+    limit_remaining: usize,
+    min_level: &LoggingLevel,
+    buf: &mut [u8],
+) -> Result<(Vec<LogEntry>, Option<u64>)> {
+    let mut file = File::open(path)?;
+    let mut matches = vec![];
+    let mut current_line_rev = vec![];
+
+    while end_offset > 0 && matches.len() < limit_remaining {
+        let block_start = end_offset.saturating_sub(BLOCK_SIZE);
+        let block_len = (end_offset - block_start) as usize;
+
+        file.seek(SeekFrom::Start(block_start))?;
+        file.read_exact(&mut buf[..block_len])?;
+
+        for i in (0..block_len).rev() {
+            let byte = buf[i];
+            let abs_pos = block_start + i as u64;
+
+            if byte == b'\n' {
+                if !current_line_rev.is_empty() {
+                    current_line_rev.reverse();
+                    let line_bytes = std::mem::take(&mut current_line_rev);
+
+                    if let Some(entry) = LogEntry::from_bytes(&line_bytes)
+                        && entry.meets_min_level(&min_level)
+                    {
+                        matches.push(entry);
+                        if matches.len() >= limit_remaining {
+                            return Ok((matches, Some(abs_pos)));
+                        }
+                    }
+                }
+            } else {
+                current_line_rev.push(byte);
+            }
+
+            if abs_pos == 0 {
+                break;
+            }
+        }
+
+        end_offset = block_start;
+    }
+
+    if end_offset == 0 && !current_line_rev.is_empty() && matches.len() < limit_remaining {
+        current_line_rev.reverse();
+        let line_bytes = std::mem::take(&mut current_line_rev);
+
+        if let Some(entry) = LogEntry::from_bytes(&line_bytes)
+            && entry.meets_min_level(&min_level)
+        {
+            matches.push(entry);
+        }
+    }
+
+    Ok((matches, None))
+}
+
+#[command]
+#[specta::specta]
+pub async fn fetch_logs<R: Runtime>(
+    app_handle: AppHandle<R>,
+    limit: usize,
+    cursor: Option<LogCursor>,
+    min_level: LoggingLevel,
+) -> SerResult<LogPage> {
+    if limit == 0 {
+        let has_more = cursor.is_some();
+        return Ok(LogPage {
+            entries: Vec::new(),
+            cursor,
+            has_more,
+        });
+    }
+
+    let files = app_handle.collect_logs()?;
+    if files.is_empty() {
+        return Ok(LogPage {
+            entries: Vec::new(),
+            cursor: None,
+            has_more: false,
+        });
+    }
+
+    let mut entries = vec![];
+    let mut scan_buf = vec![0u8; BLOCK_SIZE as usize];
+    let mut position = resolve_initial_position(&files, &cursor)?;
+
+    while let Some((file_idx, end_offset)) = position {
+        if entries.len() >= limit {
+            break;
+        }
+
+        let path = &files[file_idx];
+        let file_len = path.metadata()?.len();
+        let effective_end = end_offset.min(file_len);
+
+        if effective_end == 0 {
+            position = find_next_nonempty_file(&files, file_idx + 1)?;
+            continue;
+        }
+
+        let (mut file_entries, cursor_in_file) = scan_file_for_matches(
+            &path,
+            effective_end,
+            limit - entries.len(),
+            &min_level,
+            &mut scan_buf,
+        )?;
+
+        entries.append(&mut file_entries);
+
+        if let Some(next_offset) = cursor_in_file {
+            let next_cursor = LogCursor {
+                path: path.clone(),
+                offset: next_offset,
+            };
+            return Ok(LogPage {
+                entries,
+                cursor: Some(next_cursor),
+                has_more: true,
+            });
+        }
+
+        position = find_next_nonempty_file(&files, file_idx + 1)?;
+    }
+
+    Ok(LogPage {
+        entries,
+        cursor: None,
+        has_more: false,
     })
 }
 
-fn ensure_single_component(filename: &str) -> SerResult<()> {
-    if filename.is_empty() || filename.contains(['/', '\\']) {
-        ser_bail!("Invalid log file name");
-    }
-    Ok(())
-}
-
-fn collect_log_files<R: Runtime>(
-    app_handle: &AppHandle<R>,
-) -> SerResult<Vec<(PathBuf, std::fs::Metadata)>> {
-    let logs_dir = app_handle.logs_dir()?;
-    let entries = match std::fs::read_dir(logs_dir) {
-        Ok(entries) => entries,
-        Err(e) => {
-            error!(error = ?e, directory = %logs_dir.display(), "Failed to read logs directory");
-            return Err(e.into());
-        },
-    };
-
-    let mut files = Vec::new();
-    for entry in entries {
-        let entry = match entry {
-            Ok(entry) => entry,
-            Err(e) => {
-                error!(error = ?e, "Failed to read directory entry");
-                continue;
-            },
-        };
-        let metadata = match entry.metadata() {
-            Ok(metadata) => metadata,
-            Err(e) => {
-                error!(error = ?e, path = %entry.path().display(), "Failed to read entry metadata");
-                continue;
-            },
-        };
-        if metadata.is_file() {
-            files.push((entry.path(), metadata));
-        }
-    }
-
-    Ok(files)
-}
-
-fn format_system_time(time: SystemTime) -> String {
-    match time.duration_since(UNIX_EPOCH) {
-        Ok(duration) => duration.as_secs().to_string(),
-        Err(_) => "0".into(),
-    }
+#[command]
+#[specta::specta]
+pub async fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<u64> {
+    let cleared_size = app_handle.clear_logs()?;
+    Ok(cleared_size)
 }

@@ -17,7 +17,7 @@ const Header = memo(({ id }: HeaderProps) => {
   }, [id]);
 
   const openAction = useCallback(() => {
-    deskulptCore.commands.openWidget(id).catch(logger.error);
+    deskulptCore.commands.open({ widget: id }).catch(logger.error);
   }, [id]);
 
   return (

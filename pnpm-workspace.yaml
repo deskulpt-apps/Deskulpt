@@ -8,6 +8,7 @@ catalog:
   "@rollup/plugin-replace": ^6.0.3
   "@rollup/plugin-terser": ^0.4.4
   "@rollup/plugin-typescript": ^12.3.0
+  "@tanstack/react-virtual": ^3.13.12
   "@tauri-apps/api": ^2.9.0
   "@tauri-apps/cli": ^2.9.4
   "@tauri-apps/plugin-clipboard-manager": ^2.3.2

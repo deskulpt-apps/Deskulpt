@@ -1,5 +1,7 @@
 //! State management for logging.
 
+use std::path::PathBuf;
+
 use anyhow::Result;
 use tauri::{App, AppHandle, Manager, Runtime};
 use tracing::Level;
@@ -74,6 +76,56 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
 
         self.manage(LoggingState { _guard: guard });
         Ok(())
+    }
+
+    fn collect_logs(&self) -> Result<Vec<PathBuf>> {
+        let logs_dir = self.logs_dir()?;
+
+        let mut files = std::fs::read_dir(logs_dir)?
+            .filter_map(|entry| {
+                let entry = entry.ok()?;
+                let path = entry.path();
+                let name = path.file_name()?.to_string_lossy();
+                if name.starts_with("deskulpt.") && name.ends_with(".log") {
+                    Some(path)
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        files.sort_by(|a, b| b.file_name().cmp(&a.file_name()));
+        Ok(files)
+    }
+
+    fn clear_logs(&self) -> Result<u64> {
+        let log_files = self.collect_logs()?;
+
+        let mut total_size: u64 = log_files
+            .iter()
+            .skip(1)
+            .filter_map(|file| {
+                let size = file.metadata().ok().map(|m| m.len());
+                if let Ok(_) = std::fs::remove_file(file) {
+                    size
+                } else {
+                    None
+                }
+            })
+            .sum();
+
+        if let Some(latest_file) = log_files.first() {
+            let size = latest_file.metadata()?.len();
+            if let Ok(_) = std::fs::OpenOptions::new()
+                .write(true)
+                .truncate(true)
+                .open(latest_file)
+            {
+                total_size += size;
+            }
+        }
+
+        Ok(total_size)
     }
 }
 

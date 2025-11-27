@@ -10,7 +10,7 @@ const GlobalActions = memo(() => {
   }, []);
 
   const openAction = useCallback(() => {
-    deskulptCore.commands.openWidget(null).catch(logger.error);
+    deskulptCore.commands.open("widgets").catch(logger.error);
   }, []);
 
   return (

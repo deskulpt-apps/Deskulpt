@@ -23,19 +23,83 @@ export type DeskulptWindow =
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key in string]: JsonValue }
 
 /**
- * A single parsed log entry.
+ * Cursor for log pagination.
  */
-export type LogEntry = { timestamp: string; level: string; message: string; fields: string | null }
+export type LogCursor = { 
+/**
+ * The rotating log file path.
+ */
+path: string; 
+/**
+ * The byte offset within the log file.
+ * 
+ * If offset is non-zero, there is older data in this file in [0, offset).
+ * If offset is zero, this file is fully consumed and the next older
+ * non-empty file should be read.
+ */
+offset: number }
 
 /**
- * Metadata describing a log file on disk.
+ * A single log entry.
  */
-export type LogFileInfo = { name: string; size: number; modified: string }
+export type LogEntry = { 
+/**
+ * Timestamp of the log entry in RFC 3339 format.
+ */
+timestamp: string; 
+/**
+ * The logging level, all capitals.
+ */
+level: string; 
+/**
+ * The log message.
+ */
+message: string; 
+/**
+ * The raw JSON representation of the log entry.
+ */
+raw: JsonValue }
 
 /**
- * Log levels accepted from the frontend.
+ * A page of log entries.
+ */
+export type LogPage = { 
+/**
+ * Log entries in reverse chronological order, i.e., newest first.
+ */
+entries: LogEntry[]; 
+/**
+ * Cursor for fetching the next page of older log entries.
+ */
+cursor: LogCursor | null; 
+/**
+ * Whether there are more log entries available beyond this page.
+ */
+hasMore: boolean }
+
+/**
+ * Logging levels supported.
+ * 
+ * They correspond to the [`tracing::Level`] variants.
  */
 export type LoggingLevel = "trace" | "debug" | "info" | "warn" | "error"
+
+/**
+ * The target to open.
+ */
+export type OpenTarget = 
+/**
+ * The widgets base directory.
+ */
+"widgets" | 
+/**
+ * A specific widget directory by its ID.
+ */
+{ widget: string } | 
+/**
+ * The logs directory.
+ */
+"logs"
 
 /**
  * Event for showing a toast notification.
@@ -110,28 +174,26 @@ export const commands = {
     payload,
   }),
 
-  /**
-   * Open the widgets directory or a specific widget directory.
-   * 
-   * If the widget ID is provided, a specific widget directory will be opened.
-   * Otherwise, the widgets directory will be opened.
-   * 
-   * ### Errors
-   * 
-   * - Widget ID is provided but does not exist in the collection.
-   * - Failed to access the widgets directory.
-   * - Error opening the directory.
-   */
-  openWidget: (
-    id: string | null,
-  ) => invoke<null>("plugin:deskulpt-core|open_widget", {
-    id,
+
+  clearLogs: () => invoke<number>("plugin:deskulpt-core|clear_logs"),
+
+
+  fetchLogs: (
+    limit: number,
+    cursor: LogCursor | null,
+    minLevel: LoggingLevel,
+  ) => invoke<LogPage>("plugin:deskulpt-core|fetch_logs", {
+    limit,
+    cursor,
+    minLevel,
   }),
 
-
-  openLogsDir: () => invoke<null>("plugin:deskulpt-core|open_logs_dir"),
-
-
+  /**
+   * Log a message at the specified level from the frontend.
+   * 
+   * Optional metadata can be provided as a JSON value. If no metadata is needed,
+   * pass null.
+   */
   log: (
     level: LoggingLevel,
     message: string,
@@ -142,18 +204,19 @@ export const commands = {
     meta,
   }),
 
-
-  listLogs: () => invoke<LogFileInfo[]>("plugin:deskulpt-core|list_logs"),
-
-
-  readLog: (
-    filename: string,
-    limit: number,
-  ) => invoke<LogEntry[]>("plugin:deskulpt-core|read_log", {
-    filename,
-    limit,
+  /**
+   * Open a specified target with the system's default application.
+   * 
+   * See [`OpenTarget`] for more details.
+   * 
+   * ### Errors
+   * 
+   * - Error accessing the specified target.
+   * - Error opening the target.
+   */
+  open: (
+    target: OpenTarget,
+  ) => invoke<null>("plugin:deskulpt-core|open", {
+    target,
   }),
-
-
-  clearLogs: () => invoke<null>("plugin:deskulpt-core|clear_logs"),
 };
