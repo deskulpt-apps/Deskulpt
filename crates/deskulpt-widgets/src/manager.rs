@@ -4,7 +4,7 @@ use anyhow::{Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use deskulpt_core::path::PathExt;
-use deskulpt_settings::SettingsExt;
+use deskulpt_settings::{SettingsExt, SettingsPatch};
 use parking_lot::RwLock;
 use tauri::{AppHandle, Runtime, WebviewWindow};
 
@@ -200,6 +200,11 @@ impl<R: Runtime> WidgetsManager<R> {
         }
 
         copy_dir::copy_dir(&src, &dst).map_err(|e| anyhow::anyhow!("{}", e))?;
+
+        self.app_handle.settings().update(SettingsPatch {
+            has_seen_starter_tutorial: Some(true),
+            ..Default::default()
+        })?;
 
         Ok(())
     }
