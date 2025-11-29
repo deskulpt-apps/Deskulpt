@@ -41,31 +41,19 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
             .build(logs_dir)?;
         let (writer, guard) = NonBlockingBuilder::default().finish(appender);
 
-        let backend_file_layer = fmt::layer()
+        let file_layer = fmt::layer()
             .json()
-            .with_ansi(false)
-            .with_file(true)
-            .with_line_number(true)
-            .with_timer(UtcTime::rfc_3339())
             .flatten_event(true)
+            .with_timer(UtcTime::rfc_3339())
             .with_writer(writer.clone())
-            .with_filter(Targets::new().with_target("deskulpt", Level::TRACE));
-
-        let frontend_file_layer = fmt::layer()
-            .json()
-            .with_ansi(false)
-            .with_timer(UtcTime::rfc_3339())
-            .flatten_event(true)
-            .with_writer(writer)
             .with_filter(
                 Targets::new()
+                    .with_target("deskulpt", Level::TRACE)
                     .with_target("frontend::canvas", Level::TRACE)
                     .with_target("frontend::manager", Level::TRACE),
             );
 
-        let subscriber = Registry::default()
-            .with(frontend_file_layer)
-            .with(backend_file_layer);
+        let subscriber = Registry::default().with(file_layer);
         tracing::subscriber::set_global_default(subscriber)?;
 
         let previous_hook = std::panic::take_hook();
