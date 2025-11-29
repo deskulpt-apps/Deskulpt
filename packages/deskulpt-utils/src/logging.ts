@@ -1,7 +1,13 @@
 import { deskulptCore } from "@deskulpt/bindings";
 import { serialize } from "./serialize";
 
-const LOGGING_LEVELS = ["trace", "debug", "info", "warn", "error"] as const;
+export const LOGGING_LEVELS = [
+  "trace",
+  "debug",
+  "info",
+  "warn",
+  "error",
+] as const;
 
 export const logger = LOGGING_LEVELS.reduce(
   (acc, level) => {

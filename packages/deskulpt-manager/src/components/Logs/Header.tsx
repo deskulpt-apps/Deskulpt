@@ -1,9 +1,20 @@
 import { deskulptCore } from "@deskulpt/bindings";
-import { logger } from "@deskulpt/utils";
+import { LOGGING_LEVELS, logger } from "@deskulpt/utils";
+import { css } from "@emotion/react";
 import { Button, Flex, Select } from "@radix-ui/themes";
 import { Dispatch, SetStateAction, memo, useCallback } from "react";
 import { LuFolderOpen, LuRepeat } from "react-icons/lu";
 import { MdDeleteOutline } from "react-icons/md";
+
+const styles = {
+  minLevelSelect: css({
+    width: "100px",
+    textTransform: "capitalize",
+  }),
+  minLevelOption: css({
+    textTransform: "capitalize",
+  }),
+};
 
 interface HeaderProps {
   minLevel: deskulptCore.LoggingLevel;
@@ -29,13 +40,13 @@ const Header = memo(({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
           setMinLevel(value as deskulptCore.LoggingLevel)
         }
       >
-        <Select.Trigger css={{ width: "100px", textTransform: "capitalize" }} />
+        <Select.Trigger css={styles.minLevelSelect} />
         <Select.Content position="popper">
-          <Select.Item value="trace">Trace</Select.Item>
-          <Select.Item value="debug">Debug</Select.Item>
-          <Select.Item value="info">Info</Select.Item>
-          <Select.Item value="warn">Warn</Select.Item>
-          <Select.Item value="error">Error</Select.Item>
+          {LOGGING_LEVELS.map((level) => (
+            <Select.Item key={level} value={level} css={styles.minLevelOption}>
+              {level}
+            </Select.Item>
+          ))}
         </Select.Content>
       </Select.Root>
 

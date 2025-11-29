@@ -1,5 +1,24 @@
 import { deskulptCore } from "@deskulpt/bindings";
-import { Code, CodeProps, Flex, Spinner, Text } from "@radix-ui/themes";
+import { css } from "@emotion/react";
+import { Code, Flex, Spinner, Text } from "@radix-ui/themes";
+
+const styles = {
+  row: css({
+    borderBottom: "1px solid var(--gray-a5)",
+  }),
+  levelBadge: css({
+    width: "45px",
+    textAlign: "center",
+  }),
+  messageContainer: css({
+    whiteSpace: "nowrap",
+    overflow: "hidden",
+  }),
+  message: css({
+    overflow: "hidden",
+    textOverflow: "ellipsis",
+  }),
+};
 
 function formatTimestamp(timestamp: string) {
   const date = new Date(timestamp);
@@ -15,6 +34,21 @@ function formatTimestamp(timestamp: string) {
   });
 
   return `${dateString} ${timeString}`;
+}
+
+function getLevelColor(level: string) {
+  switch (level.toUpperCase()) {
+    case "DEBUG":
+      return "violet";
+    case "INFO":
+      return "indigo";
+    case "WARN":
+      return "amber";
+    case "ERROR":
+      return "ruby";
+    default:
+      return "gray";
+  }
 }
 
 interface EntryProps {
@@ -44,22 +78,6 @@ const Entry = ({ entry, translateY }: EntryProps) => {
     );
   }
 
-  let levelColor: CodeProps["color"] = "gray";
-  switch (entry.level.toUpperCase()) {
-    case "DEBUG":
-      levelColor = "violet";
-      break;
-    case "INFO":
-      levelColor = "indigo";
-      break;
-    case "WARN":
-      levelColor = "amber";
-      break;
-    case "ERROR":
-      levelColor = "ruby";
-      break;
-  }
-
   return (
     <Flex
       position="absolute"
@@ -68,10 +86,8 @@ const Entry = ({ entry, translateY }: EntryProps) => {
       right="1"
       align="center"
       pb="1"
-      style={{
-        transform: `translateY(${translateY}px)`,
-        borderBottom: "1px solid var(--gray-a5)",
-      }}
+      css={styles.row}
+      style={{ transform: `translateY(${translateY}px)` }}
     >
       <Flex width="100px" flexShrink="0">
         <Text size="1">{formatTimestamp(entry.timestamp)}</Text>
@@ -79,17 +95,17 @@ const Entry = ({ entry, translateY }: EntryProps) => {
       <Flex width="60px" flexShrink="0">
         <Code
           size="1"
-          color={levelColor}
-          css={{ width: "45px", textAlign: "center" }}
+          color={getLevelColor(entry.level)}
+          css={styles.levelBadge}
         >
           {entry.level}
         </Code>
       </Flex>
-      <Flex flexGrow="1" css={{ whiteSpace: "nowrap", overflow: "hidden" }}>
+      <Flex flexGrow="1" css={styles.messageContainer}>
         <Text
           size="1"
           title={`${entry.message}\n\n${JSON.stringify(entry.raw)}`}
-          css={{ overflow: "hidden", textOverflow: "ellipsis" }}
+          css={styles.message}
         >
           {entry.message}
         </Text>
