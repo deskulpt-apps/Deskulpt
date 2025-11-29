@@ -11,11 +11,7 @@ export const LOGGING_LEVELS = [
 
 export const logger = LOGGING_LEVELS.reduce(
   (acc, level) => {
-    acc[level] = (message: string, meta?: Record<string, unknown>) => {
-      // Declaring message as string does not prevent `any` from being passed
-      // here; in that case, we don't want to lose information by directly
-      // casting to string type, so we include in the payload for more robust
-      // serialization
+    acc[level] = (message: unknown, meta?: Record<string, unknown>) => {
       const payload =
         typeof message === "string" ? meta : { __message: message, ...meta };
 
@@ -29,7 +25,7 @@ export const logger = LOGGING_LEVELS.reduce(
   },
   {} as {
     [L in deskulptCore.LoggingLevel]: (
-      message: string,
+      message: unknown,
       meta?: Record<string, unknown>,
     ) => void;
   },

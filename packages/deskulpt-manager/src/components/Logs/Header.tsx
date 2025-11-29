@@ -1,10 +1,11 @@
 import { deskulptCore } from "@deskulpt/bindings";
 import { LOGGING_LEVELS, logger } from "@deskulpt/utils";
 import { css } from "@emotion/react";
-import { Button, Flex, Select } from "@radix-ui/themes";
+import { Button, Flex, Popover, Select, Text } from "@radix-ui/themes";
 import { Dispatch, SetStateAction, memo, useCallback } from "react";
 import { LuFolderOpen, LuRepeat } from "react-icons/lu";
 import { MdDeleteOutline } from "react-icons/md";
+import { toast } from "sonner";
 
 const styles = {
   minLevelSelect: css({
@@ -15,6 +16,22 @@ const styles = {
     textTransform: "capitalize",
   }),
 };
+
+function formatBytes(bytes: number) {
+  const k = 1024;
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  const units = ["KB", "MB", "GB", "TB"] as const;
+  let value = bytes;
+  let unitIndex = 0;
+  while (value >= k && unitIndex < units.length - 1) {
+    value /= k;
+    unitIndex++;
+  }
+  return `${value.toFixed(2)} ${units[unitIndex]}`;
+}
 
 interface HeaderProps {
   minLevel: deskulptCore.LoggingLevel;
@@ -28,7 +45,13 @@ const Header = memo(({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
   }, []);
 
   const clearLogs = useCallback(() => {
-    deskulptCore.commands.clearLogs().catch(logger.error).then(refreshLogs);
+    deskulptCore.commands
+      .clearLogs()
+      .then((bytes) => {
+        toast.success(`Cleaned up ${formatBytes(bytes)} of logs.`);
+        refreshLogs();
+      })
+      .catch(logger.error);
   }, [refreshLogs]);
 
   return (
@@ -57,9 +80,39 @@ const Header = memo(({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
         <Button size="1" variant="surface" onClick={refreshLogs}>
           <LuRepeat /> Refresh
         </Button>
-        <Button size="1" variant="surface" color="ruby" onClick={clearLogs}>
-          <MdDeleteOutline /> Clear
-        </Button>
+
+        <Popover.Root>
+          <Popover.Trigger>
+            <Button size="1" variant="surface" color="ruby">
+              <MdDeleteOutline /> Clear
+            </Button>
+          </Popover.Trigger>
+          <Popover.Content size="1" maxWidth="300px">
+            <Flex direction="column" gap="3">
+              <Text size="1">
+                This will permanently delete all log files from disk. Are you
+                sure to continue?
+              </Text>
+              <Flex gap="2" justify="end">
+                <Popover.Close>
+                  <Button size="1" variant="soft">
+                    Cancel
+                  </Button>
+                </Popover.Close>
+                <Popover.Close>
+                  <Button
+                    size="1"
+                    variant="soft"
+                    color="ruby"
+                    onClick={clearLogs}
+                  >
+                    Confirm
+                  </Button>
+                </Popover.Close>
+              </Flex>
+            </Flex>
+          </Popover.Content>
+        </Popover.Root>
       </Flex>
     </Flex>
   );
