@@ -6,6 +6,7 @@ use anyhow::{Result, bail};
 use deskulpt_common::event::Event;
 use parking_lot::{RwLock, RwLockReadGuard};
 use tauri::{AppHandle, Manager, Runtime};
+use tracing::error;
 
 use crate::CanvasImode;
 use crate::events::UpdateEvent;
@@ -67,7 +68,7 @@ impl<R: Runtime> SettingsManager<R> {
             .join("settings.json");
 
         let settings = Settings::load(&persist_path).unwrap_or_else(|e| {
-            eprintln!("Failed to load settings: {e:?}");
+            error!("Failed to load settings: {e:?}");
             Default::default()
         });
 

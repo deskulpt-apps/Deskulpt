@@ -8,7 +8,8 @@
   },
   "dependencies": {
     "@deskulpt/bindings": "workspace:*",
-    "@tauri-apps/plugin-opener": "catalog:"
+    "@tauri-apps/plugin-opener": "catalog:",
+    "superjson": "catalog:"
   },
   "peerDependencies": {
     "react": "catalog:",

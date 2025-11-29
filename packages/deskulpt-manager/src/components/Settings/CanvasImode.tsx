@@ -2,6 +2,7 @@ import { Select } from "@radix-ui/themes";
 import { deskulptSettings } from "@deskulpt/bindings";
 import { useSettingsStore } from "../../hooks";
 import { useCallback } from "react";
+import { logger } from "@deskulpt/utils";
 
 const options: { value: deskulptSettings.CanvasImode; label: string }[] = [
   { value: "auto", label: "Auto" },
@@ -15,7 +16,7 @@ const CanvasImode = () => {
   const onValueChange = useCallback((value: deskulptSettings.CanvasImode) => {
     deskulptSettings.commands
       .update({ canvasImode: value })
-      .catch(console.error);
+      .catch(logger.error);
   }, []);
 
   return (

@@ -1,6 +1,6 @@
 import { deskulptWidgets } from "@deskulpt/bindings";
 import { useWidgetsStore } from "./useWidgetsStore";
-import { createSetupTaskHook } from "@deskulpt/utils";
+import { createSetupTaskHook, logger } from "@deskulpt/utils";
 
 export const useUpdateWidgetCatalogListener = createSetupTaskHook({
   task: `event:${deskulptWidgets.events.update.name}`,
@@ -31,5 +31,5 @@ export const useUpdateWidgetCatalogListener = createSetupTaskHook({
         );
       }
     }),
-  onUnmount: (unlisten) => unlisten.then((f) => f()).catch(console.error),
+  onUnmount: (unlisten) => unlisten.then((f) => f()).catch(logger.error),
 });

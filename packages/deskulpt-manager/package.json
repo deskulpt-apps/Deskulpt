@@ -10,6 +10,7 @@
     "@deskulpt/utils": "workspace:*",
     "@emotion/react": "catalog:",
     "@radix-ui/themes": "catalog:",
+    "@tanstack/react-virtual": "catalog:",
     "@tauri-apps/plugin-clipboard-manager": "catalog:",
     "react": "catalog:",
     "react-dom": "catalog:",
