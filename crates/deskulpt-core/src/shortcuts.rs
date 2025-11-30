@@ -60,12 +60,7 @@ pub trait ShortcutsExt<R: Runtime>: Manager<R> + SettingsExt<R> + GlobalShortcut
             let settings = self.settings().read();
             for (action, shortcut) in &settings.shortcuts {
                 if let Err(e) = reregister_shortcut(gs, action, None, Some(shortcut)) {
-                    error!(
-                        shortcut_action = ?action,
-                        shortcut_binding = %shortcut,
-                        error = ?e,
-                        "Failed to register shortcut",
-                    );
+                    error!("Failed to register shortcut {shortcut:?} for {action:?}: {e:?}");
                 }
             }
         }

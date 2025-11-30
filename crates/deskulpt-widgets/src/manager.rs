@@ -3,12 +3,10 @@
 use anyhow::{Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
-use deskulpt_common::window::DeskulptWindow;
 use deskulpt_core::path::PathExt;
 use deskulpt_settings::SettingsExt;
 use parking_lot::RwLock;
 use tauri::{AppHandle, Runtime, WebviewWindow};
-use tracing::{error, info, instrument};
 
 use crate::catalog::{WidgetCatalog, WidgetManifest};
 use crate::events::UpdateEvent;
@@ -50,7 +48,6 @@ impl<R: Runtime> WidgetsManager<R> {
     /// directory and updates the catalog entry for that widget. This could be
     /// an addition, removal, or modification. It then syncs the settings with
     /// the updated catalog. If any step fails, an error is returned.
-    #[instrument(skip(self))]
     pub fn reload(&self, id: &str) -> Result<()> {
         let widget_dir = self.app_handle.widgets_dir()?.join(id);
         let manifest = WidgetManifest::load(&widget_dir);
@@ -74,14 +71,12 @@ impl<R: Runtime> WidgetsManager<R> {
     /// This method loads a new widget catalog from the widgets directory and
     /// replaces the existing catalog. It then syncs the settings with the
     /// updated catalog. If any step fails, an error is returned.
-    #[instrument(skip(self))]
     pub fn reload_all(&self) -> Result<()> {
         let widgets_dir = self.app_handle.widgets_dir()?;
         let new_catalog = WidgetCatalog::load(widgets_dir)?;
 
         let mut catalog = self.catalog.write();
         *catalog = new_catalog;
-        info!(widget_count = catalog.0.len(), "Reloaded widget catalog");
         UpdateEvent(&catalog).emit(&self.app_handle)?;
 
         self.app_handle
@@ -96,7 +91,6 @@ impl<R: Runtime> WidgetsManager<R> {
     /// worker. If the widget does not exist in the catalog or if task
     /// submission fails, an error is returned. This method is non-blocking and
     /// does not wait for the task to complete.
-    #[instrument(skip(self))]
     pub fn render(&self, id: &str) -> Result<()> {
         let catalog = self.catalog.read();
         let config = catalog
@@ -105,13 +99,10 @@ impl<R: Runtime> WidgetsManager<R> {
             .ok_or_else(|| anyhow!("Widget {id} does not exist in the catalog"))?;
 
         if let Outcome::Ok(config) = config {
-            info!(widget_id = %id, "Queueing render task");
             self.render_worker.process(RenderWorkerTask::Render {
                 id: id.to_string(),
                 entry: config.entry.clone(),
             })?;
-        } else {
-            info!(widget_id = %id, "Skipping render for invalid widget");
         }
         Ok(())
     }
@@ -122,7 +113,6 @@ impl<R: Runtime> WidgetsManager<R> {
     /// render worker. If any task submission fails, an error containing all
     /// accumulated errors is returned. This method is non-blocking and does not
     /// wait for the tasks to complete.
-    #[instrument(skip(self))]
     pub fn render_all(&self) -> Result<()> {
         let catalog = self.catalog.read();
 
@@ -134,7 +124,6 @@ impl<R: Runtime> WidgetsManager<R> {
                     entry: config.entry.clone(),
                 })
             {
-                error!(widget_id = %id, error = ?e, "Failed to queue render task");
                 errors.push(e.context(format!("Failed to send render task for widget {id}")));
             }
         }
@@ -157,9 +146,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// rendering it with [`Self::render`].
     ///
     /// Tauri command: [`crate::commands::refresh`].
-    #[instrument(skip(self))]
     pub fn refresh(&self, id: &str) -> Result<()> {
-        info!(widget_id = %id, "Refreshing widget");
         self.reload(id)?;
         self.render(id)?;
         Ok(())
@@ -171,9 +158,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// then rendering all widgets with [`Self::render_all`].
     ///
     /// Tauri command: [`crate::commands::refresh_all`].
-    #[instrument(skip(self))]
     pub fn refresh_all(&self) -> Result<()> {
-        info!("Refreshing all widgets");
         self.reload_all()?;
         self.render_all()?;
         Ok(())
@@ -185,13 +170,10 @@ impl<R: Runtime> WidgetsManager<R> {
     /// of all widgets is trigger via [`Self::refresh_all`].
     ///
     /// Tauri command: [`crate::commands::complete_setup`].
-    #[instrument(skip(self, window))]
     pub fn complete_setup(&self, window: WebviewWindow<R>) -> Result<()> {
-        let window: DeskulptWindow = window.label().try_into().unwrap();
-        let complete = self.setup_state.complete(window.clone());
-        info!(window = %window, complete, "Window setup completed");
+        let window = window.label().try_into().unwrap();
+        let complete = self.setup_state.complete(window);
         if complete {
-            info!("All windows ready; triggering initial refresh");
             self.refresh_all()?;
         }
         Ok(())
