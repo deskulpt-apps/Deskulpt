@@ -32,7 +32,7 @@ const Manifest = memo(({ id }: ManifestProps) => {
               {manifest.content.version !== undefined && (
                 <Table.Row align="start">
                   <Table.RowHeaderCell>Version</Table.RowHeaderCell>
-                  <Table.Cell>{manifest.content.description}</Table.Cell>
+                  <Table.Cell>{manifest.content.version}</Table.Cell>
                 </Table.Row>
               )}
               {manifest.content.license !== undefined && (

@@ -204,7 +204,7 @@ impl<R: Runtime> WidgetsManager<R> {
         let mut has_error = false;
         for widget in ["welcome"] {
             let widget_id = format!("@deskulpt-starter.{widget}");
-            let src = resource_dir.join(format!("starter/{widget}"));
+            let src = resource_dir.join(format!("resources/widgets/starter/{widget}"));
             let dst = widgets_dir.join(&widget_id);
             if dst.exists() {
                 debug!(%widget_id, "Starter widget already exists, skipping");
@@ -219,7 +219,13 @@ impl<R: Runtime> WidgetsManager<R> {
                 },
                 Err(e) => {
                     has_error = true;
-                    tracing::error!(error = ?e, %widget_id, "Failed to add starter widget");
+                    error!(
+                        error = ?e,
+                        %widget_id,
+                        src = %src.display(),
+                        dst = %dst.display(),
+                        "Failed to add starter widget",
+                    );
                 },
             }
         }

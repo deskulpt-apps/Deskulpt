@@ -8,6 +8,6 @@
     }
   ],
   "license": "MIT",
-  "description": "Welcome to Deskulpt! This widget aims to help new users get started with Deskulpt.",
+  "description": "Welcome to Deskulpt! This widget aims to help new users get started with a quick introduction and links to useful resources.",
   "entry": "index.jsx"
 }

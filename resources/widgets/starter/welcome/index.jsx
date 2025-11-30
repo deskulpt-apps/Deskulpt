@@ -1,4 +1,3 @@
-import React from "react";
 import {
   Box,
   Code,
@@ -9,22 +8,17 @@ import {
   Text,
 } from "@deskulpt-test/ui";
 
-export default function Widget() {
+function Welcome() {
   return (
     <Flex
       direction="column"
-      gap="4"
-      p="5"
-      style={{
-        inset: 0,
-        position: "fixed",
-        backgroundColor: "white",
-        color: "#1a1a1a",
-        overflowY: "auto",
-        pointerEvents: "auto",
-      }}
+      height="100%"
+      width="100%"
+      overflowY="auto"
+      p="2"
+      css={{ backgroundColor: "var(--gray-surface)", scrollbarWidth: "none" }}
     >
-      <Heading size="6" mb="2">
+      <Heading size="4" mb="2">
         Welcome to Deskulpt
       </Heading>
 
@@ -77,3 +71,5 @@ export default function Widget() {
     </Flex>
   );
 }
+
+export default Welcome;

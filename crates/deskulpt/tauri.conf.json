@@ -13,7 +13,7 @@
   },
   "bundle": {
     "resources": {
-      "../deskulpt-widgets/starter/welcome": "starter/welcome"
+      "../../resources": "resources"
     },
     "active": true,
     "targets": "all",
