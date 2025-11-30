@@ -1,41 +1,61 @@
-import { Box, Flex, ScrollArea, Table } from "@radix-ui/themes";
-import { memo } from "react";
+import { Box, Button, Flex, ScrollArea, Table } from "@radix-ui/themes";
+import { memo, useCallback } from "react";
+import { FaEdit } from "react-icons/fa";
 import CanvasImode from "./CanvasImode";
 import Shortcut from "./Shortcut";
 import SectionTable from "./SectionTable";
+import { deskulptCore } from "@deskulpt/bindings";
+import { logger } from "@deskulpt/utils";
 
 const Settings = memo(() => {
+  const openSettingsJson = useCallback(() => {
+    deskulptCore.commands.open("settings").catch(logger.error);
+  }, []);
+
   return (
-    <ScrollArea asChild>
-      <Box height="420px" mt="1" pl="1" pr="3">
-        <Flex direction="column" gap="4">
-          <SectionTable title="Basics">
-            <Table.Row align="center">
-              <Table.RowHeaderCell>Canvas interaction mode</Table.RowHeaderCell>
-              <Table.Cell justify="end">
-                <CanvasImode />
-              </Table.Cell>
-            </Table.Row>
-          </SectionTable>
-          <SectionTable title="Keyboard Shortcuts">
-            <Table.Row align="center">
-              <Table.RowHeaderCell>
-                Toggle canvas interaction mode
-              </Table.RowHeaderCell>
-              <Table.Cell>
-                <Shortcut action="toggleCanvasImode" />
-              </Table.Cell>
-            </Table.Row>
-            <Table.Row align="center">
-              <Table.RowHeaderCell>Open manager</Table.RowHeaderCell>
-              <Table.Cell>
-                <Shortcut action="openManager" />
-              </Table.Cell>
-            </Table.Row>
-          </SectionTable>
-        </Flex>
-      </Box>
-    </ScrollArea>
+    <Flex direction="column" gap="4" px="1">
+      <ScrollArea asChild>
+        <Box height="380px">
+          <Flex direction="column" gap="4">
+            <SectionTable title="Basics">
+              <Table.Row align="center">
+                <Table.RowHeaderCell>
+                  Canvas interaction mode
+                </Table.RowHeaderCell>
+                <Table.Cell justify="end">
+                  <CanvasImode />
+                </Table.Cell>
+              </Table.Row>
+            </SectionTable>
+            <SectionTable title="Keyboard Shortcuts">
+              <Table.Row align="center">
+                <Table.RowHeaderCell>
+                  Toggle canvas interaction mode
+                </Table.RowHeaderCell>
+                <Table.Cell>
+                  <Shortcut action="toggleCanvasImode" />
+                </Table.Cell>
+              </Table.Row>
+              <Table.Row align="center">
+                <Table.RowHeaderCell>Open manager</Table.RowHeaderCell>
+                <Table.Cell>
+                  <Shortcut action="openManager" />
+                </Table.Cell>
+              </Table.Row>
+            </SectionTable>
+          </Flex>
+        </Box>
+      </ScrollArea>
+
+      <Button
+        size="1"
+        variant="surface"
+        color="gray"
+        onClick={openSettingsJson}
+      >
+        <FaEdit /> Edit in settings.json
+      </Button>
+    </Flex>
   );
 });
 

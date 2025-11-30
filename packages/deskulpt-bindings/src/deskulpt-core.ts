@@ -97,6 +97,10 @@ export type OpenTarget =
  */
 { widget: string } | 
 /**
+ * The persisted settings file.
+ */
+"settings" | 
+/**
  * The logs directory.
  */
 "logs"
