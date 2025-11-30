@@ -33,7 +33,7 @@
     "starterWidgetsAdded": {
       "description": "Whether the starter widgets have been added.",
       "type": "boolean",
-      "writeOnly": true
+      "default": false
     }
   },
   "$defs": {

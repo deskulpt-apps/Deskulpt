@@ -177,7 +177,7 @@ pub struct Settings {
     #[serde_as(deserialize_as = "MapSkipError<_, _>")]
     pub widgets: BTreeMap<String, WidgetSettings>,
     /// Whether the starter widgets have been added.
-    #[serde(skip_serializing)]
+    #[specta(skip)]
     pub starter_widgets_added: bool,
 }
 
