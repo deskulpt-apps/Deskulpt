@@ -30,7 +30,7 @@
       },
       "default": {}
     },
-    "hasSeenStarterTutorial": {
+    "hasShownStarterWidgets": {
       "description": "Whether the starter/welcome tutorial has been seen.",
       "type": "boolean",
       "writeOnly": true

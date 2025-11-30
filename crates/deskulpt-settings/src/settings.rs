@@ -176,10 +176,9 @@ pub struct Settings {
     /// The mapping from widget IDs to their respective settings.
     #[serde_as(deserialize_as = "MapSkipError<_, _>")]
     pub widgets: BTreeMap<String, WidgetSettings>,
-
-    /// Whether the starter/welcome tutorial has been seen.
+    /// Whether the starter widgets have been added.
     #[serde(skip_serializing)]
-    pub has_seen_starter_tutorial: bool,
+    pub starter_widgets_added: bool,
 }
 
 /// A patch for partial updates to [`Settings`].
@@ -208,9 +207,9 @@ pub struct SettingsPatch {
     /// patch will be applied to it.
     #[specta(optional, type = BTreeMap<String, Option<WidgetSettingsPatch>>)]
     pub widgets: Option<BTreeMap<String, Option<WidgetSettingsPatch>>>,
-    /// If not `None`, update [`Settings::has_seen_starter_tutorial`].
+    /// If not `None`, update [`Settings::starter_widgets_added`].
     #[serde(skip)]
-    pub has_seen_starter_tutorial: Option<bool>,
+    pub starter_widgets_added: Option<bool>,
 }
 
 impl Settings {

@@ -6,7 +6,7 @@ use deskulpt_common::outcome::Outcome;
 use deskulpt_core::path::PathExt;
 use deskulpt_settings::{SettingsExt, SettingsPatch};
 use parking_lot::RwLock;
-use tauri::{AppHandle, Runtime, WebviewWindow};
+use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
 
 use crate::catalog::{WidgetCatalog, WidgetManifest};
 use crate::events::UpdateEvent;
@@ -181,10 +181,7 @@ impl<R: Runtime> WidgetsManager<R> {
 
     /// Seed the welcome widget.
     pub fn seed_starter_if_needed(&self) -> Result<()> {
-        use deskulpt_settings::SettingsExt;
-        use tauri::Manager;
-
-        if self.app_handle.settings().read().has_seen_starter_tutorial {
+        if self.app_handle.settings().read().starter_widgets_added {
             return Ok(());
         }
 
@@ -192,7 +189,7 @@ impl<R: Runtime> WidgetsManager<R> {
             .app_handle
             .path()
             .resource_dir()?
-            .join("default-widgets/welcome");
+            .join("starter/welcome");
         let dst = self.app_handle.widgets_dir()?.join("welcome");
 
         if dst.exists() {
@@ -202,7 +199,7 @@ impl<R: Runtime> WidgetsManager<R> {
         copy_dir::copy_dir(&src, &dst).map_err(|e| anyhow::anyhow!("{}", e))?;
 
         self.app_handle.settings().update(SettingsPatch {
-            has_seen_starter_tutorial: Some(true),
+            starter_widgets_added: Some(true),
             ..Default::default()
         })?;
 
