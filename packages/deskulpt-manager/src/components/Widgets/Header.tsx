@@ -3,6 +3,7 @@ import { memo, useCallback } from "react";
 import { LuFolderOpen, LuRepeat } from "react-icons/lu";
 import { useWidgetsStore } from "../../hooks";
 import { deskulptCore, deskulptWidgets } from "@deskulpt/bindings";
+import { logger } from "@deskulpt/utils";
 
 interface HeaderProps {
   id: string;
@@ -12,11 +13,11 @@ const Header = memo(({ id }: HeaderProps) => {
   const type = useWidgetsStore((state) => state[id]?.type);
 
   const refreshAction = useCallback(() => {
-    deskulptWidgets.commands.refresh(id).catch(console.error);
+    deskulptWidgets.commands.refresh(id).catch(logger.error);
   }, [id]);
 
   const openAction = useCallback(() => {
-    deskulptCore.commands.openWidget(id).catch(console.error);
+    deskulptCore.commands.open({ widget: id }).catch(logger.error);
   }, [id]);
 
   return (

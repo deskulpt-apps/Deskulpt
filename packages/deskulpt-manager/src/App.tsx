@@ -9,11 +9,13 @@ import About from "./components/About";
 import Widgets from "./components/Widgets";
 import Settings from "./components/Settings";
 import ThemeToggler from "./components/ThemeToggler";
+import Logs from "./components/Logs";
 
 const tabs = [
   { value: "widgets", label: "Widgets", content: <Widgets /> },
   { value: "settings", label: "Settings", content: <Settings /> },
   { value: "about", label: "About", content: <About /> },
+  { value: "logs", label: "Logs", content: <Logs /> },
 ];
 
 const App = () => {
