@@ -6,7 +6,9 @@ use regex::Regex;
 use serde::Serialize;
 use specta::TypeCollection;
 use specta::datatype::{DataType, Function, FunctionResultVariant};
-use specta_typescript::{Typescript, datatype, export_named_datatype, js_doc};
+use specta_typescript::{
+    BigIntExportBehavior, Typescript, datatype, export_named_datatype, js_doc,
+};
 
 mod helpers {
     use handlebars::{Context, Handlebars, Helper, HelperResult, Output, RenderContext};
@@ -136,7 +138,7 @@ pub struct Template {
 
 impl Template {
     pub fn from(bindings: Bindings) -> Result<Self> {
-        let ts = Typescript::new();
+        let ts = Typescript::new().bigint(BigIntExportBehavior::Number);
 
         Ok(Self {
             namespace: bindings.namespace,

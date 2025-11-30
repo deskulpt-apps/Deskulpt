@@ -1,4 +1,11 @@
-import { memo, useCallback, useEffect, useRef, useState } from "react";
+import {
+  ErrorInfo,
+  memo,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { flushSync } from "react-dom";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import {
@@ -10,7 +17,7 @@ import {
 } from "re-resizable";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorDisplay from "./ErrorDisplay";
-import { stringifyError } from "@deskulpt/utils";
+import { logger, stringify } from "@deskulpt/utils";
 import { LuGripVertical } from "react-icons/lu";
 import { Box } from "@radix-ui/themes";
 import { useSettingsStore, useWidgetsStore } from "../hooks";
@@ -164,6 +171,17 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
     [id],
   );
 
+  const onRenderError = useCallback(
+    (error: Error, info: ErrorInfo) => {
+      logger.error(`Error rendering widget: ${id}`, {
+        widgetId: id,
+        error,
+        info,
+      });
+    },
+    [id],
+  );
+
   // Do not render anything if the widget is not fully configured; there could
   // be a gap between widget and settings updates, but they should eventually be
   // in sync
@@ -205,11 +223,12 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
         >
           <ErrorBoundary
             resetKeys={[Widget]}
+            onError={onRenderError}
             fallbackRender={({ error }) => (
               <ErrorDisplay
                 id={id}
                 error="Error in the widget component [React error boundary]"
-                message={stringifyError(error)}
+                message={stringify(error)}
               />
             )}
           >

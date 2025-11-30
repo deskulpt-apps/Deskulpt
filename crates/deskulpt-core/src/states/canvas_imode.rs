@@ -10,6 +10,7 @@ use deskulpt_common::window::DeskulptWindow;
 use deskulpt_settings::{CanvasImode, SettingsExt, SettingsPatch};
 use seqlock::SeqLock;
 use tauri::{App, AppHandle, Manager, PhysicalPosition, Runtime, WebviewWindow};
+use tracing::error;
 
 use crate::events::ShowToastEvent;
 
@@ -80,7 +81,7 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
 
         self.settings().on_canvas_imode_change(move |_, new| {
             if let Err(e) = on_new_canvas_imode(&canvas, new) {
-                eprintln!("Failed to update canvas interaction mode: {}", e);
+                error!("Failed to update canvas interaction mode: {}", e);
             }
         });
 
@@ -150,7 +151,7 @@ fn on_new_canvas_imode<R: Runtime>(canvas: &WebviewWindow<R>, mode: &CanvasImode
     if let Err(e) = ShowToastEvent::Success(format!("Canvas interaction mode: {mode:?}"))
         .emit_to(canvas, DeskulptWindow::Canvas)
     {
-        eprintln!("Failed to emit ShowToastEvent to canvas: {}", e);
+        error!("Failed to emit ShowToastEvent to canvas: {}", e);
     }
 
     Ok(())

@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { toast } from "sonner";
 import { deskulptCore } from "@deskulpt/bindings";
+import { logger } from "@deskulpt/utils";
 
 export function useShowToastListener() {
   useEffect(() => {
@@ -17,7 +18,7 @@ export function useShowToastListener() {
     });
 
     return () => {
-      unlisten.then((f) => f()).catch(console.error);
+      unlisten.then((f) => f()).catch(logger.error);
     };
   }, []);
 }

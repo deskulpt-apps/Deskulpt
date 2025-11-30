@@ -1,6 +1,6 @@
 import { createElement } from "react";
 import { useWidgetsStore } from "./useWidgetsStore";
-import { createSetupTaskHook, stringifyError } from "@deskulpt/utils";
+import { createSetupTaskHook, logger, stringify } from "@deskulpt/utils";
 import { deskulptWidgets } from "@deskulpt/bindings";
 import ErrorDisplay from "../components/ErrorDisplay";
 
@@ -76,7 +76,7 @@ export const useRenderWidgetListener = createSetupTaskHook({
                 createElement(ErrorDisplay, {
                   id,
                   error: "Error importing the widget module",
-                  message: stringifyError(error),
+                  message: stringify(error),
                 }),
               apisBlobUrl,
             },
@@ -98,5 +98,5 @@ export const useRenderWidgetListener = createSetupTaskHook({
         true,
       );
     }),
-  onUnmount: (unlisten) => unlisten.then((f) => f()).catch(console.error),
+  onUnmount: (unlisten) => unlisten.then((f) => f()).catch(logger.error),
 });

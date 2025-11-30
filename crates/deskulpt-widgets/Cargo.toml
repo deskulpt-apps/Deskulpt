@@ -27,6 +27,7 @@ serde_json        = { workspace = true }
 specta            = { workspace = true, features = ["derive", "function", "serde_json"] }
 tauri             = { workspace = true, features = ["specta"] }
 tokio             = { workspace = true }
+tracing           = { workspace = true }
 
 [build-dependencies]
 deskulpt-build = { workspace = true }

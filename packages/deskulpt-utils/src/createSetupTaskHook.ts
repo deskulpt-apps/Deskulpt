@@ -1,5 +1,6 @@
 import { deskulptWidgets } from "@deskulpt/bindings";
 import { useEffect } from "react";
+import { logger } from "./logging";
 
 class SetupTasks {
   private tasks = new Set<string>();
@@ -15,7 +16,7 @@ class SetupTasks {
   public complete(task: string) {
     this.ready.add(task);
     if (this.ready.size === this.tasks.size) {
-      deskulptWidgets.commands.completeSetup().catch(console.error);
+      deskulptWidgets.commands.completeSetup().catch(logger.error);
     }
   }
 
