@@ -1,7 +1,7 @@
 import { deskulptCore } from "@deskulpt/bindings";
 import { useCallback, useEffect, useRef, useState } from "react";
 
-export interface UseLogsProps {
+interface UseLogsProps {
   minLevel: string;
   pageSize: number;
 }
