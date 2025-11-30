@@ -9,6 +9,7 @@ use deskulpt_core::shortcuts::ShortcutsExt;
 use deskulpt_core::states::{CanvasImodeStateExt, LoggingStateExt};
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
+use deskulpt_widgets::WidgetsExt;
 use tauri::{Builder, generate_context};
 
 /// Entry point for the Deskulpt backend.
@@ -32,6 +33,8 @@ pub fn run() {
             app.create_tray()?;
 
             app.manage_canvas_imode()?;
+
+            app.widgets().maybe_add_starter()?;
 
             Ok(())
         })

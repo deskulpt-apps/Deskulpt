@@ -28,7 +28,7 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
 }
 
 /// Extension to [`Manager`] for accessing Deskulpt widgets APIs.
-trait WidgetsExt<R: Runtime> {
+pub trait WidgetsExt<R: Runtime> {
     /// Get a reference to the [`WidgetsManager`] to access the APIs.
     fn widgets(&self) -> &WidgetsManager<R>;
 }

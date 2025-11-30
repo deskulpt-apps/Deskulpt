@@ -29,6 +29,11 @@
         "$ref": "#/$defs/WidgetSettings"
       },
       "default": {}
+    },
+    "starterWidgetsAdded": {
+      "description": "Whether the starter widgets have been added.",
+      "type": "boolean",
+      "default": false
     }
   },
   "$defs": {

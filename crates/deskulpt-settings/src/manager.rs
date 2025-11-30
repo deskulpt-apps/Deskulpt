@@ -197,7 +197,8 @@ impl<R: Runtime> SettingsManager<R> {
         let patch = patch(&settings);
 
         let mut tasks = vec![];
-        let mut dirty = false;
+        let mut should_emit = false; // Should emit; implies should persist
+        let mut should_persist = false; // Should persist only
 
         if let Some(theme) = patch.theme
             && settings.theme != theme
@@ -207,7 +208,7 @@ impl<R: Runtime> SettingsManager<R> {
                 old: old_theme,
                 new: theme,
             });
-            dirty = true;
+            should_emit = true;
         }
 
         if let Some(canvas_imode) = patch.canvas_imode
@@ -218,7 +219,7 @@ impl<R: Runtime> SettingsManager<R> {
                 old: old_imode,
                 new: canvas_imode,
             });
-            dirty = true;
+            should_emit = true;
         }
 
         if let Some(shortcuts) = patch.shortcuts {
@@ -233,7 +234,7 @@ impl<R: Runtime> SettingsManager<R> {
                         old: old_shortcut,
                         new: shortcut,
                     });
-                    dirty = true;
+                    should_emit = true;
                 }
             }
         }
@@ -243,18 +244,27 @@ impl<R: Runtime> SettingsManager<R> {
                 match patch {
                     Some(patch) => {
                         let widget = settings.widgets.entry(id).or_insert_with(|| {
-                            dirty = true;
+                            should_emit = true;
                             Default::default()
                         });
-                        dirty |= widget.apply_patch(patch);
+                        should_emit |= widget.apply_patch(patch);
                     },
-                    None => dirty |= settings.widgets.remove(&id).is_some(),
+                    None => should_emit |= settings.widgets.remove(&id).is_some(),
                 }
             }
         }
 
-        if dirty {
+        if let Some(starter_widgets_added) = patch.starter_widgets_added
+            && settings.starter_widgets_added != starter_widgets_added
+        {
+            settings.starter_widgets_added = starter_widgets_added;
+            should_persist = true;
+        }
+
+        if should_emit {
             UpdateEvent(&settings).emit(&self.app_handle)?;
+        }
+        if should_emit || should_persist {
             tasks.push(WorkerTask::Persist);
         }
 
