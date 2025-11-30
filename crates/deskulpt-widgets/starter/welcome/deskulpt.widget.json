@@ -1,5 +1,13 @@
 {
   "name": "Welcome",
-  "entry": "index.jsx",
-  "description": "Welcome widget for Deskulpt."
+  "version": "0.2.0",
+  "authors": [
+    {
+      "name": "The Deskulpt Development Team",
+      "homepage": "https://deskulpt-apps.github.io/"
+    }
+  ],
+  "license": "MIT",
+  "description": "Welcome to Deskulpt! This widget aims to help new users get started with Deskulpt.",
+  "entry": "index.jsx"
 }

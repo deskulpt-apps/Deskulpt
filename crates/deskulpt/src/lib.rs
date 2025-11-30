@@ -34,7 +34,7 @@ pub fn run() {
 
             app.manage_canvas_imode()?;
 
-            app.widgets().seed_starter_if_needed()?;
+            app.widgets().maybe_add_starter()?;
 
             Ok(())
         })
