@@ -47,12 +47,7 @@ const Settings = memo(() => {
         </Box>
       </ScrollArea>
 
-      <Button
-        size="1"
-        variant="surface"
-        color="gray"
-        onClick={openSettingsJson}
-      >
+      <Button size="2" variant="soft" color="gray" onClick={openSettingsJson}>
         <FaEdit /> Edit in settings.json
       </Button>
     </Flex>
