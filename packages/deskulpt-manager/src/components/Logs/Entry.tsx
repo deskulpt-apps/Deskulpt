@@ -53,23 +53,12 @@ function getLevelColor(level: string) {
 
 interface EntryProps {
   entry?: deskulptCore.LogEntry;
-  translateY: number;
 }
 
-const Entry = ({ entry, translateY }: EntryProps) => {
+const Entry = ({ entry }: EntryProps) => {
   if (entry === undefined) {
     return (
-      <Flex
-        position="absolute"
-        top="0"
-        left="1"
-        right="1"
-        align="center"
-        justify="center"
-        py="1"
-        gap="2"
-        style={{ transform: `translateY(${translateY}px)` }}
-      >
+      <Flex align="center" justify="center" gap="2">
         <Spinner size="1" />
         <Text size="1" color="gray">
           Loading...
@@ -79,16 +68,7 @@ const Entry = ({ entry, translateY }: EntryProps) => {
   }
 
   return (
-    <Flex
-      position="absolute"
-      top="0"
-      left="1"
-      right="1"
-      align="center"
-      pb="1"
-      css={styles.row}
-      style={{ transform: `translateY(${translateY}px)` }}
-    >
+    <Flex align="center" pb="1" css={styles.row}>
       <Flex width="100px" flexShrink="0">
         <Text size="1">{formatTimestamp(entry.timestamp)}</Text>
       </Flex>

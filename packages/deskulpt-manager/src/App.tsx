@@ -14,8 +14,8 @@ import Logs from "./components/Logs";
 const tabs = [
   { value: "widgets", label: "Widgets", content: <Widgets /> },
   { value: "settings", label: "Settings", content: <Settings /> },
-  { value: "about", label: "About", content: <About /> },
   { value: "logs", label: "Logs", content: <Logs /> },
+  { value: "about", label: "About", content: <About /> },
 ];
 
 const App = () => {

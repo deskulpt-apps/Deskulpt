@@ -46,38 +46,44 @@ const Logs = memo(() => {
       />
 
       <Flex flexGrow="1" minHeight="0">
-        <ScrollArea ref={parentRef} scrollbars="vertical" asChild>
-          <Box height="100%">
-            {!isFetching && entries.length === 0 ? (
-              <Flex
-                height="100%"
-                width="100%"
-                align="center"
-                justify="center"
-                gap="3"
-                pb="9"
-              >
-                <LuLogs size={20} color="var(--gray-a11)" />
-                <Text size="2" weight="medium" color="gray">
-                  No log entries found
-                </Text>
-              </Flex>
-            ) : (
-              <Box
-                width="100%"
-                position="relative"
-                style={{ height: rowVirtualizer.getTotalSize() }}
-              >
-                {virtualItems.map((row) => (
-                  <Entry
-                    key={row.key}
-                    entry={entries[row.index]}
-                    translateY={row.start}
-                  />
-                ))}
-              </Box>
-            )}
-          </Box>
+        <ScrollArea ref={parentRef} scrollbars="vertical" type="scroll">
+          {!isFetching && entries.length === 0 ? (
+            <Flex
+              height="100%"
+              width="100%"
+              align="center"
+              justify="center"
+              gap="3"
+              pb="9"
+            >
+              <LuLogs size={20} color="var(--gray-a11)" />
+              <Text size="2" weight="medium" color="gray">
+                No log entries found
+              </Text>
+            </Flex>
+          ) : (
+            <Box
+              width="100%"
+              position="relative"
+              style={{ height: rowVirtualizer.getTotalSize() }}
+            >
+              {virtualItems.map((row) => (
+                <Box
+                  key={row.key}
+                  position="absolute"
+                  top="0"
+                  left="1"
+                  right="1"
+                  style={{
+                    height: row.size,
+                    transform: `translateY(${row.start}px)`,
+                  }}
+                >
+                  <Entry entry={entries[row.index]} />
+                </Box>
+              ))}
+            </Box>
+          )}
         </ScrollArea>
       </Flex>
     </Flex>
