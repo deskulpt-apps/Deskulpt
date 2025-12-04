@@ -5,6 +5,7 @@ use deskulpt_common::SerResult;
 use tauri::{AppHandle, Runtime, WebviewWindow};
 
 use crate::WidgetsExt;
+use crate::registry::RegistryIndex;
 
 /// Refresh a specific widget by its ID.
 ///
@@ -23,6 +24,30 @@ pub async fn refresh<R: Runtime>(app_handle: AppHandle<R>, id: String) -> SerRes
 #[specta::specta]
 pub async fn refresh_all<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
     app_handle.widgets().refresh_all()?;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn fetch_registry_index<R: Runtime>(
+    app_handle: AppHandle<R>,
+) -> SerResult<RegistryIndex> {
+    let index = app_handle.widgets().fetch_registry_index().await?;
+    Ok(index)
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn install<R: Runtime>(
+    app_handle: AppHandle<R>,
+    handle: String,
+    id: String,
+    digest: String,
+) -> SerResult<()> {
+    let _ = app_handle;
+    println!("Installing: https://ghcr.io/deskulpt-apps/widgets/{handle}/{id}@{digest}");
+    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    println!("Done!");
     Ok(())
 }
 

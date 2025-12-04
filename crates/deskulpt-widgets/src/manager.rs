@@ -11,6 +11,7 @@ use tracing::{debug, error, info};
 
 use crate::catalog::{WidgetCatalog, WidgetManifest};
 use crate::events::UpdateEvent;
+use crate::registry::{RegistryIndex, RegistryIndexFetcher};
 use crate::render::{RenderWorkerHandle, RenderWorkerTask};
 use crate::setup::SetupState;
 
@@ -237,5 +238,11 @@ impl<R: Runtime> WidgetsManager<R> {
             })?;
         }
         Ok(())
+    }
+
+    pub async fn fetch_registry_index(&self) -> Result<RegistryIndex> {
+        let cache_dir = self.app_handle.path().app_cache_dir()?;
+        let fetcher = RegistryIndexFetcher::new(&cache_dir);
+        fetcher.fetch().await
     }
 }

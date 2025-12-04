@@ -28,6 +28,12 @@ export type DeskulptWindow =
  */
 export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
 
+export type RegistryEntry = { handle: string; id: string; name: string; authors: WidgetManifestAuthor[]; description: string; releases: RegistryEntryRelease[] }
+
+export type RegistryEntryRelease = { version: string; publishedAt: string; digest: string }
+
+export type RegistryIndex = { api: number; generatedAt: string; widgets: RegistryEntry[] }
+
 /**
  * Event for reporting the rendering result of a widget to the canvas.
  */
@@ -146,6 +152,20 @@ export const commands = {
    * Wrapper of [`crate::WidgetsManager::complete_setup`].
    */
   completeSetup: () => invoke<null>("plugin:deskulpt-widgets|complete_setup"),
+
+
+  fetchRegistryIndex: () => invoke<RegistryIndex>("plugin:deskulpt-widgets|fetch_registry_index"),
+
+
+  install: (
+    handle: string,
+    id: string,
+    digest: string,
+  ) => invoke<null>("plugin:deskulpt-widgets|install", {
+    handle,
+    id,
+    digest,
+  }),
 
   /**
    * Refresh a specific widget by its ID.

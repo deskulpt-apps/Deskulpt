@@ -10,6 +10,8 @@
     "deskulpt-core:allow-open",
     "deskulpt-settings:allow-update",
     "deskulpt-widgets:allow-complete-setup",
+    "deskulpt-widgets:allow-fetch-registry-index",
+    "deskulpt-widgets:allow-install",
     "deskulpt-widgets:allow-refresh",
     "deskulpt-widgets:allow-refresh-all",
     "core:event:default",
