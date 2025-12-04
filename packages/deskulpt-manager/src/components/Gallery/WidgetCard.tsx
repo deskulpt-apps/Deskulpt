@@ -11,9 +11,23 @@ import {
   Text,
 } from "@radix-ui/themes";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { useCallback, useState } from "react";
+import { ReactNode, useCallback, useState } from "react";
 import { LuCopy, LuDownload, LuEllipsis } from "react-icons/lu";
 import { toast } from "sonner";
+import { useWidgetsStore } from "../../hooks";
+import { css } from "@emotion/react";
+
+const styles = {
+  installButton: css({
+    minWidth: "64px",
+  }),
+};
+
+enum Action {
+  INSTALL = 0,
+  UNINSTALL = 1,
+  UPGRADE = 2,
+}
 
 interface WidgetCardProps {
   entry: deskulptWidgets.RegistryEntry;
@@ -22,12 +36,35 @@ interface WidgetCardProps {
 const WidgetCard = ({ entry }: WidgetCardProps) => {
   const [isInstalling, setIsInstalling] = useState(false);
 
-  const latestRelease = entry.releases.at(0);
-
   const fullId = `@${entry.handle}.${entry.id}`;
+  const widget = useWidgetsStore((state) => state[fullId]);
+
+  const latestRelease = entry.releases.at(0);
   const authorsRepr = entry.authors
     .map((author) => (typeof author === "string" ? author : author.name))
     .join(", ");
+
+  let action: Action | undefined;
+  let actionLabel: ReactNode;
+  let needsDownload = false;
+  if (latestRelease === undefined) {
+    action = undefined;
+    actionLabel = "Unavailable";
+  } else if (widget === undefined) {
+    action = Action.INSTALL;
+    actionLabel = "Install";
+    needsDownload = true;
+  } else if (
+    widget.type === "ok" &&
+    widget.content.version === latestRelease.version
+  ) {
+    action = Action.UNINSTALL;
+    actionLabel = "Uninstall";
+  } else {
+    action = Action.UPGRADE;
+    actionLabel = "Upgrade";
+    needsDownload = true;
+  }
 
   const installLatestRelease = useCallback(async () => {
     if (latestRelease === undefined) {
@@ -36,21 +73,41 @@ const WidgetCard = ({ entry }: WidgetCardProps) => {
 
     setIsInstalling(true);
     try {
-      await deskulptWidgets.commands.install(
-        entry.handle,
-        entry.id,
-        latestRelease.digest,
-      );
-      toast.success(`Installed widget: ${fullId} (v${latestRelease.version})`);
+      switch (action) {
+        case Action.INSTALL:
+          await deskulptWidgets.commands.install(
+            entry.handle,
+            entry.id,
+            latestRelease.digest,
+          );
+          toast.success(
+            `Installed widget: ${fullId} (v${latestRelease.version})`,
+          );
+          break;
+        case Action.UPGRADE:
+          await deskulptWidgets.commands.upgrade(
+            entry.handle,
+            entry.id,
+            latestRelease.digest,
+          );
+          toast.success(
+            `Upgraded widget: ${fullId} (v${latestRelease.version})`,
+          );
+          break;
+        case Action.UNINSTALL:
+          await deskulptWidgets.commands.uninstall(entry.handle, entry.id);
+          toast.success(`Uninstalled widget: ${fullId}`);
+          break;
+      }
     } catch (error) {
       logger.error(error);
       toast.error(
-        `Failed to install widget: ${fullId} (v${latestRelease.version})`,
+        `Failed to install/uninstall/upgrade widget: ${fullId} (v${latestRelease.version})`,
       );
     } finally {
       setIsInstalling(false);
     }
-  }, [entry, latestRelease, fullId]);
+  }, [entry, latestRelease, fullId, action]);
 
   const copyWidgetId = useCallback(() => {
     writeText(fullId).then(() => toast.success("Copied to clipboard."));
@@ -98,8 +155,9 @@ const WidgetCard = ({ entry }: WidgetCardProps) => {
             disabled={latestRelease === undefined}
             onClick={installLatestRelease}
             loading={isInstalling}
+            css={styles.installButton}
           >
-            <LuDownload /> {latestRelease ? "Install" : "Unavailable"}
+            {needsDownload && <LuDownload />} {actionLabel}
           </Button>
           <Flex pr="1">
             <DropdownMenu.Root>

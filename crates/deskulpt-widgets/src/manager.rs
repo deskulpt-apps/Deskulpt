@@ -11,7 +11,7 @@ use tracing::{debug, error, info};
 
 use crate::catalog::{WidgetCatalog, WidgetManifest};
 use crate::events::UpdateEvent;
-use crate::registry::{RegistryIndex, RegistryIndexFetcher};
+use crate::registry::{RegistryIndex, RegistryIndexFetcher, WidgetInstaller};
 use crate::render::{RenderWorkerHandle, RenderWorkerTask};
 use crate::setup::SetupState;
 
@@ -244,5 +244,49 @@ impl<R: Runtime> WidgetsManager<R> {
         let cache_dir = self.app_handle.path().app_cache_dir()?;
         let fetcher = RegistryIndexFetcher::new(&cache_dir);
         fetcher.fetch().await
+    }
+
+    pub async fn install(&self, handle: &str, id: &str, digest: &str) -> Result<()> {
+        let full_id = format!("@{handle}.{id}");
+        let widget_dir = self.app_handle.widget_dir(&full_id)?;
+        if widget_dir.exists() {
+            bail!("Widget {full_id} already installed");
+        }
+
+        let installer = WidgetInstaller::default();
+        installer.install(&widget_dir, handle, id, digest).await?;
+        self.refresh(&full_id)?;
+        Ok(())
+    }
+
+    pub async fn uninstall(&self, handle: &str, id: &str) -> Result<()> {
+        let full_id = format!("@{handle}.{id}");
+        let widget_dir = self.app_handle.widget_dir(&full_id)?;
+        if !widget_dir.exists() {
+            bail!("Widget {full_id} is not installed");
+        }
+
+        tokio::fs::remove_dir_all(&widget_dir)
+            .await
+            .with_context(|| format!("Failed to remove directory {}", widget_dir.display()))?;
+        self.reload(&full_id)?;
+        Ok(())
+    }
+
+    pub async fn upgrade(&self, handle: &str, id: &str, digest: &str) -> Result<()> {
+        let full_id = format!("@{handle}.{id}");
+        let widget_dir = self.app_handle.widget_dir(&full_id)?;
+        if !widget_dir.exists() {
+            bail!("Widget {full_id} is not installed");
+        }
+
+        tokio::fs::remove_dir_all(&widget_dir)
+            .await
+            .with_context(|| format!("Failed to remove directory {}", widget_dir.display()))?;
+
+        let installer = WidgetInstaller::default();
+        installer.install(&widget_dir, handle, id, digest).await?;
+        self.refresh(&full_id)?;
+        Ok(())
     }
 }

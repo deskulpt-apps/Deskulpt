@@ -184,4 +184,24 @@ export const commands = {
    * This command is a wrapper of [`crate::WidgetsManager::refresh_all`].
    */
   refreshAll: () => invoke<null>("plugin:deskulpt-widgets|refresh_all"),
+
+
+  uninstall: (
+    handle: string,
+    id: string,
+  ) => invoke<null>("plugin:deskulpt-widgets|uninstall", {
+    handle,
+    id,
+  }),
+
+
+  upgrade: (
+    handle: string,
+    id: string,
+    digest: string,
+  ) => invoke<null>("plugin:deskulpt-widgets|upgrade", {
+    handle,
+    id,
+    digest,
+  }),
 };

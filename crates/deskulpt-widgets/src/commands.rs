@@ -44,10 +44,30 @@ pub async fn install<R: Runtime>(
     id: String,
     digest: String,
 ) -> SerResult<()> {
-    let _ = app_handle;
-    println!("Installing: https://ghcr.io/deskulpt-apps/widgets/{handle}/{id}@{digest}");
-    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
-    println!("Done!");
+    app_handle.widgets().install(&handle, &id, &digest).await?;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn uninstall<R: Runtime>(
+    app_handle: AppHandle<R>,
+    handle: String,
+    id: String,
+) -> SerResult<()> {
+    app_handle.widgets().uninstall(&handle, &id).await?;
+    Ok(())
+}
+
+#[tauri::command]
+#[specta::specta]
+pub async fn upgrade<R: Runtime>(
+    app_handle: AppHandle<R>,
+    handle: String,
+    id: String,
+    digest: String,
+) -> SerResult<()> {
+    app_handle.widgets().upgrade(&handle, &id, &digest).await?;
     Ok(())
 }
 

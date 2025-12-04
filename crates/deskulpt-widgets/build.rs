@@ -6,6 +6,8 @@ fn main() {
             "install",
             "refresh",
             "refresh_all",
+            "uninstall",
+            "upgrade",
         ])
         .events(&["RenderEvent", "UpdateEvent"])
         .build();
