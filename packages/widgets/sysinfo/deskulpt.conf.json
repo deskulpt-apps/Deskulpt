@@ -1,0 +1,7 @@
+{
+  "name": "sysinfo",
+  "entry": "index.jsx",
+  "dependencies": {
+    "systeminformation": "^5.25.11"
+  }
+}
