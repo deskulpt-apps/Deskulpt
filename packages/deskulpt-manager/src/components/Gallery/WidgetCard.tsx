@@ -8,20 +8,14 @@ import {
   Flex,
   Heading,
   IconButton,
+  Link,
   Text,
 } from "@radix-ui/themes";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { ReactNode, useCallback, useState } from "react";
-import { LuCopy, LuDownload, LuEllipsis } from "react-icons/lu";
+import { useCallback, useState } from "react";
+import { LuCopy, LuDownload, LuEllipsis, LuExternalLink } from "react-icons/lu";
 import { toast } from "sonner";
 import { useWidgetsStore } from "../../hooks";
-import { css } from "@emotion/react";
-
-const styles = {
-  installButton: css({
-    minWidth: "64px",
-  }),
-};
 
 enum Action {
   INSTALL = 0,
@@ -34,7 +28,7 @@ interface WidgetCardProps {
 }
 
 const WidgetCard = ({ entry }: WidgetCardProps) => {
-  const [isInstalling, setIsInstalling] = useState(false);
+  const [isBusy, setIsBusy] = useState(false);
 
   const fullId = `@${entry.handle}.${entry.id}`;
   const widget = useWidgetsStore((state) => state[fullId]);
@@ -44,78 +38,88 @@ const WidgetCard = ({ entry }: WidgetCardProps) => {
     .map((author) => (typeof author === "string" ? author : author.name))
     .join(", ");
 
+  const currentVersion =
+    widget?.type === "ok" ? widget.content.version : undefined;
+
   let action: Action | undefined;
-  let actionLabel: ReactNode;
-  let needsDownload = false;
-  if (latestRelease === undefined) {
-    action = undefined;
-    actionLabel = "Unavailable";
-  } else if (widget === undefined) {
-    action = Action.INSTALL;
-    actionLabel = "Install";
-    needsDownload = true;
-  } else if (
-    widget.type === "ok" &&
-    widget.content.version === latestRelease.version
-  ) {
-    action = Action.UNINSTALL;
-    actionLabel = "Uninstall";
-  } else {
-    action = Action.UPGRADE;
-    actionLabel = "Upgrade";
-    needsDownload = true;
+  if (latestRelease !== undefined) {
+    if (widget === undefined) {
+      action = Action.INSTALL;
+    } else if (currentVersion === latestRelease.version) {
+      action = Action.UNINSTALL;
+    } else {
+      action = Action.UPGRADE;
+    }
   }
 
-  const installLatestRelease = useCallback(async () => {
+  const install = useCallback(async () => {
     if (latestRelease === undefined) {
       return;
     }
-
-    setIsInstalling(true);
+    setIsBusy(true);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
     try {
-      switch (action) {
-        case Action.INSTALL:
-          await deskulptWidgets.commands.install(
-            entry.handle,
-            entry.id,
-            latestRelease.digest,
-          );
-          toast.success(
-            `Installed widget: ${fullId} (v${latestRelease.version})`,
-          );
-          break;
-        case Action.UPGRADE:
-          await deskulptWidgets.commands.upgrade(
-            entry.handle,
-            entry.id,
-            latestRelease.digest,
-          );
-          toast.success(
-            `Upgraded widget: ${fullId} (v${latestRelease.version})`,
-          );
-          break;
-        case Action.UNINSTALL:
-          await deskulptWidgets.commands.uninstall(entry.handle, entry.id);
-          toast.success(`Uninstalled widget: ${fullId}`);
-          break;
-      }
+      await deskulptWidgets.commands.install(
+        entry.handle,
+        entry.id,
+        latestRelease.digest,
+      );
+      toast.success(`Widget installed: ${fullId} (v${latestRelease.version})`);
     } catch (error) {
       logger.error(error);
-      toast.error(
-        `Failed to install/uninstall/upgrade widget: ${fullId} (v${latestRelease.version})`,
-      );
+      toast.error(`Failed to install widget: ${fullId}`);
     } finally {
-      setIsInstalling(false);
+      setIsBusy(false);
     }
-  }, [entry, latestRelease, fullId, action]);
+  }, [entry, latestRelease, fullId]);
+
+  const uninstall = useCallback(async () => {
+    if (latestRelease === undefined) {
+      return;
+    }
+    setIsBusy(true);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      await deskulptWidgets.commands.uninstall(entry.handle, entry.id);
+      toast.success(`Widget uninstalled: ${fullId}`);
+    } catch (error) {
+      logger.error(error);
+      toast.error(`Failed to uninstall widget: ${fullId}`);
+    } finally {
+      setIsBusy(false);
+    }
+  }, [entry, latestRelease, fullId]);
+
+  const upgrade = useCallback(async () => {
+    if (latestRelease === undefined) {
+      return;
+    }
+    setIsBusy(true);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    try {
+      await deskulptWidgets.commands.upgrade(
+        entry.handle,
+        entry.id,
+        latestRelease.digest,
+      );
+      toast.success(
+        `Widget upgraded: ${fullId} (v${currentVersion} -> v${latestRelease.version})`,
+      );
+    } catch (error) {
+      logger.error(error);
+      toast.error(`Failed to upgrade widget: ${fullId}`);
+    } finally {
+      setIsBusy(false);
+    }
+  }, [entry, latestRelease, fullId, currentVersion]);
 
   const copyWidgetId = useCallback(() => {
     writeText(fullId).then(() => toast.success("Copied to clipboard."));
   }, [fullId]);
 
   return (
-    <Card variant="surface" size="2">
-      <Flex justify="between" gap="3">
+    <Card variant="surface" size="1">
+      <Flex justify="between" px="1" gap="3">
         <Flex
           direction="column"
           gap="2"
@@ -149,17 +153,57 @@ const WidgetCard = ({ entry }: WidgetCardProps) => {
           flexGrow="0"
           flexShrink="0"
         >
-          <Button
-            size="1"
-            variant="surface"
-            disabled={latestRelease === undefined}
-            onClick={installLatestRelease}
-            loading={isInstalling}
-            css={styles.installButton}
-          >
-            {needsDownload && <LuDownload />} {actionLabel}
-          </Button>
-          <Flex pr="1">
+          <Flex align="center" gap="2">
+            {action === Action.INSTALL && (
+              <Button
+                size="1"
+                variant="surface"
+                loading={isBusy}
+                onClick={install}
+              >
+                <LuDownload /> Install
+              </Button>
+            )}
+            {action === Action.UNINSTALL && (
+              <Button
+                size="1"
+                variant="surface"
+                loading={isBusy}
+                onClick={uninstall}
+              >
+                Uninstall
+              </Button>
+            )}
+            {action === Action.UPGRADE && (
+              <DropdownMenu.Root>
+                <DropdownMenu.Trigger>
+                  <Button size="1" variant="surface" loading={isBusy}>
+                    Upgrade
+                    <DropdownMenu.TriggerIcon />
+                  </Button>
+                </DropdownMenu.Trigger>
+                <DropdownMenu.Content
+                  size="1"
+                  variant="soft"
+                  color="gray"
+                  align="end"
+                >
+                  <DropdownMenu.Item onClick={upgrade}>
+                    Upgrade
+                  </DropdownMenu.Item>
+                  <DropdownMenu.Item onClick={uninstall}>
+                    Uninstall
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Root>
+            )}
+          </Flex>
+          <Flex align="center" gap="3" pr="1">
+            <IconButton size="1" variant="ghost" asChild>
+              <Link href={entry.homepage}>
+                <LuExternalLink size="16" />
+              </Link>
+            </IconButton>
             <DropdownMenu.Root>
               <DropdownMenu.Trigger>
                 <IconButton size="1" variant="ghost">

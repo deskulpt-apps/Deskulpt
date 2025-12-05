@@ -241,6 +241,11 @@ impl<R: Runtime> WidgetsManager<R> {
     }
 
     pub async fn fetch_registry_index(&self) -> Result<RegistryIndex> {
+        // Ensure the catalog is up-to-date, because it is necessary to know
+        // which widgets are already installed on the frontend side; rendering
+        // is not needed so we use reload not refresh
+        self.reload_all()?;
+
         let cache_dir = self.app_handle.path().app_cache_dir()?;
         let fetcher = RegistryIndexFetcher::new(&cache_dir);
         fetcher.fetch().await

@@ -1,7 +1,7 @@
 //! Deskulpt widgets registry.
 
 mod index;
-mod install;
+mod widget;
 
 pub use index::{RegistryIndex, RegistryIndexFetcher};
-pub use install::WidgetInstaller;
+pub use widget::WidgetInstaller;

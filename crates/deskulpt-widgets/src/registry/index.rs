@@ -23,22 +23,10 @@ struct RegistryEntry {
     handle: String,
     id: String,
     name: String,
-    #[serde(deserialize_with = "RegistryEntry::deserialize_authors")]
     authors: Vec<WidgetManifestAuthor>,
     description: String,
+    homepage: String,
     releases: Vec<RegistryEntryRelease>,
-}
-
-impl RegistryEntry {
-    fn deserialize_authors<'de, D>(
-        deserializer: D,
-    ) -> std::result::Result<Vec<WidgetManifestAuthor>, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        serde_json::from_str(&s).map_err(serde::de::Error::custom)
-    }
 }
 
 #[derive(Debug, Serialize, Deserialize, specta::Type)]

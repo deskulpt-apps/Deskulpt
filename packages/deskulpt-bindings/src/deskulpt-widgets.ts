@@ -28,7 +28,7 @@ export type DeskulptWindow =
  */
 export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
 
-export type RegistryEntry = { handle: string; id: string; name: string; authors: WidgetManifestAuthor[]; description: string; releases: RegistryEntryRelease[] }
+export type RegistryEntry = { handle: string; id: string; name: string; authors: WidgetManifestAuthor[]; description: string; homepage: string; releases: RegistryEntryRelease[] }
 
 export type RegistryEntryRelease = { version: string; publishedAt: string; digest: string }
 
