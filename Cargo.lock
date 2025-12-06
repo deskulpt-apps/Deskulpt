@@ -1308,6 +1308,7 @@ dependencies = [
  "parking_lot",
  "rolldown",
  "rolldown_common",
+ "rolldown_watcher",
  "serde",
  "serde_json",
  "specta",
