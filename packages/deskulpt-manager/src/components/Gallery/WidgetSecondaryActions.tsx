@@ -1,4 +1,5 @@
 import { deskulptWidgets } from "@deskulpt/bindings";
+import { logger } from "@deskulpt/utils";
 import { DropdownMenu, Flex, IconButton } from "@radix-ui/themes";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { useCallback, useState } from "react";
