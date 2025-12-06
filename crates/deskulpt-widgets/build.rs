@@ -4,6 +4,7 @@ fn main() {
             "complete_setup",
             "fetch_registry_index",
             "install",
+            "preview",
             "refresh",
             "refresh_all",
             "uninstall",

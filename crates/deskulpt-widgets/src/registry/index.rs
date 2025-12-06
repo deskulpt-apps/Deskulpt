@@ -25,7 +25,6 @@ struct RegistryEntry {
     name: String,
     authors: Vec<WidgetManifestAuthor>,
     description: String,
-    homepage: String,
     releases: Vec<RegistryEntryRelease>,
 }
 

@@ -1,121 +1,43 @@
 import { deskulptWidgets } from "@deskulpt/bindings";
-import { logger } from "@deskulpt/utils";
-import {
-  Button,
-  Card,
-  Code,
-  DropdownMenu,
-  Flex,
-  Heading,
-  IconButton,
-  Link,
-  Text,
-} from "@radix-ui/themes";
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { useCallback, useState } from "react";
-import { LuCopy, LuDownload, LuEllipsis, LuExternalLink } from "react-icons/lu";
-import { toast } from "sonner";
+import { Card, Code, Flex, Heading, Text } from "@radix-ui/themes";
 import { useWidgetsStore } from "../../hooks";
-
-enum Action {
-  INSTALL = 0,
-  UNINSTALL = 1,
-  UPGRADE = 2,
-}
+import WidgetPrimaryActions from "./WidgetPrimaryActions";
+import WidgetSecondaryActions from "./WidgetSecondaryActions";
 
 interface WidgetCardProps {
   entry: deskulptWidgets.RegistryEntry;
+  showPreview: (preview: deskulptWidgets.RegistryWidgetPreview) => void;
 }
 
-const WidgetCard = ({ entry }: WidgetCardProps) => {
-  const [isBusy, setIsBusy] = useState(false);
+const WidgetCard = ({ entry, showPreview }: WidgetCardProps) => {
+  const id = `@${entry.handle}.${entry.id}`;
+  const localWidget = useWidgetsStore((state) => state[id]);
 
-  const fullId = `@${entry.handle}.${entry.id}`;
-  const widget = useWidgetsStore((state) => state[fullId]);
-
-  const latestRelease = entry.releases.at(0);
   const authorsRepr = entry.authors
     .map((author) => (typeof author === "string" ? author : author.name))
     .join(", ");
 
-  const currentVersion =
-    widget?.type === "ok" ? widget.content.version : undefined;
+  let action;
+  let widget: deskulptWidgets.RegistryWidgetReference | undefined;
 
-  let action: Action | undefined;
+  const latestRelease = entry.releases.at(0);
   if (latestRelease !== undefined) {
-    if (widget === undefined) {
-      action = Action.INSTALL;
-    } else if (currentVersion === latestRelease.version) {
-      action = Action.UNINSTALL;
+    widget = {
+      handle: entry.handle,
+      id: entry.id,
+      digest: latestRelease.digest,
+    };
+    if (localWidget === undefined) {
+      action = "install" as const;
+    } else if (
+      localWidget?.type === "ok" &&
+      localWidget.content.version === latestRelease.version
+    ) {
+      action = "uninstall" as const;
     } else {
-      action = Action.UPGRADE;
+      action = "upgrade" as const;
     }
   }
-
-  const install = useCallback(async () => {
-    if (latestRelease === undefined) {
-      return;
-    }
-    setIsBusy(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    try {
-      await deskulptWidgets.commands.install(
-        entry.handle,
-        entry.id,
-        latestRelease.digest,
-      );
-      toast.success(`Widget installed: ${fullId} (v${latestRelease.version})`);
-    } catch (error) {
-      logger.error(error);
-      toast.error(`Failed to install widget: ${fullId}`);
-    } finally {
-      setIsBusy(false);
-    }
-  }, [entry, latestRelease, fullId]);
-
-  const uninstall = useCallback(async () => {
-    if (latestRelease === undefined) {
-      return;
-    }
-    setIsBusy(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    try {
-      await deskulptWidgets.commands.uninstall(entry.handle, entry.id);
-      toast.success(`Widget uninstalled: ${fullId}`);
-    } catch (error) {
-      logger.error(error);
-      toast.error(`Failed to uninstall widget: ${fullId}`);
-    } finally {
-      setIsBusy(false);
-    }
-  }, [entry, latestRelease, fullId]);
-
-  const upgrade = useCallback(async () => {
-    if (latestRelease === undefined) {
-      return;
-    }
-    setIsBusy(true);
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    try {
-      await deskulptWidgets.commands.upgrade(
-        entry.handle,
-        entry.id,
-        latestRelease.digest,
-      );
-      toast.success(
-        `Widget upgraded: ${fullId} (v${currentVersion} -> v${latestRelease.version})`,
-      );
-    } catch (error) {
-      logger.error(error);
-      toast.error(`Failed to upgrade widget: ${fullId}`);
-    } finally {
-      setIsBusy(false);
-    }
-  }, [entry, latestRelease, fullId, currentVersion]);
-
-  const copyWidgetId = useCallback(() => {
-    writeText(fullId).then(() => toast.success("Copied to clipboard."));
-  }, [fullId]);
 
   return (
     <Card variant="surface" size="1">
@@ -145,84 +67,19 @@ const WidgetCard = ({ entry }: WidgetCardProps) => {
           </Text>
         </Flex>
 
-        <Flex
-          direction="column"
-          align="end"
-          justify="between"
-          gap="2"
-          flexGrow="0"
-          flexShrink="0"
-        >
-          <Flex align="center" gap="2">
-            {action === Action.INSTALL && (
-              <Button
-                size="1"
-                variant="surface"
-                loading={isBusy}
-                onClick={install}
-              >
-                <LuDownload /> Install
-              </Button>
-            )}
-            {action === Action.UNINSTALL && (
-              <Button
-                size="1"
-                variant="surface"
-                loading={isBusy}
-                onClick={uninstall}
-              >
-                Uninstall
-              </Button>
-            )}
-            {action === Action.UPGRADE && (
-              <DropdownMenu.Root>
-                <DropdownMenu.Trigger>
-                  <Button size="1" variant="surface" loading={isBusy}>
-                    Upgrade
-                    <DropdownMenu.TriggerIcon />
-                  </Button>
-                </DropdownMenu.Trigger>
-                <DropdownMenu.Content
-                  size="1"
-                  variant="soft"
-                  color="gray"
-                  align="end"
-                >
-                  <DropdownMenu.Item onClick={upgrade}>
-                    Upgrade
-                  </DropdownMenu.Item>
-                  <DropdownMenu.Item onClick={uninstall}>
-                    Uninstall
-                  </DropdownMenu.Item>
-                </DropdownMenu.Content>
-              </DropdownMenu.Root>
-            )}
+        {action !== undefined && widget !== undefined && (
+          <Flex
+            direction="column"
+            align="end"
+            justify="between"
+            gap="2"
+            flexGrow="0"
+            flexShrink="0"
+          >
+            <WidgetPrimaryActions action={action} widget={widget} />
+            <WidgetSecondaryActions widget={widget} showPreview={showPreview} />
           </Flex>
-          <Flex align="center" gap="3" pr="1">
-            <IconButton size="1" variant="ghost" asChild>
-              <Link href={entry.homepage}>
-                <LuExternalLink size="16" />
-              </Link>
-            </IconButton>
-            <DropdownMenu.Root>
-              <DropdownMenu.Trigger>
-                <IconButton size="1" variant="ghost">
-                  <LuEllipsis size="16" />
-                </IconButton>
-              </DropdownMenu.Trigger>
-              <DropdownMenu.Content
-                size="1"
-                variant="soft"
-                color="gray"
-                align="end"
-              >
-                <DropdownMenu.Item onClick={copyWidgetId}>
-                  <LuCopy /> Copy widget ID
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Root>
-          </Flex>
-        </Flex>
+        )}
       </Flex>
     </Card>
   );

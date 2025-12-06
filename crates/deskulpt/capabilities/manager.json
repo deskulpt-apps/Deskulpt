@@ -12,6 +12,7 @@
     "deskulpt-widgets:allow-complete-setup",
     "deskulpt-widgets:allow-fetch-registry-index",
     "deskulpt-widgets:allow-install",
+    "deskulpt-widgets:allow-preview",
     "deskulpt-widgets:allow-refresh",
     "deskulpt-widgets:allow-refresh-all",
     "deskulpt-widgets:allow-uninstall",

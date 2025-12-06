@@ -2,17 +2,30 @@ import { Box, Flex, Spinner, Text } from "@radix-ui/themes";
 import { ScrollArea } from "@radix-ui/themes/dist/cjs/index.js";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
-import Header from "./Header";
-import WidgetCard from "./WidgetCard";
 import { deskulptWidgets } from "@deskulpt/bindings";
 import { logger } from "@deskulpt/utils";
 import { toast } from "sonner";
+import Header from "./Header";
+import WidgetCard from "./WidgetCard";
+import WidgetPreview from "./WidgetPreview";
 
 const Gallery = memo(() => {
   const parentRef = useRef<HTMLDivElement>(null);
 
   const [widgets, setWidgets] = useState<deskulptWidgets.RegistryEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [preview, setPreview] = useState<
+    deskulptWidgets.RegistryWidgetPreview | undefined
+  >();
+
+  const showPreview = useCallback(
+    (preview: deskulptWidgets.RegistryWidgetPreview) => {
+      setIsPreviewOpen(true);
+      setPreview(preview);
+    },
+    [],
+  );
 
   const refresh = useCallback(async () => {
     setWidgets([]);
@@ -78,7 +91,9 @@ const Gallery = memo(() => {
                       transform: `translateY(${row.start}px)`,
                     }}
                   >
-                    {entry !== undefined && <WidgetCard entry={entry} />}
+                    {entry !== undefined && (
+                      <WidgetCard entry={entry} showPreview={showPreview} />
+                    )}
                   </Box>
                 );
               })}
@@ -86,6 +101,12 @@ const Gallery = memo(() => {
           </ScrollArea>
         </Flex>
       )}
+
+      <WidgetPreview
+        preview={preview}
+        open={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+      />
     </Flex>
   );
 });

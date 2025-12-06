@@ -11,7 +11,10 @@ use tracing::{debug, error, info};
 
 use crate::catalog::{WidgetCatalog, WidgetManifest};
 use crate::events::UpdateEvent;
-use crate::registry::{RegistryIndex, RegistryIndexFetcher, WidgetInstaller};
+use crate::registry::{
+    RegistryIndex, RegistryIndexFetcher, RegistryWidgetFetcher, RegistryWidgetPreview,
+    RegistryWidgetReference,
+};
 use crate::render::{RenderWorkerHandle, RenderWorkerTask};
 use crate::setup::SetupState;
 
@@ -251,47 +254,54 @@ impl<R: Runtime> WidgetsManager<R> {
         fetcher.fetch().await
     }
 
-    pub async fn install(&self, handle: &str, id: &str, digest: &str) -> Result<()> {
-        let full_id = format!("@{handle}.{id}");
-        let widget_dir = self.app_handle.widget_dir(&full_id)?;
+    pub async fn preview(&self, widget: &RegistryWidgetReference) -> Result<RegistryWidgetPreview> {
+        RegistryWidgetFetcher::default().preview(widget).await
+    }
+
+    pub async fn install(&self, widget: &RegistryWidgetReference) -> Result<()> {
+        let id = widget.local_id();
+        let widget_dir = self.app_handle.widget_dir(&id)?;
         if widget_dir.exists() {
-            bail!("Widget {full_id} already installed");
+            bail!("Widget {id} already installed");
         }
 
-        let installer = WidgetInstaller::default();
-        installer.install(&widget_dir, handle, id, digest).await?;
-        self.refresh(&full_id)?;
+        RegistryWidgetFetcher::default()
+            .install(&widget_dir, widget)
+            .await?;
+
+        self.refresh(&id)?;
         Ok(())
     }
 
-    pub async fn uninstall(&self, handle: &str, id: &str) -> Result<()> {
-        let full_id = format!("@{handle}.{id}");
-        let widget_dir = self.app_handle.widget_dir(&full_id)?;
+    pub async fn uninstall(&self, widget: &RegistryWidgetReference) -> Result<()> {
+        let id = widget.local_id();
+        let widget_dir = self.app_handle.widget_dir(&id)?;
         if !widget_dir.exists() {
-            bail!("Widget {full_id} is not installed");
+            bail!("Widget {id} is not installed");
         }
-
-        tokio::fs::remove_dir_all(&widget_dir)
-            .await
-            .with_context(|| format!("Failed to remove directory {}", widget_dir.display()))?;
-        self.reload(&full_id)?;
-        Ok(())
-    }
-
-    pub async fn upgrade(&self, handle: &str, id: &str, digest: &str) -> Result<()> {
-        let full_id = format!("@{handle}.{id}");
-        let widget_dir = self.app_handle.widget_dir(&full_id)?;
-        if !widget_dir.exists() {
-            bail!("Widget {full_id} is not installed");
-        }
-
         tokio::fs::remove_dir_all(&widget_dir)
             .await
             .with_context(|| format!("Failed to remove directory {}", widget_dir.display()))?;
 
-        let installer = WidgetInstaller::default();
-        installer.install(&widget_dir, handle, id, digest).await?;
-        self.refresh(&full_id)?;
+        self.reload(&id)?;
+        Ok(())
+    }
+
+    pub async fn upgrade(&self, widget: &RegistryWidgetReference) -> Result<()> {
+        let id = widget.local_id();
+        let widget_dir = self.app_handle.widget_dir(&id)?;
+        if !widget_dir.exists() {
+            bail!("Widget {id} is not installed");
+        }
+        tokio::fs::remove_dir_all(&widget_dir)
+            .await
+            .with_context(|| format!("Failed to remove directory {}", widget_dir.display()))?;
+
+        RegistryWidgetFetcher::default()
+            .install(&widget_dir, widget)
+            .await?;
+
+        self.refresh(&id)?;
         Ok(())
     }
 }

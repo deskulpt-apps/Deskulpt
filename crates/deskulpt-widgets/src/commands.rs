@@ -5,7 +5,7 @@ use deskulpt_common::SerResult;
 use tauri::{AppHandle, Runtime, WebviewWindow};
 
 use crate::WidgetsExt;
-use crate::registry::RegistryIndex;
+use crate::registry::{RegistryIndex, RegistryWidgetPreview, RegistryWidgetReference};
 
 /// Refresh a specific widget by its ID.
 ///
@@ -38,13 +38,21 @@ pub async fn fetch_registry_index<R: Runtime>(
 
 #[tauri::command]
 #[specta::specta]
+pub async fn preview<R: Runtime>(
+    app_handle: AppHandle<R>,
+    widget: RegistryWidgetReference,
+) -> SerResult<RegistryWidgetPreview> {
+    let preview = app_handle.widgets().preview(&widget).await?;
+    Ok(preview)
+}
+
+#[tauri::command]
+#[specta::specta]
 pub async fn install<R: Runtime>(
     app_handle: AppHandle<R>,
-    handle: String,
-    id: String,
-    digest: String,
+    widget: RegistryWidgetReference,
 ) -> SerResult<()> {
-    app_handle.widgets().install(&handle, &id, &digest).await?;
+    app_handle.widgets().install(&widget).await?;
     Ok(())
 }
 
@@ -52,10 +60,9 @@ pub async fn install<R: Runtime>(
 #[specta::specta]
 pub async fn uninstall<R: Runtime>(
     app_handle: AppHandle<R>,
-    handle: String,
-    id: String,
+    widget: RegistryWidgetReference,
 ) -> SerResult<()> {
-    app_handle.widgets().uninstall(&handle, &id).await?;
+    app_handle.widgets().uninstall(&widget).await?;
     Ok(())
 }
 
@@ -63,11 +70,9 @@ pub async fn uninstall<R: Runtime>(
 #[specta::specta]
 pub async fn upgrade<R: Runtime>(
     app_handle: AppHandle<R>,
-    handle: String,
-    id: String,
-    digest: String,
+    widget: RegistryWidgetReference,
 ) -> SerResult<()> {
-    app_handle.widgets().upgrade(&handle, &id, &digest).await?;
+    app_handle.widgets().upgrade(&widget).await?;
     Ok(())
 }
 
