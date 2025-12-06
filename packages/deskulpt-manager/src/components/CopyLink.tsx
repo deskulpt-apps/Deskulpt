@@ -1,5 +1,5 @@
 import { Flex, FlexProps, IconButton, Link, LinkProps } from "@radix-ui/themes";
-import { RxCopy } from "react-icons/rx";
+import { LuCopy } from "react-icons/lu";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { toast } from "sonner";
 import { useCallback } from "react";
@@ -27,7 +27,7 @@ const CopyLink = ({ gap = "2", children, ...linkProps }: CopyLinkProps) => {
           title="Copy link"
           onClick={handleCopy}
         >
-          <RxCopy />
+          <LuCopy />
         </IconButton>
       )}
     </Flex>

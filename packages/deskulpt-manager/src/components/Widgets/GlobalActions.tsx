@@ -21,7 +21,7 @@ const GlobalActions = memo(() => {
         variant="ghost"
         onClick={refreshAction}
       >
-        <LuRepeat size="16" />
+        <LuRepeat size={16} />
       </IconButton>
       <IconButton
         title="Open widgets directory"
