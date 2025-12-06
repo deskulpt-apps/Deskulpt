@@ -2,6 +2,7 @@
 
 use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
 
 use anyhow::{Context, Result, anyhow, bail};
 use deskulpt_common::event::Event;
@@ -37,6 +38,30 @@ pub struct WidgetsManager<R: Runtime> {
     widget_watchers: RwLock<HashMap<String, RecommendedWatcher>>,
 }
 
+/// Generic file watcher handler that executes a callback on file changes.
+struct WatcherHandler<R: Runtime> {
+    app_handle: AppHandle<R>,
+    action: Arc<dyn Fn(AppHandle<R>) + Send + Sync>,
+    context: String,
+}
+
+impl<R: Runtime> EventHandler for WatcherHandler<R> {
+    fn handle_event(&mut self, event: FileChangeResult) {
+        if let Err(errors) = event {
+            for error in errors {
+                error!(error = ?error, context = %self.context, "Watcher error");
+            }
+            return;
+        }
+
+        let app_handle = self.app_handle.clone();
+        let action = self.action.clone();
+        tauri::async_runtime::spawn(async move {
+            action(app_handle);
+        });
+    }
+}
+
 impl<R: Runtime> WidgetsManager<R> {
     /// Initialize the [`WidgetsManager`].
     ///
@@ -65,8 +90,14 @@ impl<R: Runtime> WidgetsManager<R> {
     /// Start watching the widgets root directory for top-level changes.
     fn start_root_watcher(&self) -> Result<()> {
         let widgets_dir = self.app_handle.widgets_dir()?;
-        let mut watcher = RecommendedWatcher::new(RootWatcherHandler {
+        let mut watcher = RecommendedWatcher::new(WatcherHandler {
             app_handle: self.app_handle.clone(),
+            action: Arc::new(move |app| {
+                if let Err(error) = app.widgets().reload_all() {
+                    error!(?error, "Failed to reload all widgets after root change");
+                }
+            }),
+            context: "root".to_string(),
         })?;
         watcher.watch(widgets_dir, RecursiveMode::NonRecursive)?;
         *self.root_watcher.lock() = Some(watcher);
@@ -286,61 +317,20 @@ impl<R: Runtime> WidgetDiscoveryHandler for WidgetsManager<R> {
         match self.widget_watchers.write().entry(id.to_string()) {
             Entry::Occupied(_) => Ok(()),
             Entry::Vacant(e) => {
-                let mut watcher = RecommendedWatcher::new(WidgetWatcherHandler {
+                let id_clone = id.to_string();
+                let mut watcher = RecommendedWatcher::new(WatcherHandler {
                     app_handle: self.app_handle.clone(),
-                    id: id.to_string(),
+                    action: Arc::new(move |app| {
+                        if let Err(error) = app.widgets().refresh(&id_clone) {
+                            error!(?error, %id_clone, "Failed to refresh widget after change");
+                        }
+                    }),
+                    context: format!("widget:{}", id),
                 })?;
                 watcher.watch(&self.app_handle.widget_dir(id)?, RecursiveMode::Recursive)?;
                 e.insert(watcher);
                 Ok(())
             },
         }
-    }
-}
-/// Handles changes in the widgets root directory by reloading the catalog.
-struct RootWatcherHandler<R: Runtime> {
-    app_handle: AppHandle<R>,
-}
-
-impl<R: Runtime> EventHandler for RootWatcherHandler<R> {
-    fn handle_event(&mut self, event: FileChangeResult) {
-        if let Err(errors) = event {
-            for error in errors {
-                error!(error = ?error, "Root watcher error");
-            }
-            return;
-        }
-
-        let app_handle = self.app_handle.clone();
-        tauri::async_runtime::spawn(async move {
-            if let Err(error) = app_handle.widgets().reload_all() {
-                error!(?error, "Failed to reload all widgets after root change");
-            }
-        });
-    }
-}
-
-/// Handles changes in a widget directory by refreshing that widget.
-struct WidgetWatcherHandler<R: Runtime> {
-    app_handle: AppHandle<R>,
-    id: String,
-}
-
-impl<R: Runtime> EventHandler for WidgetWatcherHandler<R> {
-    fn handle_event(&mut self, event: FileChangeResult) {
-        if let Err(errors) = event {
-            for error in errors {
-                error!(error = ?error, %self.id, "Widget watcher error");
-            }
-            return;
-        }
-
-        let app_handle = self.app_handle.clone();
-        let id = self.id.clone();
-        tauri::async_runtime::spawn(async move {
-            if let Err(error) = app_handle.widgets().refresh(&id) {
-                error!(?error, %id, "Failed to refresh widget after change");
-            }
-        });
     }
 }
