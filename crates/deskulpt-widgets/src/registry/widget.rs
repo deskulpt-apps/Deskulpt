@@ -38,6 +38,7 @@ struct RegistryWidgetDescriptor {
 pub struct RegistryWidgetPreview {
     id: String,
     size: u64,
+    registry_url: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[specta(type = String)]
     created: Option<String>,
@@ -115,12 +116,15 @@ impl RegistryWidgetFetcher {
 
     pub async fn preview(&self, widget: &RegistryWidgetReference) -> Result<RegistryWidgetPreview> {
         let RegistryWidgetDescriptor {
-            layer, annotations, ..
+            reference,
+            layer,
+            annotations,
         } = self.fetch(widget).await?;
 
         let mut preview = RegistryWidgetPreview {
             id: widget.local_id(),
             size: layer.size as u64,
+            registry_url: format!("https://{reference}"),
             ..Default::default()
         };
 

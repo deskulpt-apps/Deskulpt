@@ -1,7 +1,7 @@
 import { DataList, Flex, IconButton, Link, Text } from "@radix-ui/themes";
 import { css } from "@emotion/react";
 import { deskulptWidgets } from "@deskulpt/bindings";
-import { LuHouse, LuMail } from "react-icons/lu";
+import { LuMail } from "react-icons/lu";
 import { useMemo } from "react";
 
 const styles = {
@@ -62,23 +62,7 @@ const WidgetManifest = ({ manifest }: WidgetManifestProps) => {
     <DataList.Root size="2" mt="1" css={styles.root}>
       <DataList.Item>
         <DataList.Label minWidth="88px">Name</DataList.Label>
-        <DataList.Value>
-          <Flex display="inline-flex" align="center" wrap="wrap">
-            {manifest.name}
-            {manifest.homepage !== undefined && (
-              <IconButton
-                size="1"
-                variant="ghost"
-                css={styles.homepageIcon}
-                asChild
-              >
-                <Link href={manifest.homepage}>
-                  <LuHouse size={14} />
-                </Link>
-              </IconButton>
-            )}
-          </Flex>
-        </DataList.Value>
+        <DataList.Value>{manifest.name}</DataList.Value>
       </DataList.Item>
       {manifest.version !== undefined && (
         <DataList.Item>
@@ -99,6 +83,16 @@ const WidgetManifest = ({ manifest }: WidgetManifestProps) => {
             <Flex display="inline-flex" align="center" wrap="wrap">
               {authorNodes}
             </Flex>
+          </DataList.Value>
+        </DataList.Item>
+      )}
+      {manifest.homepage !== undefined && (
+        <DataList.Item>
+          <DataList.Label minWidth="88px">Homepage</DataList.Label>
+          <DataList.Value>
+            <Link href={manifest.homepage}>
+              {new URL(manifest.homepage).hostname}
+            </Link>
           </DataList.Value>
         </DataList.Item>
       )}

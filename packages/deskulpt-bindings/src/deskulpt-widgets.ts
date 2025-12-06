@@ -58,7 +58,7 @@ description?: string;
 /**
  * URL to the homepage of the widget.
  */
-homepage?: string }) & { id: string; size: number; created?: string; git?: string }
+homepage?: string }) & { id: string; size: number; registryUrl: string; created?: string; git?: string }
 
 export type RegistryWidgetReference = { handle: string; id: string; digest: string }
 
