@@ -1,7 +1,7 @@
 import { Avatar, Box, Flex, Heading, Table } from "@radix-ui/themes";
 import CopyLink from "../CopyLink";
 import { memo } from "react";
-import { FaGithub } from "react-icons/fa";
+import { SiGithub } from "react-icons/si";
 import { css } from "@emotion/react";
 
 const styles = {
@@ -47,7 +47,7 @@ const AboutTab = memo(() => {
               <Table.Cell>
                 <CopyLink href="https://github.com/deskulpt-apps/Deskulpt">
                   <Flex align="center" gap="1">
-                    <FaGithub /> deskulpt-apps/Deskulpt
+                    <SiGithub /> deskulpt-apps/Deskulpt
                   </Flex>
                 </CopyLink>
               </Table.Cell>

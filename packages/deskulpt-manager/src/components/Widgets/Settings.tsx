@@ -1,5 +1,5 @@
 import { Flex, Table } from "@radix-ui/themes";
-import { LiaTimesSolid } from "react-icons/lia";
+import { LuX } from "react-icons/lu";
 import { useSettingsStore } from "../../hooks";
 import { memo, useCallback } from "react";
 import IntegerInput from "../IntegerInput";
@@ -129,7 +129,7 @@ const Settings = memo(({ id }: SettingsProps) => {
           <Table.Cell>
             <Flex gap="1" align="center">
               <X id={id} />
-              <LiaTimesSolid size={12} color="var(--gray-11)" />
+              <LuX size={12} color="var(--gray-11)" />
               <Y id={id} />
             </Flex>
           </Table.Cell>
@@ -139,7 +139,7 @@ const Settings = memo(({ id }: SettingsProps) => {
           <Table.Cell>
             <Flex gap="1" align="center">
               <Width id={id} />
-              <LiaTimesSolid size={12} color="var(--gray-11)" />
+              <LuX size={12} color="var(--gray-11)" />
               <Height id={id} />
             </Flex>
           </Table.Cell>

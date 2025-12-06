@@ -3,8 +3,7 @@ import { LOGGING_LEVELS, formatBytes, logger } from "@deskulpt/utils";
 import { css } from "@emotion/react";
 import { Button, Flex, Popover, Select, Text } from "@radix-ui/themes";
 import { Dispatch, SetStateAction, memo, useCallback } from "react";
-import { LuFolderOpen, LuRepeat } from "react-icons/lu";
-import { MdDeleteOutline } from "react-icons/md";
+import { LuFolderOpen, LuRepeat, LuTrash } from "react-icons/lu";
 import { toast } from "sonner";
 
 const styles = {
@@ -68,7 +67,7 @@ const Header = memo(({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
         <Popover.Root>
           <Popover.Trigger>
             <Button size="1" variant="surface" color="ruby">
-              <MdDeleteOutline /> Clear
+              <LuTrash /> Clear
             </Button>
           </Popover.Trigger>
           <Popover.Content size="1" maxWidth="300px">
