@@ -12,7 +12,6 @@ use serde::{Deserialize, Serialize};
 
 /// Handler for widget discovery events during catalog loading.
 pub trait WidgetDiscoveryHandler {
-    /// Called when a widget is discovered and added to the catalog.
     fn on_widget_discovered(&self, id: &str) -> Result<()>;
 }
 

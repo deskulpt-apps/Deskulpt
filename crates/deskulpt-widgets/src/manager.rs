@@ -1,5 +1,6 @@
 //! Deskulpt widgets manager and its APIs.
 
+use std::collections::hash_map::Entry;
 use std::collections::{HashMap, HashSet};
 
 use anyhow::{Context, Result, anyhow, bail};
@@ -282,22 +283,20 @@ impl<R: Runtime> WidgetsManager<R> {
 /// Creates a file watcher for each discovered widget.
 impl<R: Runtime> WidgetDiscoveryHandler for WidgetsManager<R> {
     fn on_widget_discovered(&self, id: &str) -> Result<()> {
-        let mut watchers = self.widget_watchers.write();
-
-        if watchers.contains_key(id) {
-            return Ok(());
+        match self.widget_watchers.write().entry(id.to_string()) {
+            Entry::Occupied(_) => Ok(()),
+            Entry::Vacant(e) => {
+                let mut watcher = RecommendedWatcher::new(WidgetWatcherHandler {
+                    app_handle: self.app_handle.clone(),
+                    id: id.to_string(),
+                })?;
+                watcher.watch(&self.app_handle.widget_dir(id)?, RecursiveMode::Recursive)?;
+                e.insert(watcher);
+                Ok(())
+            },
         }
-
-        let mut watcher = RecommendedWatcher::new(WidgetWatcherHandler {
-            app_handle: self.app_handle.clone(),
-            id: id.to_string(),
-        })?;
-        watcher.watch(&self.app_handle.widget_dir(id)?, RecursiveMode::Recursive)?;
-        watchers.insert(id.to_string(), watcher);
-        Ok(())
     }
 }
-
 /// Handles changes in the widgets root directory by reloading the catalog.
 struct RootWatcherHandler<R: Runtime> {
     app_handle: AppHandle<R>,
