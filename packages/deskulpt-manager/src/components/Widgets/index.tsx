@@ -6,7 +6,6 @@ import Trigger from "./Trigger";
 import GlobalActions from "./GlobalActions";
 import Manifest from "./Manifest";
 import Settings from "./Settings";
-import Header from "./Header";
 import { css } from "@emotion/react";
 
 const styles = {
@@ -52,7 +51,6 @@ const WidgetsTab = memo(() => {
               asChild
             >
               <Flex height="100%" direction="column" pl="2" gap="2" width="75%">
-                <Header id={id} />
                 <Manifest id={id} />
                 <Separator size="4" />
                 <Settings id={id} />

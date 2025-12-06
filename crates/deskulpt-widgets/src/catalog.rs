@@ -42,7 +42,7 @@ pub enum WidgetManifestAuthor {
 }
 
 /// Deskulpt widget manifest.
-#[derive(Debug, Deserialize, Serialize, specta::Type)]
+#[derive(Debug, Default, Deserialize, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct WidgetManifest {
     /// The display name of the widget.
@@ -63,6 +63,10 @@ pub struct WidgetManifest {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[specta(type = String)]
     pub description: Option<String>,
+    /// URL to the homepage of the widget.
+    #[serde(default, skip_serializing_if = "Option::is_none")]
+    #[specta(type = String)]
+    pub homepage: Option<String>,
     /// The entry module of the widget that exports the widget component.
     ///
     /// This is a path relative to the root of the widget.

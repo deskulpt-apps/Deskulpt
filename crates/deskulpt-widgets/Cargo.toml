@@ -12,6 +12,8 @@ version    = { workspace = true }
 
 [dependencies]
 anyhow            = { workspace = true }
+astral-tokio-tar  = { workspace = true }
+async-compression = { workspace = true, features = ["tokio", "gzip"] }
 bitflags          = { workspace = true }
 copy_dir          = { workspace = true }
 deskulpt-common   = { workspace = true }
@@ -19,7 +21,9 @@ deskulpt-core     = { workspace = true }
 deskulpt-settings = { workspace = true }
 either            = { workspace = true }
 itertools         = { workspace = true }
+oci-client        = { workspace = true }
 parking_lot       = { workspace = true }
+reqwest           = { workspace = true, features = ["json", "gzip"] }
 rolldown          = { workspace = true }
 rolldown_common   = { workspace = true }
 serde             = { workspace = true, features = ["derive"] }
@@ -27,6 +31,7 @@ serde_json        = { workspace = true }
 specta            = { workspace = true, features = ["derive", "function", "serde_json"] }
 tauri             = { workspace = true, features = ["specta"] }
 tokio             = { workspace = true }
+tokio-util        = { workspace = true }
 tracing           = { workspace = true }
 
 [build-dependencies]

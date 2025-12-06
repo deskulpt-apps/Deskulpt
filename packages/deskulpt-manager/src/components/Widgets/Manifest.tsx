@@ -1,16 +1,10 @@
-import { Box, Code, ScrollArea, Table } from "@radix-ui/themes";
+import { Badge, Box, Button, Code, Flex, ScrollArea } from "@radix-ui/themes";
 import { useWidgetsStore } from "../../hooks";
-import { memo } from "react";
-import { css } from "@emotion/react";
-
-const styles = {
-  table: css({
-    "--table-cell-padding": "var(--space-1) var(--space-2)",
-    "--table-cell-min-height": 0,
-    "& tr": { "--table-row-box-shadow": "none" },
-    "& th": { color: "var(--gray-11)", width: "120px" },
-  }),
-};
+import { memo, useCallback } from "react";
+import WidgetManifest from "../WidgetManifest";
+import { LuFolderOpen, LuRepeat } from "react-icons/lu";
+import { deskulptCore, deskulptWidgets } from "@deskulpt/bindings";
+import { logger } from "@deskulpt/utils";
 
 interface ManifestProps {
   id: string;
@@ -19,59 +13,54 @@ interface ManifestProps {
 const Manifest = memo(({ id }: ManifestProps) => {
   const manifest = useWidgetsStore((state) => state[id]);
 
+  const refreshAction = useCallback(() => {
+    deskulptWidgets.commands.refresh(id).catch(logger.error);
+  }, [id]);
+
+  const openAction = useCallback(() => {
+    deskulptCore.commands.open({ widget: id }).catch(logger.error);
+  }, [id]);
+
   return (
-    <ScrollArea asChild>
-      <Box height="200px" pr="3" pb="3">
-        {manifest?.type === "ok" ? (
-          <Table.Root size="1" layout="fixed" css={styles.table}>
-            <Table.Body>
-              <Table.Row align="start">
-                <Table.RowHeaderCell>Name</Table.RowHeaderCell>
-                <Table.Cell>{manifest.content.name}</Table.Cell>
-              </Table.Row>
-              {manifest.content.version !== undefined && (
-                <Table.Row align="start">
-                  <Table.RowHeaderCell>Version</Table.RowHeaderCell>
-                  <Table.Cell>{manifest.content.version}</Table.Cell>
-                </Table.Row>
-              )}
-              {manifest.content.license !== undefined && (
-                <Table.Row align="start">
-                  <Table.RowHeaderCell>License</Table.RowHeaderCell>
-                  <Table.Cell>{manifest.content.license}</Table.Cell>
-                </Table.Row>
-              )}
-              {(manifest.content.authors ?? []).length > 0 && (
-                <Table.Row align="start">
-                  <Table.RowHeaderCell>Authors</Table.RowHeaderCell>
-                  <Table.Cell>
-                    {manifest.content
-                      .authors!.map((author) =>
-                        typeof author === "string" ? author : author.name,
-                      )
-                      .join(", ")}
-                  </Table.Cell>
-                </Table.Row>
-              )}
-              {manifest.content.description !== undefined && (
-                <Table.Row align="start">
-                  <Table.RowHeaderCell>Description</Table.RowHeaderCell>
-                  <Table.Cell>{manifest.content.description}</Table.Cell>
-                </Table.Row>
-              )}
-            </Table.Body>
-          </Table.Root>
-        ) : (
-          <Box pl="2" m="0" asChild>
-            <pre>
-              <Code size="2" variant="ghost">
-                {manifest?.content ?? "Widget not found."}
-              </Code>
-            </pre>
-          </Box>
-        )}
-      </Box>
-    </ScrollArea>
+    <Flex direction="column" gap="2" pl="2">
+      <Flex align="center" justify="between">
+        <Badge color={manifest?.type === "ok" ? "gray" : "ruby"}>{id}</Badge>
+        <Flex align="center" gap="2">
+          <Button
+            title="Refresh this widget"
+            size="1"
+            variant="surface"
+            onClick={refreshAction}
+          >
+            <LuRepeat /> Refresh
+          </Button>
+          <Button
+            title="Open this widget folder"
+            size="1"
+            variant="surface"
+            onClick={openAction}
+          >
+            <LuFolderOpen /> Edit
+          </Button>
+        </Flex>
+      </Flex>
+
+      <ScrollArea asChild>
+        <Box height="200px" pr="3" pb="3">
+          {manifest?.type === "ok" ? (
+            <WidgetManifest manifest={manifest.content} />
+          ) : (
+            <Box pl="2" m="0" asChild>
+              <pre>
+                <Code size="2" variant="ghost">
+                  {manifest?.content ?? "Widget not found."}
+                </Code>
+              </pre>
+            </Box>
+          )}
+        </Box>
+      </ScrollArea>
+    </Flex>
   );
 });
 

@@ -28,6 +28,40 @@ export type DeskulptWindow =
  */
 export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
 
+export type RegistryEntry = { handle: string; id: string; name: string; authors: WidgetManifestAuthor[]; description: string; releases: RegistryEntryRelease[] }
+
+export type RegistryEntryRelease = { version: string; publishedAt: string; digest: string }
+
+export type RegistryIndex = { api: number; generatedAt: string; widgets: RegistryEntry[] }
+
+export type RegistryWidgetPreview = ({ 
+/**
+ * The display name of the widget.
+ */
+name: string; 
+/**
+ * The version of the widget.
+ */
+version?: string; 
+/**
+ * The authors of the widget.
+ */
+authors?: WidgetManifestAuthor[]; 
+/**
+ * The license of the widget.
+ */
+license?: string; 
+/**
+ * A short description of the widget.
+ */
+description?: string; 
+/**
+ * URL to the homepage of the widget.
+ */
+homepage?: string }) & { id: string; size: number; registryUrl: string; created?: string; git?: string }
+
+export type RegistryWidgetReference = { handle: string; id: string; digest: string }
+
 /**
  * Event for reporting the rendering result of a widget to the canvas.
  */
@@ -77,7 +111,11 @@ license?: string;
 /**
  * A short description of the widget.
  */
-description?: string }
+description?: string; 
+/**
+ * URL to the homepage of the widget.
+ */
+homepage?: string }
 
 /**
  * An author of a Deskulpt widget.
@@ -147,6 +185,23 @@ export const commands = {
    */
   completeSetup: () => invoke<null>("plugin:deskulpt-widgets|complete_setup"),
 
+
+  fetchRegistryIndex: () => invoke<RegistryIndex>("plugin:deskulpt-widgets|fetch_registry_index"),
+
+
+  install: (
+    widget: RegistryWidgetReference,
+  ) => invoke<null>("plugin:deskulpt-widgets|install", {
+    widget,
+  }),
+
+
+  preview: (
+    widget: RegistryWidgetReference,
+  ) => invoke<RegistryWidgetPreview>("plugin:deskulpt-widgets|preview", {
+    widget,
+  }),
+
   /**
    * Refresh a specific widget by its ID.
    * 
@@ -164,4 +219,18 @@ export const commands = {
    * This command is a wrapper of [`crate::WidgetsManager::refresh_all`].
    */
   refreshAll: () => invoke<null>("plugin:deskulpt-widgets|refresh_all"),
+
+
+  uninstall: (
+    widget: RegistryWidgetReference,
+  ) => invoke<null>("plugin:deskulpt-widgets|uninstall", {
+    widget,
+  }),
+
+
+  upgrade: (
+    widget: RegistryWidgetReference,
+  ) => invoke<null>("plugin:deskulpt-widgets|upgrade", {
+    widget,
+  }),
 };
