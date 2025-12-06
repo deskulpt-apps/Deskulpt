@@ -11,14 +11,12 @@ import {
 } from "@radix-ui/themes";
 import { formatBytes } from "@deskulpt/utils";
 import { css } from "@emotion/react";
-import { LuCalendar, LuCircleX, LuCode, LuPackage } from "react-icons/lu";
+import { LuCalendar, LuCode, LuPackage, LuX } from "react-icons/lu";
 import WidgetManifest from "../WidgetManifest";
 
 const styles = {
   previewScrollArea: css({
-    "[data-radix-scroll-area-viewport] > div": {
-      width: "100%",
-    },
+    "[data-radix-scroll-area-viewport] > div": { width: "100%" },
   }),
 };
 
@@ -36,12 +34,12 @@ const WidgetPreview = ({ preview, open, onOpenChange }: WidgetPreviewProps) => {
   const { id, size, created, git, ...manifest } = preview;
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <Dialog.Content size="2" aria-labelledby={undefined}>
-        <VisuallyHidden asChild>
-          <Dialog.Title>Preview Widget</Dialog.Title>
-        </VisuallyHidden>
+      <Dialog.Content size="1" aria-labelledby={undefined} asChild>
+        <Flex minWidth="85vw" maxHeight="80vh" direction="column" gap="2">
+          <VisuallyHidden asChild>
+            <Dialog.Title>Preview: Widget {id}</Dialog.Title>
+          </VisuallyHidden>
 
-        <Flex height="100%" direction="column" gap="3">
           <Flex align="center" justify="between" gap="3">
             <Text size="2" weight="medium" truncate>
               {id}
@@ -70,8 +68,8 @@ const WidgetPreview = ({ preview, open, onOpenChange }: WidgetPreviewProps) => {
                 </IconButton>
               )}
               <Dialog.Close>
-                <IconButton size="1" variant="ghost" color="gray">
-                  <LuCircleX size={16} />
+                <IconButton size="1" variant="ghost" color="ruby">
+                  <LuX size={16} />
                 </IconButton>
               </Dialog.Close>
             </Flex>
@@ -82,8 +80,11 @@ const WidgetPreview = ({ preview, open, onOpenChange }: WidgetPreviewProps) => {
             type="scroll"
             size="1"
             css={styles.previewScrollArea}
+            asChild
           >
-            <WidgetManifest manifest={manifest} />
+            <Flex minHeight="0">
+              <WidgetManifest manifest={manifest} />
+            </Flex>
           </ScrollArea>
         </Flex>
       </Dialog.Content>

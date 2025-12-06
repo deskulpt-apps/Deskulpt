@@ -6,7 +6,7 @@ export function formatBytes(bytes: number) {
 
   const units = ["KB", "MB", "GB", "TB"] as const;
   let value = bytes;
-  let unitIndex = 0;
+  let unitIndex = -1;
   while (value >= k && unitIndex < units.length - 1) {
     value /= k;
     unitIndex++;

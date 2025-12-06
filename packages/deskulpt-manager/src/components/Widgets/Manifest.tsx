@@ -22,7 +22,7 @@ const Manifest = memo(({ id }: ManifestProps) => {
   }, [id]);
 
   return (
-    <Flex direction="column" gap="3" pl="2">
+    <Flex direction="column" gap="2" pl="2">
       <Flex align="center" justify="between">
         <Badge color={manifest?.type === "ok" ? "gray" : "ruby"}>{id}</Badge>
         <Flex align="center" gap="2">

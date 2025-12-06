@@ -3,7 +3,8 @@ import { logger } from "@deskulpt/utils";
 import { DropdownMenu, Flex, IconButton } from "@radix-ui/themes";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 import { useCallback, useState } from "react";
-import { LuCopy, LuEllipsis, LuExternalLink } from "react-icons/lu";
+import { LuCopy, LuEllipsis } from "react-icons/lu";
+import { VscOpenPreview } from "react-icons/vsc";
 import { toast } from "sonner";
 
 interface WidgetSecondaryActionsProps {
@@ -44,13 +45,13 @@ const WidgetSecondaryActions = ({
         onClick={preview}
         loading={isLoadingPreview}
       >
-        <LuExternalLink size="16" />
+        <VscOpenPreview size={16} />
       </IconButton>
 
       <DropdownMenu.Root>
         <DropdownMenu.Trigger>
           <IconButton size="1" variant="ghost">
-            <LuEllipsis size="16" />
+            <LuEllipsis size={16} />
           </IconButton>
         </DropdownMenu.Trigger>
         <DropdownMenu.Content size="1" variant="soft" color="gray" align="end">
