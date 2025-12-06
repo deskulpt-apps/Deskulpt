@@ -1,14 +1,20 @@
 //! Deskulpt widgets manager and its APIs.
 
+use std::collections::BTreeSet;
+use std::path::{Path, PathBuf};
+use std::sync::mpsc;
+
 use anyhow::{Context, Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use deskulpt_core::path::PathExt;
 use deskulpt_settings::{SettingsExt, SettingsPatch};
-use parking_lot::RwLock;
+use notify::{Config, RecommendedWatcher, RecursiveMode, Watcher};
+use parking_lot::{Mutex, RwLock};
 use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
 use tracing::{debug, error, info};
 
+use crate::WidgetsExt;
 use crate::catalog::{WidgetCatalog, WidgetManifest};
 use crate::events::UpdateEvent;
 use crate::render::{RenderWorkerHandle, RenderWorkerTask};
@@ -24,6 +30,8 @@ pub struct WidgetsManager<R: Runtime> {
     render_worker: RenderWorkerHandle,
     /// The setup state for frontend windows.
     setup_state: SetupState,
+    /// The filesystem watcher for hot reload.
+    watcher: Mutex<Option<RecommendedWatcher>>,
 }
 
 impl<R: Runtime> WidgetsManager<R> {
@@ -40,6 +48,7 @@ impl<R: Runtime> WidgetsManager<R> {
             catalog: Default::default(),
             render_worker,
             setup_state: Default::default(),
+            watcher: Default::default(),
         }
     }
 
@@ -176,6 +185,7 @@ impl<R: Runtime> WidgetsManager<R> {
         let complete = self.setup_state.complete(window);
         if complete {
             self.refresh_all()?;
+            self.start_watcher()?;
         }
         Ok(())
     }
@@ -238,4 +248,66 @@ impl<R: Runtime> WidgetsManager<R> {
         }
         Ok(())
     }
+
+    /// Start a filesystem watcher to trigger refreshes on changes.
+    fn start_watcher(&self) -> Result<()> {
+        let mut watcher_guard = self.watcher.lock();
+        if watcher_guard.is_some() {
+            return Ok(());
+        }
+
+        let widgets_dir = self.app_handle.widgets_dir()?.to_path_buf();
+        let app_handle = self.app_handle.clone();
+
+        let (tx, rx) = mpsc::channel();
+        let mut watcher = RecommendedWatcher::new(
+            move |res| {
+                let _ = tx.send(res);
+            },
+            Config::default(),
+        )?;
+        watcher.watch(&widgets_dir, RecursiveMode::Recursive)?;
+
+        std::thread::spawn(move || {
+            while let Ok(event) = rx.recv() {
+                let Ok(event) = event else {
+                    error!("Watcher error: {event:?}");
+                    continue;
+                };
+
+                let mut ids = BTreeSet::new();
+                for path in &event.paths {
+                    if let Some(id) = widget_id_from_path(&widgets_dir, path) {
+                        ids.insert(id);
+                    }
+                }
+
+                if ids.is_empty() {
+                    if let Err(e) = app_handle.widgets().refresh_all() {
+                        error!("Failed to refresh all widgets after watcher event: {e:?}");
+                    }
+                    continue;
+                }
+
+                for id in ids {
+                    if let Err(e) = app_handle.widgets().refresh(&id) {
+                        error!(%id, "Failed to refresh widget after watcher event: {e:?}");
+                    }
+                }
+            }
+        });
+
+        *watcher_guard = Some(watcher);
+        Ok(())
+    }
+}
+
+fn widget_id_from_path(widgets_dir: &Path, path: &Path) -> Option<String> {
+    let Ok(rel) = path.strip_prefix(widgets_dir) else {
+        return None;
+    };
+    rel.components()
+        .next()
+        .and_then(|c| c.as_os_str().to_str())
+        .map(|s| s.to_string())
 }
