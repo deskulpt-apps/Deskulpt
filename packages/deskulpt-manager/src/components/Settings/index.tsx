@@ -1,6 +1,6 @@
 import { Box, Button, Flex, ScrollArea, Table } from "@radix-ui/themes";
 import { memo, useCallback } from "react";
-import { FaEdit } from "react-icons/fa";
+import { LuSquarePen } from "react-icons/lu";
 import CanvasImode from "./CanvasImode";
 import Shortcut from "./Shortcut";
 import SectionTable from "./SectionTable";
@@ -48,7 +48,7 @@ const Settings = memo(() => {
       </ScrollArea>
 
       <Button size="2" variant="soft" color="gray" onClick={openSettingsJson}>
-        <FaEdit /> Edit in settings.json
+        <LuSquarePen /> Edit in settings.json
       </Button>
     </Flex>
   );

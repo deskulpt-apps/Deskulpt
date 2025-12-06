@@ -13,8 +13,7 @@ import {
   useRef,
   useState,
 } from "react";
-import { FaEdit } from "react-icons/fa";
-import { MdClear } from "react-icons/md";
+import { LuSquarePen, LuTrash } from "react-icons/lu";
 import { deskulptSettings } from "@deskulpt/bindings";
 import { useSettingsStore } from "../../hooks";
 import { toast } from "sonner";
@@ -138,7 +137,7 @@ const ShortcutAction = ({ action }: Props) => {
       <Popover.Root onOpenChange={handleOpenChange}>
         <Popover.Trigger>
           <Button size="1" variant="surface">
-            <FaEdit /> Edit
+            <LuSquarePen /> Edit
           </Button>
         </Popover.Trigger>
         <Popover.Content size="1" width="400px">
@@ -166,7 +165,7 @@ const ShortcutAction = ({ action }: Props) => {
                   disabled={value === ""}
                   onClick={clearAction}
                 >
-                  <MdClear size="15" />
+                  <LuTrash size={15} />
                 </IconButton>
               </TextField.Slot>
             </TextField.Root>
