@@ -5,6 +5,5 @@
     { "path": "./packages/deskulpt-canvas" },
     { "path": "./packages/deskulpt-manager" },
     { "path": "./packages/deskulpt-utils" }
-  ],
-  "exclude": ["node_modules"]
+  ]
 }
