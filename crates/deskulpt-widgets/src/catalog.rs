@@ -116,13 +116,6 @@ impl WidgetCatalog {
     /// manifests or error messages are stored accordingly, depending on
     /// whether the directory is successfully loaded as a widget. Non-widget
     /// directories are not included in the catalog.
-    pub fn load(dir: &Path) -> Result<Self> {
-        Self::load_with_handler(dir, &NoOpHandler)
-    }
-
-    /// Load the widget catalog from a directory, invoking a handler for each
-    /// discovered widget. This allows actions like creating file watchers to be
-    /// performed during discovery.
     pub fn load_with_handler(dir: &Path, handler: &dyn WidgetDiscoveryHandler) -> Result<Self> {
         let mut catalog = Self::default();
 
@@ -182,14 +175,5 @@ impl WidgetCatalog {
             widgets: Some(patches),
             ..Default::default()
         }
-    }
-}
-
-/// A no-op implementation of [`WidgetDiscoveryHandler`] that does nothing.
-struct NoOpHandler;
-
-impl WidgetDiscoveryHandler for NoOpHandler {
-    fn on_widget_discovered(&self, _id: &str) -> Result<()> {
-        Ok(())
     }
 }
