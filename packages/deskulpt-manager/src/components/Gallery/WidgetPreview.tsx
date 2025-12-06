@@ -3,16 +3,16 @@ import {
   Dialog,
   Flex,
   IconButton,
+  Link,
   ScrollArea,
   Separator,
   Text,
+  VisuallyHidden,
 } from "@radix-ui/themes";
-import { VisuallyHidden } from "@radix-ui/themes/dist/cjs/index.js";
 import { formatBytes } from "@deskulpt/utils";
 import { css } from "@emotion/react";
 import { LuCalendar, LuCircleX, LuCode, LuPackage } from "react-icons/lu";
 import WidgetManifest from "../WidgetManifest";
-import { Link } from "@radix-ui/themes/src/index.js";
 
 const styles = {
   previewScrollArea: css({

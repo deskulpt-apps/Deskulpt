@@ -1,5 +1,4 @@
-import { Box, Flex, Spinner, Text } from "@radix-ui/themes";
-import { ScrollArea } from "@radix-ui/themes/dist/cjs/index.js";
+import { Box, Flex, ScrollArea, Spinner, Text } from "@radix-ui/themes";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { deskulptWidgets } from "@deskulpt/bindings";
