@@ -118,9 +118,11 @@ impl RegistryWidgetFetcher {
             layer, annotations, ..
         } = self.fetch(widget).await?;
 
-        let mut preview = RegistryWidgetPreview::default();
-        preview.id = widget.local_id();
-        preview.size = layer.size as u64;
+        let mut preview = RegistryWidgetPreview {
+            id: widget.local_id(),
+            size: layer.size as u64,
+            ..Default::default()
+        };
 
         if let Some(mut annotations) = annotations {
             preview.created = annotations.remove("org.opencontainers.image.created");
