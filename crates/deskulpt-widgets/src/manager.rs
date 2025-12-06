@@ -15,7 +15,7 @@ use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
 use tracing::{debug, error, info};
 
 use crate::WidgetsExt;
-use crate::catalog::{WidgetCatalog, WidgetManifest};
+use crate::catalog::{WidgetCatalog, WidgetDiscoveryHandler, WidgetManifest};
 use crate::events::UpdateEvent;
 use crate::render::{RenderWorkerHandle, RenderWorkerTask};
 use crate::setup::SetupState;
@@ -72,44 +72,6 @@ impl<R: Runtime> WidgetsManager<R> {
         Ok(())
     }
 
-    /// Ensure there is a watcher for the specified widget directory.
-    fn ensure_widget_watcher(&self, id: &str) -> Result<()> {
-        let mut watchers = self.widget_watchers.write();
-        if watchers.contains_key(id) {
-            return Ok(());
-        }
-
-        let mut watcher = RecommendedWatcher::new(WidgetWatcherHandler {
-            app_handle: self.app_handle.clone(),
-            id: id.to_string(),
-        })?;
-        watcher.watch(&self.app_handle.widget_dir(id)?, RecursiveMode::Recursive)?;
-        watchers.insert(id.to_string(), watcher);
-        Ok(())
-    }
-
-    /// Remove the watcher for the specified widget directory if it exists.
-    fn remove_widget_watcher(&self, id: &str) {
-        self.widget_watchers.write().remove(id);
-    }
-
-    /// Reconcile per-widget watchers with the current catalog.
-    fn sync_widget_watchers(&self) -> Result<()> {
-        let catalog = self.catalog.read();
-        let desired: HashSet<_> = catalog.0.keys().cloned().collect();
-
-        let mut watchers = self.widget_watchers.write();
-        watchers.retain(|id, _| desired.contains(id));
-        let existing: HashSet<_> = watchers.keys().cloned().collect();
-        drop(watchers);
-
-        for id in desired.difference(&existing) {
-            self.ensure_widget_watcher(id)?;
-        }
-
-        Ok(())
-    }
-
     /// Reload a specific widget by its ID.
     ///
     /// This method loads the widget manifest from the corresponding widget
@@ -123,10 +85,10 @@ impl<R: Runtime> WidgetsManager<R> {
         let mut catalog = self.catalog.write();
         if let Some(manifest) = manifest.transpose() {
             catalog.0.insert(id.to_string(), manifest.into());
-            self.ensure_widget_watcher(id)?;
+            self.on_widget_discovered(id)?;
         } else {
             catalog.0.remove(id);
-            self.remove_widget_watcher(id);
+            self.widget_watchers.write().remove(id);
         }
         UpdateEvent(&catalog).emit(&self.app_handle)?;
 
@@ -143,14 +105,18 @@ impl<R: Runtime> WidgetsManager<R> {
     /// updated catalog. If any step fails, an error is returned.
     pub fn reload_all(&self) -> Result<()> {
         let widgets_dir = self.app_handle.widgets_dir()?;
-        let new_catalog = WidgetCatalog::load(widgets_dir)?;
+        let new_catalog = WidgetCatalog::load_with_handler(widgets_dir, self)?;
+        let new_ids: HashSet<_> = new_catalog.0.keys().cloned().collect();
+
+        self.widget_watchers
+            .write()
+            .retain(|id, _| new_ids.contains(id));
 
         {
             let mut catalog = self.catalog.write();
             *catalog = new_catalog;
             UpdateEvent(&catalog).emit(&self.app_handle)?;
         }
-        self.sync_widget_watchers()?;
 
         self.app_handle.settings().update_with(|settings| {
             let catalog = self.catalog.read();
@@ -309,6 +275,25 @@ impl<R: Runtime> WidgetsManager<R> {
                 ..Default::default()
             })?;
         }
+        Ok(())
+    }
+}
+
+/// Creates a file watcher for each discovered widget.
+impl<R: Runtime> WidgetDiscoveryHandler for WidgetsManager<R> {
+    fn on_widget_discovered(&self, id: &str) -> Result<()> {
+        let mut watchers = self.widget_watchers.write();
+
+        if watchers.contains_key(id) {
+            return Ok(());
+        }
+
+        let mut watcher = RecommendedWatcher::new(WidgetWatcherHandler {
+            app_handle: self.app_handle.clone(),
+            id: id.to_string(),
+        })?;
+        watcher.watch(&self.app_handle.widget_dir(id)?, RecursiveMode::Recursive)?;
+        watchers.insert(id.to_string(), watcher);
         Ok(())
     }
 }

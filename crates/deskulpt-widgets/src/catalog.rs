@@ -10,6 +10,12 @@ use deskulpt_common::outcome::Outcome;
 use deskulpt_settings::{Settings, SettingsPatch};
 use serde::{Deserialize, Serialize};
 
+/// Handler for widget discovery events during catalog loading.
+pub trait WidgetDiscoveryHandler {
+    /// Called when a widget is discovered and added to the catalog.
+    fn on_widget_discovered(&self, id: &str) -> Result<()>;
+}
+
 /// The name of the Deskulpt widget manifest file.
 ///
 /// A directory containing this file is considered a Deskulpt widget.
@@ -111,6 +117,13 @@ impl WidgetCatalog {
     /// whether the directory is successfully loaded as a widget. Non-widget
     /// directories are not included in the catalog.
     pub fn load(dir: &Path) -> Result<Self> {
+        Self::load_with_handler(dir, &NoOpHandler)
+    }
+
+    /// Load the widget catalog from a directory, invoking a handler for each
+    /// discovered widget. This allows actions like creating file watchers to be
+    /// performed during discovery.
+    pub fn load_with_handler(dir: &Path, handler: &dyn WidgetDiscoveryHandler) -> Result<Self> {
         let mut catalog = Self::default();
 
         let entries = std::fs::read_dir(dir)?;
@@ -127,7 +140,8 @@ impl WidgetCatalog {
                 // directory, the directory names must be unique and we can use
                 // them as widget IDs
                 let id = entry.file_name().to_string_lossy().to_string();
-                catalog.0.insert(id, manifest.into());
+                catalog.0.insert(id.clone(), manifest.into());
+                handler.on_widget_discovered(&id)?;
             }
         }
 
@@ -168,5 +182,14 @@ impl WidgetCatalog {
             widgets: Some(patches),
             ..Default::default()
         }
+    }
+}
+
+/// A no-op implementation of [`WidgetDiscoveryHandler`] that does nothing.
+struct NoOpHandler;
+
+impl WidgetDiscoveryHandler for NoOpHandler {
+    fn on_widget_discovered(&self, _id: &str) -> Result<()> {
+        Ok(())
     }
 }
