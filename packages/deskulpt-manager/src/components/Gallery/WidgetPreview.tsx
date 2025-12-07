@@ -1,4 +1,3 @@
-import { deskulptWidgets } from "@deskulpt/bindings";
 import {
   Box,
   DataList,
@@ -15,6 +14,9 @@ import { formatBytes } from "@deskulpt/utils";
 import { css } from "@emotion/react";
 import { LuCodeXml, LuExternalLink, LuPackage, LuX } from "react-icons/lu";
 import WidgetManifest from "../WidgetManifest";
+import WidgetPrimaryActions from "./WidgetPrimaryActions";
+import { useWidgetsGalleryStore } from "../../hooks";
+import { useCallback } from "react";
 
 const styles = {
   previewScrollArea: css({
@@ -25,41 +27,47 @@ const styles = {
   }),
 };
 
-interface WidgetPreviewProps {
-  preview?: deskulptWidgets.RegistryWidgetPreview;
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-}
+const WidgetPreview = () => {
+  const data = useWidgetsGalleryStore((state) => state.previewData);
+  const isOpen = useWidgetsGalleryStore((state) => state.isPreviewOpen);
 
-const WidgetPreview = ({ preview, open, onOpenChange }: WidgetPreviewProps) => {
-  if (preview === undefined) {
+  const onOpenChange = useCallback((open: boolean) => {
+    if (!open) {
+      useWidgetsGalleryStore.setState({
+        isPreviewOpen: false,
+        previewData: undefined,
+      });
+    }
+  }, []);
+
+  if (data === undefined) {
     return null;
   }
-
-  const { id, size, created, git, registryUrl, ...manifest } = preview;
+  const { reference, version, preview } = data;
 
   return (
-    <Dialog.Root open={open} onOpenChange={onOpenChange}>
+    <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
       <Dialog.Content size="1" aria-labelledby={undefined} asChild>
         <Flex minWidth="85vw" maxHeight="80vh" direction="column" gap="2">
           <VisuallyHidden asChild>
-            <Dialog.Title>Preview: Widget {id}</Dialog.Title>
+            <Dialog.Title>Widget Preview: {preview.id}</Dialog.Title>
           </VisuallyHidden>
 
           <Flex align="center" justify="between" gap="3">
             <Text size="2" weight="medium" truncate>
-              {id}
+              {preview.id}
             </Text>
             <Flex align="center" gap="3" flexShrink="0">
-              {git !== undefined && (
+              <WidgetPrimaryActions reference={reference} version={version} />
+              {preview.git !== undefined && (
                 <IconButton size="1" variant="ghost" asChild>
-                  <Link href={git}>
+                  <Link href={preview.git}>
                     <LuCodeXml size={16} />
                   </Link>
                 </IconButton>
               )}
               <IconButton size="1" variant="ghost" asChild>
-                <Link href={registryUrl}>
+                <Link href={preview.registryUrl}>
                   <LuPackage size={16} />
                 </Link>
               </IconButton>
@@ -85,16 +93,16 @@ const WidgetPreview = ({ preview, open, onOpenChange }: WidgetPreviewProps) => {
           >
             <Box minHeight="0">
               <Flex direction="column" gap="3">
-                <WidgetManifest manifest={manifest} />
+                <WidgetManifest manifest={preview} />
                 <Separator size="4" />
 
                 <DataList.Root size="2" css={styles.dataListRoot}>
-                  {created !== undefined && (
+                  {preview.created !== undefined && (
                     <DataList.Item>
                       <DataList.Label minWidth="88px">Published</DataList.Label>
                       <DataList.Value>
                         <Flex align="center" gap="1">
-                          {new Date(created).toLocaleString(undefined, {
+                          {new Date(preview.created).toLocaleString(undefined, {
                             year: "numeric",
                             month: "2-digit",
                             day: "2-digit",
@@ -110,7 +118,7 @@ const WidgetPreview = ({ preview, open, onOpenChange }: WidgetPreviewProps) => {
                     <DataList.Label minWidth="88px">
                       Package Size
                     </DataList.Label>
-                    <DataList.Value>{formatBytes(size)}</DataList.Value>
+                    <DataList.Value>{formatBytes(preview.size)}</DataList.Value>
                   </DataList.Item>
                 </DataList.Root>
               </Flex>

@@ -1,42 +1,28 @@
 import { deskulptWidgets } from "@deskulpt/bindings";
 import { Card, Code, Flex, Heading, Text } from "@radix-ui/themes";
-import { useWidgetsStore } from "../../hooks";
+import { useWidgetsGalleryStore } from "../../hooks";
 import WidgetPrimaryActions from "./WidgetPrimaryActions";
 import WidgetSecondaryActions from "./WidgetSecondaryActions";
 
 interface WidgetCardProps {
-  entry: deskulptWidgets.RegistryEntry;
-  showPreview: (preview: deskulptWidgets.RegistryWidgetPreview) => void;
+  index: number;
 }
 
-const WidgetCard = ({ entry, showPreview }: WidgetCardProps) => {
-  const id = `@${entry.handle}.${entry.id}`;
-  const localWidget = useWidgetsStore((state) => state[id]);
+const WidgetCard = ({ index }: WidgetCardProps) => {
+  const widget = useWidgetsGalleryStore((state) => state.widgets[index]!);
 
-  const authorsRepr = entry.authors
+  const authorsRepr = widget.authors
     .map((author) => (typeof author === "string" ? author : author.name))
     .join(", ");
 
-  let action;
-  let widget: deskulptWidgets.RegistryWidgetReference | undefined;
-
-  const latestRelease = entry.releases.at(0);
+  const latestRelease = widget.releases.at(0);
+  let reference: deskulptWidgets.RegistryWidgetReference | undefined;
   if (latestRelease !== undefined) {
-    widget = {
-      handle: entry.handle,
-      id: entry.id,
+    reference = {
+      handle: widget.handle,
+      id: widget.id,
       digest: latestRelease.digest,
     };
-    if (localWidget === undefined) {
-      action = "install" as const;
-    } else if (
-      localWidget?.type === "ok" &&
-      localWidget.content.version === latestRelease.version
-    ) {
-      action = "uninstall" as const;
-    } else {
-      action = "upgrade" as const;
-    }
   }
 
   return (
@@ -51,7 +37,7 @@ const WidgetCard = ({ entry, showPreview }: WidgetCardProps) => {
         >
           <Flex gap="3" align="center">
             <Heading size="2" weight="medium" truncate>
-              {entry.name}
+              {widget.name}
             </Heading>
             {latestRelease !== undefined && (
               <Code size="1" color="gray" variant="ghost" truncate>
@@ -60,14 +46,14 @@ const WidgetCard = ({ entry, showPreview }: WidgetCardProps) => {
             )}
           </Flex>
           <Text size="1" truncate>
-            {entry.description}
+            {widget.description}
           </Text>
           <Text size="1" color="gray" truncate>
             {authorsRepr}
           </Text>
         </Flex>
 
-        {action !== undefined && widget !== undefined && (
+        {reference !== undefined && latestRelease !== undefined && (
           <Flex
             direction="column"
             align="end"
@@ -76,8 +62,15 @@ const WidgetCard = ({ entry, showPreview }: WidgetCardProps) => {
             flexGrow="0"
             flexShrink="0"
           >
-            <WidgetPrimaryActions action={action} widget={widget} />
-            <WidgetSecondaryActions widget={widget} showPreview={showPreview} />
+            <WidgetPrimaryActions
+              reference={reference}
+              version={latestRelease.version}
+            />
+            <WidgetSecondaryActions
+              reference={reference}
+              version={latestRelease.version}
+              releases={widget.releases}
+            />
           </Flex>
         )}
       </Flex>

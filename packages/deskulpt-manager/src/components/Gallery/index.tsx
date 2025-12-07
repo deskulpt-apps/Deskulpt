@@ -1,52 +1,25 @@
 import { Box, Flex, ScrollArea, Spinner, Text } from "@radix-ui/themes";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { memo, useCallback, useEffect, useRef, useState } from "react";
-import { deskulptWidgets } from "@deskulpt/bindings";
-import { logger } from "@deskulpt/utils";
-import { toast } from "sonner";
+import { memo, useEffect, useRef } from "react";
 import Header from "./Header";
 import WidgetCard from "./WidgetCard";
 import WidgetPreview from "./WidgetPreview";
+import WidgetVersionPicker from "./WidgetVersionPicker";
+import { useWidgetsGalleryStore } from "../../hooks";
 
 const Gallery = memo(() => {
   const parentRef = useRef<HTMLDivElement>(null);
 
-  const [widgets, setWidgets] = useState<deskulptWidgets.RegistryEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
-  const [preview, setPreview] = useState<
-    deskulptWidgets.RegistryWidgetPreview | undefined
-  >();
-
-  const showPreview = useCallback(
-    (preview: deskulptWidgets.RegistryWidgetPreview) => {
-      setIsPreviewOpen(true);
-      setPreview(preview);
-    },
-    [],
-  );
-
-  const refresh = useCallback(async () => {
-    setWidgets([]);
-    setIsLoading(true);
-    // await new Promise((resolve) => setTimeout(resolve, 1000));
-    try {
-      const index = await deskulptWidgets.commands.fetchRegistryIndex();
-      setWidgets(index.widgets);
-    } catch (error) {
-      logger.error(error);
-      toast.error("Failed to load widgets gallery");
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const numWidgets = useWidgetsGalleryStore((state) => state.widgets.length);
+  const isFetching = useWidgetsGalleryStore((state) => state.isFetching);
+  const refresh = useWidgetsGalleryStore((state) => state.refresh);
 
   useEffect(() => {
     refresh();
   }, [refresh]);
 
   const rowVirtualizer = useVirtualizer({
-    count: widgets.length,
+    count: numWidgets,
     getScrollElement: () => parentRef.current,
     estimateSize: () => 100,
     overscan: 5,
@@ -56,7 +29,7 @@ const Gallery = memo(() => {
     <Flex height="100%" direction="column" px="1" gap="3">
       <Header refresh={refresh} />
 
-      {isLoading ? (
+      {isFetching ? (
         <Flex
           height="100%"
           width="100%"
@@ -77,7 +50,6 @@ const Gallery = memo(() => {
               style={{ height: rowVirtualizer.getTotalSize() }}
             >
               {rowVirtualizer.getVirtualItems().map((row) => {
-                const entry = widgets[row.index];
                 return (
                   <Box
                     key={row.key}
@@ -90,9 +62,7 @@ const Gallery = memo(() => {
                       transform: `translateY(${row.start}px)`,
                     }}
                   >
-                    {entry !== undefined && (
-                      <WidgetCard entry={entry} showPreview={showPreview} />
-                    )}
+                    <WidgetCard index={row.index} />
                   </Box>
                 );
               })}
@@ -101,11 +71,8 @@ const Gallery = memo(() => {
         </Flex>
       )}
 
-      <WidgetPreview
-        preview={preview}
-        open={isPreviewOpen}
-        onOpenChange={setIsPreviewOpen}
-      />
+      <WidgetPreview />
+      <WidgetVersionPicker />
     </Flex>
   );
 });
