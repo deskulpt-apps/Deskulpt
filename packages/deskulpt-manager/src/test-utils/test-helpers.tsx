@@ -10,17 +10,12 @@ import type { deskulptWidgets } from "@deskulpt/bindings";
 /**
  * Default test settings.
  */
-export const defaultSettings: deskulptSettings.Settings = {
+const defaultSettings: deskulptSettings.Settings = {
   theme: "light",
   canvasImode: "auto",
   shortcuts: {},
   widgets: {},
 };
-
-/**
- * Default test widget catalog.
- */
-export const defaultWidgetCatalog: deskulptWidgets.WidgetCatalog = {};
 
 /**
  * Helper to create a valid widget catalog entry.
@@ -39,7 +34,7 @@ export function createWidgetCatalogEntry(
 /**
  * Options for rendering components in tests.
  */
-export interface TestRenderOptions extends Omit<RenderOptions, "wrapper"> {
+interface TestRenderOptions extends Omit<RenderOptions, "wrapper"> {
   /**
    * Initial settings state.
    */

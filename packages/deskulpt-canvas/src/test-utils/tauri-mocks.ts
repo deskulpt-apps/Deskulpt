@@ -3,10 +3,6 @@ import type { EventCallback } from "@tauri-apps/api/event";
 import { MockInvoke } from "./mock-invoke";
 import { MockEventSystem } from "./mock-event-system";
 
-// Re-export classes for backward compatibility
-export { MockInvoke } from "./mock-invoke";
-export { MockEventSystem } from "./mock-event-system";
-
 /**
  * Global mock instances.
  */

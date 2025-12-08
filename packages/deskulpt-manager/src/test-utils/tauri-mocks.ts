@@ -5,17 +5,11 @@ import { MockEventSystem } from "./mock-event-system";
 import { MockClipboard } from "./mock-clipboard";
 import { MockOpener } from "./mock-opener";
 
-// Re-export classes for backward compatibility
-export { MockInvoke } from "./mock-invoke";
-export { MockEventSystem } from "./mock-event-system";
-export { MockClipboard } from "./mock-clipboard";
-export { MockOpener } from "./mock-opener";
-
 /**
  * Global mock instances.
  */
 export const mockInvoke = new MockInvoke();
-export const mockEventSystem = new MockEventSystem();
+const mockEventSystem = new MockEventSystem();
 export const mockClipboard = new MockClipboard();
 export const mockOpener = new MockOpener();
 
