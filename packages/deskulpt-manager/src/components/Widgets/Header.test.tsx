@@ -7,6 +7,7 @@ import {
 import { mockInvoke } from "../../test-utils/tauri-mocks";
 import Header from "./Header";
 import { createWidgetCatalogEntry } from "../../test-utils/test-helpers";
+import type { deskulptWidgets } from "@deskulpt/bindings";
 
 describe("Widgets Header", () => {
   beforeEach(() => {
@@ -26,7 +27,7 @@ describe("Widgets Header", () => {
   });
 
   it("shows error badge for invalid widgets", () => {
-    const catalog = {
+    const catalog: deskulptWidgets.WidgetCatalog = {
       "widget-1": { type: "err", content: "Error" },
     };
 

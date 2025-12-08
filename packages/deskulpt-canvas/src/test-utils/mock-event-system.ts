@@ -53,13 +53,12 @@ export class MockEventSystem {
    * Emit an event to all listeners.
    */
   emitTo(eventName: string, payload: unknown, target?: string): Promise<void> {
-    const event: Event<unknown> = {
+    const event = {
       event: eventName,
       id: Date.now(),
       payload,
-      target: target || "main",
       windowLabel: target || "main",
-    };
+    } as Event<unknown>;
 
     // Call regular listeners
     const listeners = this.listeners.get(eventName);
@@ -77,6 +76,8 @@ export class MockEventSystem {
       }
       onceListeners.clear();
     }
+
+    return Promise.resolve();
   }
 
   /**

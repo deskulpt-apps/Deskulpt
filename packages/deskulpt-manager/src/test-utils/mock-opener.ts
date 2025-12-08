@@ -6,6 +6,7 @@ export class MockOpener {
 
   openUrl(url: string): Promise<void> {
     this.openedUrls.push(url);
+    return Promise.resolve();
   }
 
   getOpenedUrls(): string[] {

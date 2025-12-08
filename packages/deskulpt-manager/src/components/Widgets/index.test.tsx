@@ -7,6 +7,7 @@ import {
 } from "../../test-utils/test-helpers";
 import Widgets from "./index";
 import { createWidgetCatalogEntry } from "../../test-utils/test-helpers";
+import type { deskulptWidgets } from "@deskulpt/bindings";
 
 describe("Widgets", () => {
   beforeEach(() => {
@@ -49,7 +50,10 @@ describe("Widgets", () => {
 
     // Click on widget trigger (use getAllByText since Radix renders duplicates)
     const triggers = screen.getAllByText("widget-1");
-    await user.click(triggers[0]);
+    const trigger = triggers[0];
+    if (trigger) {
+      await user.click(trigger);
+    }
 
     // Widget details should be visible
     await waitFor(() => {
@@ -59,7 +63,7 @@ describe("Widgets", () => {
   });
 
   it("shows error indicator for invalid widgets", () => {
-    const catalog = {
+    const catalog: deskulptWidgets.WidgetCatalog = {
       "widget-1": { type: "ok", content: { name: "Valid Widget" } },
       "widget-2": { type: "err", content: "Error loading widget" },
     };

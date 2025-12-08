@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { renderWithProviders, screen } from "../../test-utils/test-helpers";
 import Manifest from "./Manifest";
 import { createWidgetCatalogEntry } from "../../test-utils/test-helpers";
+import type { deskulptWidgets } from "@deskulpt/bindings";
 
 describe("Widget Manifest", () => {
   it("renders manifest information for valid widget", () => {
@@ -25,7 +26,7 @@ describe("Widget Manifest", () => {
   });
 
   it("renders error message for invalid widget", () => {
-    const catalog = {
+    const catalog: deskulptWidgets.WidgetCatalog = {
       "widget-1": { type: "err", content: "Widget not found" },
     };
 

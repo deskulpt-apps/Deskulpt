@@ -3,6 +3,7 @@ import { renderWithProviders, screen } from "../../test-utils/test-helpers";
 import { Tabs } from "@radix-ui/themes";
 import Trigger from "./Trigger";
 import { createWidgetCatalogEntry } from "../../test-utils/test-helpers";
+import type { deskulptWidgets } from "@deskulpt/bindings";
 
 describe("Widget Trigger", () => {
   it("renders widget ID", () => {
@@ -42,12 +43,13 @@ describe("Widget Trigger", () => {
     );
 
     // Radix UI renders duplicate text for accessibility
-    const trigger = screen.getAllByText("widget-1")[0].closest("button");
+    const triggerElement = screen.getAllByText("widget-1")[0];
+    const trigger = triggerElement?.closest("button");
     expect(trigger).toBeInTheDocument();
   });
 
   it("shows error indicator for invalid widget", () => {
-    const catalog = {
+    const catalog: deskulptWidgets.WidgetCatalog = {
       "widget-1": { type: "err", content: "Error" },
     };
 

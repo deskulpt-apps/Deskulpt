@@ -52,9 +52,12 @@ describe("Widget Settings", () => {
       },
     });
 
-    const xInput = screen.getAllByRole("spinbutton")[0];
-    await user.clear(xInput);
-    await user.type(xInput, "150");
+    const inputs = screen.getAllByRole("spinbutton");
+    const xInput = inputs[0];
+    if (xInput) {
+      await user.clear(xInput);
+      await user.type(xInput, "150");
+    }
 
     // Wait for debounce/defer - IntegerInput calls onValueChange on change
     await waitFor(
@@ -84,9 +87,12 @@ describe("Widget Settings", () => {
       },
     });
 
-    const yInput = screen.getAllByRole("spinbutton")[1];
-    await user.clear(yInput);
-    await user.type(yInput, "250");
+    const inputs = screen.getAllByRole("spinbutton");
+    const yInput = inputs[1];
+    if (yInput) {
+      await user.clear(yInput);
+      await user.type(yInput, "250");
+    }
 
     await waitFor(
       () => {
@@ -115,9 +121,12 @@ describe("Widget Settings", () => {
       },
     });
 
-    const widthInput = screen.getAllByRole("spinbutton")[2];
-    await user.clear(widthInput);
-    await user.type(widthInput, "350");
+    const inputs = screen.getAllByRole("spinbutton");
+    const widthInput = inputs[2];
+    if (widthInput) {
+      await user.clear(widthInput);
+      await user.type(widthInput, "350");
+    }
 
     await waitFor(
       () => {
@@ -146,9 +155,12 @@ describe("Widget Settings", () => {
       },
     });
 
-    const heightInput = screen.getAllByRole("spinbutton")[3];
-    await user.clear(heightInput);
-    await user.type(heightInput, "450");
+    const inputs = screen.getAllByRole("spinbutton");
+    const heightInput = inputs[3];
+    if (heightInput) {
+      await user.clear(heightInput);
+      await user.type(heightInput, "450");
+    }
 
     await waitFor(
       () => {
@@ -177,9 +189,12 @@ describe("Widget Settings", () => {
       },
     });
 
-    const opacityInput = screen.getAllByRole("spinbutton")[4];
-    await user.clear(opacityInput);
-    await user.type(opacityInput, "90");
+    const inputs = screen.getAllByRole("spinbutton");
+    const opacityInput = inputs[4];
+    if (opacityInput) {
+      await user.clear(opacityInput);
+      await user.type(opacityInput, "90");
+    }
 
     await waitFor(
       () => {

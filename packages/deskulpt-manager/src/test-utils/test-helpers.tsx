@@ -1,5 +1,5 @@
 import { ReactElement } from "react";
-import { RenderOptions, render } from "@testing-library/react";
+import { RenderOptions, RenderResult, render } from "@testing-library/react";
 import { Theme as RadixTheme } from "@radix-ui/themes";
 import { Toaster } from "sonner";
 import { useSettingsStore } from "../hooks/useSettingsStore";
@@ -85,7 +85,7 @@ function TestWrapper({
 export function renderWithProviders(
   ui: ReactElement,
   options: TestRenderOptions = {},
-) {
+): RenderResult {
   const { initialSettings, initialWidgetCatalog, theme, ...renderOptions } =
     options;
 

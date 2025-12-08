@@ -6,10 +6,11 @@ export class MockClipboard {
 
   writeText(text: string): Promise<void> {
     this.text = text;
+    return Promise.resolve();
   }
 
   readText(): Promise<string> {
-    return this.text;
+    return Promise.resolve(this.text);
   }
 
   clear() {

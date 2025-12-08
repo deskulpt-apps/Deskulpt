@@ -1,9 +1,8 @@
 import { ReactElement } from "react";
-import { RenderOptions, render } from "@testing-library/react";
+import { RenderOptions, RenderResult, render } from "@testing-library/react";
 import { Theme as RadixTheme } from "@radix-ui/themes";
 import { Toaster } from "sonner";
 import { useSettingsStore } from "../hooks/useSettingsStore";
-import { useWidgetsStore } from "../hooks/useWidgetsStore";
 import type { deskulptSettings } from "@deskulpt/bindings";
 import type { deskulptWidgets } from "@deskulpt/bindings";
 
@@ -41,7 +40,6 @@ interface TestRenderOptions extends Omit<RenderOptions, "wrapper"> {
 function TestWrapper({
   children,
   initialSettings = {},
-  initialWidgetCatalog = {},
   theme = "light",
 }: {
   children: React.ReactNode;
@@ -55,7 +53,8 @@ function TestWrapper({
     ...initialSettings,
     theme: theme || initialSettings.theme || defaultSettings.theme,
   });
-  useWidgetsStore.setState(initialWidgetCatalog);
+  // Note: useWidgetsStore in canvas is for rendered widget components, not the catalog
+  // The catalog is managed separately via events, so we don't set it here
 
   return (
     <RadixTheme
@@ -76,7 +75,7 @@ function TestWrapper({
 export function renderWithProviders(
   ui: ReactElement,
   options: TestRenderOptions = {},
-) {
+): RenderResult {
   const { initialSettings, initialWidgetCatalog, theme, ...renderOptions } =
     options;
 
