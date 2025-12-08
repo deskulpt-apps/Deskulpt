@@ -2,7 +2,7 @@ import { DataList, Flex, IconButton, Link, Text } from "@radix-ui/themes";
 import { css } from "@emotion/react";
 import { deskulptWidgets } from "@deskulpt/bindings";
 import { LuMail } from "react-icons/lu";
-import { useMemo } from "react";
+import { Fragment } from "react";
 
 const styles = {
   root: css({
@@ -48,15 +48,20 @@ function displayAuthors(authors: deskulptWidgets.WidgetManifestAuthor[]) {
   });
 }
 
+function displayUrl(url: string) {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
 interface WidgetManifestProps {
   manifest: deskulptWidgets.WidgetManifest;
 }
 
 const WidgetManifest = ({ manifest }: WidgetManifestProps) => {
-  const authorNodes = useMemo(
-    () => displayAuthors(manifest?.authors ?? []),
-    [manifest?.authors],
-  );
+  const authorNodes = displayAuthors(manifest.authors ?? []);
 
   return (
     <DataList.Root size="2" mt="1" css={styles.root}>
@@ -81,7 +86,9 @@ const WidgetManifest = ({ manifest }: WidgetManifestProps) => {
           <DataList.Label minWidth="88px">Authors</DataList.Label>
           <DataList.Value>
             <Flex display="inline-flex" align="center" wrap="wrap">
-              {authorNodes}
+              {authorNodes.map((node, index) => (
+                <Fragment key={index}>{node}</Fragment>
+              ))}
             </Flex>
           </DataList.Value>
         </DataList.Item>
@@ -91,7 +98,7 @@ const WidgetManifest = ({ manifest }: WidgetManifestProps) => {
           <DataList.Label minWidth="88px">Homepage</DataList.Label>
           <DataList.Value>
             <Link href={manifest.homepage}>
-              {new URL(manifest.homepage).hostname}
+              {displayUrl(manifest.homepage)}
             </Link>
           </DataList.Value>
         </DataList.Item>

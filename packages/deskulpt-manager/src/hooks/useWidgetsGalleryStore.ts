@@ -52,11 +52,7 @@ export const useWidgetsGalleryStore = create<
     set({ widgets: [], isFetching: true });
     try {
       const index = await deskulptWidgets.commands.fetchRegistryIndex();
-      const widgets = index.widgets.map((widget) => ({
-        ...widget,
-        isExecuting: false,
-      }));
-      set({ widgets });
+      set({ widgets: index.widgets });
     } catch (error) {
       logger.error(error);
       toast.error("Failed to load widgets gallery");

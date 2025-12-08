@@ -47,7 +47,7 @@ const WidgetPreview = () => {
 
   return (
     <Dialog.Root open={isOpen} onOpenChange={onOpenChange}>
-      <Dialog.Content size="1" aria-labelledby={undefined} asChild>
+      <Dialog.Content size="1" aria-describedby={undefined} asChild>
         <Flex minWidth="85vw" maxHeight="80vh" direction="column" gap="2">
           <VisuallyHidden asChild>
             <Dialog.Title>Widget Preview: {preview.id}</Dialog.Title>
