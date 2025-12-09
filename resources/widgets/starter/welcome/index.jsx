@@ -21,13 +21,17 @@ function Welcome() {
         settings, and more.
       </Text>
       <Text size="1">
+        Switch to the "Gallery" tab in the manager to explore and install
+        widgets from the official gallery.
+      </Text>
+      <Text size="1">
         Click the folder icon in the bottom left of the manager to open the
         widgets base directory where all your widgets should live.
       </Text>
       <Text size="1">
         Check out{" "}
         <Link href="https://deskulpt-apps.github.io/">our website</Link> for
-        more information (under construction).
+        more information.
       </Text>
     </Flex>
   );
