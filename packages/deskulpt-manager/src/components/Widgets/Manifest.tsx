@@ -1,9 +1,13 @@
 import { Badge, Box, Button, Code, Flex, ScrollArea } from "@radix-ui/themes";
-import { useWidgetsStore } from "../../hooks";
+import { useSettingsStore, useWidgetsStore } from "../../hooks";
 import { memo, useCallback } from "react";
 import WidgetManifest from "../WidgetManifest";
 import { LuFolderOpen, LuRepeat } from "react-icons/lu";
-import { deskulptCore, deskulptWidgets } from "@deskulpt/bindings";
+import {
+  deskulptCore,
+  deskulptSettings,
+  deskulptWidgets,
+} from "@deskulpt/bindings";
 import { logger } from "@deskulpt/utils";
 
 interface ManifestProps {
@@ -12,6 +16,15 @@ interface ManifestProps {
 
 const Manifest = memo(({ id }: ManifestProps) => {
   const manifest = useWidgetsStore((state) => state[id]);
+  const isLoaded = useSettingsStore(
+    (state) => state.widgets[id]?.isLoaded ?? false,
+  );
+
+  const toggleIsLoaded = useCallback(() => {
+    deskulptSettings.commands.update({
+      widgets: { [id]: { isLoaded: !isLoaded } },
+    });
+  }, [id, isLoaded]);
 
   const refreshAction = useCallback(() => {
     deskulptWidgets.commands.refresh(id).catch(logger.error);
@@ -27,10 +40,19 @@ const Manifest = memo(({ id }: ManifestProps) => {
         <Badge color={manifest?.type === "ok" ? "gray" : "ruby"}>{id}</Badge>
         <Flex align="center" gap="2">
           <Button
+            size="1"
+            variant="surface"
+            color={isLoaded ? "gray" : undefined}
+            onClick={toggleIsLoaded}
+          >
+            {isLoaded ? "Unload" : "Load"}
+          </Button>
+          <Button
             title="Refresh this widget"
             size="1"
             variant="surface"
             onClick={refreshAction}
+            disabled={!isLoaded}
           >
             <LuRepeat /> Refresh
           </Button>
