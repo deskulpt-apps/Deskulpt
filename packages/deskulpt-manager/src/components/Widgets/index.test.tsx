@@ -57,8 +57,9 @@ describe("Widgets", () => {
 
     // Widget details should be visible
     await waitFor(() => {
-      expect(screen.getByText("ID: widget-1")).toBeInTheDocument();
+      expect(screen.getByText("Refresh")).toBeInTheDocument();
       expect(screen.getByText("Test Widget")).toBeInTheDocument();
+      expect(screen.getByText("Name")).toBeInTheDocument();
     });
   });
 
