@@ -24,7 +24,6 @@ describe("Widget Settings", () => {
             height: 400,
             opacity: 80,
             zIndex: 10,
-
             isLoaded: true,
           },
         },
@@ -51,7 +50,6 @@ describe("Widget Settings", () => {
             height: 400,
             opacity: 80,
             zIndex: 10,
-
             isLoaded: true,
           },
         },
@@ -89,7 +87,6 @@ describe("Widget Settings", () => {
             height: 400,
             opacity: 80,
             zIndex: 10,
-
             isLoaded: true,
           },
         },
@@ -126,7 +123,6 @@ describe("Widget Settings", () => {
             height: 400,
             opacity: 80,
             zIndex: 10,
-
             isLoaded: true,
           },
         },
@@ -162,8 +158,8 @@ describe("Widget Settings", () => {
             width: 300,
             height: 400,
             opacity: 80,
-            isLoaded: true,
             zIndex: 10,
+            isLoaded: true,
           },
         },
       },
