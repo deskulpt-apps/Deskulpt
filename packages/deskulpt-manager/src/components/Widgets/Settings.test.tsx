@@ -23,6 +23,7 @@ describe("Widget Settings", () => {
             width: 300,
             height: 400,
             opacity: 80,
+            zIndex: 10,
             isLoaded: true,
           },
         },
@@ -31,7 +32,7 @@ describe("Widget Settings", () => {
 
     // Check that inputs are rendered with correct values
     const inputs = screen.getAllByRole("spinbutton");
-    expect(inputs).toHaveLength(5); // x, y, width, height, opacity
+    expect(inputs).toHaveLength(6); // x, y, width, height, zIndex, opacity
   });
 
   it("updates position when x value changes", async () => {
@@ -48,6 +49,7 @@ describe("Widget Settings", () => {
             width: 300,
             height: 400,
             opacity: 80,
+            zIndex: 10,
             isLoaded: true,
           },
         },
@@ -84,6 +86,7 @@ describe("Widget Settings", () => {
             width: 300,
             height: 400,
             opacity: 80,
+            zIndex: 10,
             isLoaded: true,
           },
         },
@@ -119,6 +122,7 @@ describe("Widget Settings", () => {
             width: 300,
             height: 400,
             opacity: 80,
+            zIndex: 10,
             isLoaded: true,
           },
         },
@@ -154,6 +158,7 @@ describe("Widget Settings", () => {
             width: 300,
             height: 400,
             opacity: 80,
+            zIndex: 10,
             isLoaded: true,
           },
         },
@@ -189,6 +194,7 @@ describe("Widget Settings", () => {
             width: 300,
             height: 400,
             opacity: 80,
+            zIndex: 10,
             isLoaded: true,
           },
         },

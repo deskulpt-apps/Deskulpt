@@ -103,6 +103,14 @@
           "maximum": 100,
           "default": 100
         },
+        "zIndex": {
+          "description": "The z-index.\n\nHigher z-index means the widget will be rendered above those with lower\nz-index. Widgets with the same z-index can have arbitrary rendering\norder. The allowed range is from -999 to 999.",
+          "type": "integer",
+          "format": "int16",
+          "minimum": -999,
+          "maximum": 999,
+          "default": 0
+        },
         "isLoaded": {
           "description": "Whether the widget should be loaded on the canvas or not.",
           "type": "boolean",

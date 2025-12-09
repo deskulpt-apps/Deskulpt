@@ -65,6 +65,7 @@ describe("useSettingsStore", () => {
             width: 300,
             height: 400,
             opacity: 80,
+            zIndex: 10,
             isLoaded: true,
           },
         },

@@ -89,6 +89,27 @@ const Height = ({ id }: SettingsProps) => {
   );
 };
 
+const ZIndex = ({ id }: SettingsProps) => {
+  const zIndex = useSettingsStore((state) => state.widgets[id]?.zIndex);
+  const onValueChange = useCallback(
+    (value: number) =>
+      deskulptSettings.commands.update({
+        widgets: { [id]: { zIndex: value } },
+      }),
+    [id],
+  );
+
+  return (
+    <IntegerInput
+      value={zIndex}
+      min={-999}
+      max={999}
+      onValueChange={onValueChange}
+      width="60px"
+    />
+  );
+};
+
 const Opacity = ({ id }: SettingsProps) => {
   const opacity = useSettingsStore((state) => state.widgets[id]?.opacity);
   const onValueChange = useCallback(
@@ -114,6 +135,7 @@ X.displayName = "Settings.X";
 Y.displayName = "Settings.Y";
 Width.displayName = "Settings.Width";
 Height.displayName = "Settings.Height";
+ZIndex.displayName = "Settings.ZIndex";
 Opacity.displayName = "Settings.Opacity";
 
 interface SettingsProps {
@@ -142,6 +164,12 @@ const Settings = memo(({ id }: SettingsProps) => {
               <LuX size={12} color="var(--gray-11)" />
               <Height id={id} />
             </Flex>
+          </Table.Cell>
+        </Table.Row>
+        <Table.Row align="center">
+          <Table.RowHeaderCell>Z-index</Table.RowHeaderCell>
+          <Table.Cell>
+            <ZIndex id={id} />
           </Table.Cell>
         </Table.Row>
         <Table.Row align="center">
