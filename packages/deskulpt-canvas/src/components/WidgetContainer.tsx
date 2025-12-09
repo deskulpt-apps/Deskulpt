@@ -24,15 +24,12 @@ import { useSettingsStore, useWidgetsStore } from "../hooks";
 import { css } from "@emotion/react";
 import { deskulptSettings } from "@deskulpt/bindings";
 
-const styles = () => ({
+const styles = {
   wrapper: css({
     "&:hover": {
       ".handle": { opacity: 1 },
-      ".border": {
-        opacity: 1,
-        boxShadow:
-          "0 0 20px var(--gray-a7), 0 0 40px var(--gray-a5), 0 0 60px var(--gray-a3), inset 0 0 20px var(--gray-a2)",
-      },
+      boxShadow:
+        "0 0 20px var(--gray-a7), 0 0 40px var(--gray-a5), 0 0 60px var(--gray-a3), inset 0 0 20px var(--gray-a2)",
     },
   }),
   handle: css({
@@ -41,24 +38,11 @@ const styles = () => ({
     zIndex: 2,
     transition: "opacity 200ms ease-in-out",
   }),
-  border: css({
-    position: "absolute",
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    pointerEvents: "none",
-    opacity: 0,
-    borderRadius: "var(--radius-2)",
-    transition: "opacity 200ms ease-in-out, box-shadow 200ms ease-in-out",
-    zIndex: 1,
-  }),
   container: css({
     color: "var(--gray-12)",
     zIndex: 1,
-    overflow: "hidden",
   }),
-});
+};
 
 interface WidgetGeometry {
   x: number;
@@ -112,8 +96,6 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
 
   const settings = useSettingsStore((state) => state.widgets[id]);
   const opacity = settings?.opacity;
-
-  const containerStyles = styles();
 
   // Local state to avoid jittery movement during dragging and resizing
   const [geometry, setGeometry] = useState(
@@ -221,27 +203,26 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
     >
       <Box
         ref={draggableRef}
-        overflow="visible"
+        overflow="hidden"
         position="absolute"
-        css={containerStyles.wrapper}
+        css={styles.wrapper}
       >
         <Box
           className="handle"
           position="absolute"
           top="1"
           right="1"
-          css={containerStyles.handle}
+          css={styles.handle}
           asChild
         >
           <LuGripVertical size={20} />
         </Box>
-        <Box className="border" css={containerStyles.border} />
         <Resizable
           size={{ width: geometry.width, height: geometry.height }}
           onResizeStart={onResizeStart}
           onResize={onResize}
           onResizeStop={onResizeStop}
-          css={containerStyles.container}
+          css={styles.container}
           style={{ opacity: opacity / 100 }}
         >
           <ErrorBoundary
