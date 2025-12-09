@@ -205,6 +205,7 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
         overflow="hidden"
         position="absolute"
         css={styles.wrapper}
+        style={{ zIndex: settings.zIndex }}
       >
         <Box
           className="handle"
