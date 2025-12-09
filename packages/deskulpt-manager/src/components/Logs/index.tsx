@@ -2,7 +2,7 @@ import { Box, Flex, ScrollArea, Text } from "@radix-ui/themes";
 import { memo, useEffect, useRef, useState } from "react";
 import { deskulptCore } from "@deskulpt/bindings";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { useLogs } from "../../hooks/useLogs";
+import { useLogs } from "../../hooks";
 import Header from "./Header";
 import Entry from "./Entry";
 import { LuLogs } from "react-icons/lu";
