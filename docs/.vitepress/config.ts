@@ -66,7 +66,17 @@ export default defineConfig({
           text: "Getting Started",
           items: [
             { text: "Introduction", link: "/guide/introduction" },
-            { text: "Quick Start", link: "/guide/quick-start" },
+            { text: "Installation", link: "/guide/installation" },
+            { text: "First Launch", link: "/guide/first-launch" },
+            { text: "Manager Interface", link: "/guide/manager" },
+            {
+              text: "Create Your First Widget",
+              link: "/guide/create-your-first-widget",
+            },
+            {
+              text: "Distributing Your Widget",
+              link: "/guide/distributing-your-widget",
+            },
           ],
         },
       ],
