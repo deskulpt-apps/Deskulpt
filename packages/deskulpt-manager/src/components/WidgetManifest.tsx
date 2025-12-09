@@ -20,28 +20,43 @@ function displayAuthors(authors: deskulptWidgets.WidgetManifestAuthor[]) {
   return authors.flatMap((author, index) => {
     const nodes = [];
     if (index > 0) {
-      nodes.push(<Text mr="1">,</Text>);
+      nodes.push({
+        node: <Text mr="1">,</Text>,
+        key: `comma-${index}`,
+      });
     }
 
     if (typeof author === "string") {
-      nodes.push(<Text>{author}</Text>);
+      nodes.push({
+        node: <Text>{author}</Text>,
+        key: `author-${index}`,
+      });
       return nodes;
     }
 
     if (author.email !== undefined) {
-      nodes.push(
-        <IconButton size="1" variant="ghost" css={styles.emailIcon} asChild>
-          <Link href={`mailto:${author.email}`}>
-            <LuMail size={14} />
-          </Link>
-        </IconButton>,
-      );
+      nodes.push({
+        node: (
+          <IconButton size="1" variant="ghost" css={styles.emailIcon} asChild>
+            <Link href={`mailto:${author.email}`}>
+              <LuMail size={14} />
+            </Link>
+          </IconButton>
+        ),
+        key: `email-${index}`,
+      });
     }
 
     if (author.homepage === undefined) {
-      nodes.push(<Text>{author.name}</Text>);
+      nodes.push({
+        node: <Text>{author.name}</Text>,
+        key: `author-${index}`,
+      });
     } else {
-      nodes.push(<Link href={author.homepage}>{author.name}</Link>);
+      nodes.push({
+        node: <Link href={author.homepage}>{author.name}</Link>,
+        key: `author-${index}`,
+      });
     }
 
     return nodes;
@@ -86,8 +101,8 @@ const WidgetManifest = ({ manifest }: WidgetManifestProps) => {
           <DataList.Label minWidth="88px">Authors</DataList.Label>
           <DataList.Value>
             <Flex display="inline-flex" align="center" wrap="wrap">
-              {authorNodes.map((node, index) => (
-                <Fragment key={index}>{node}</Fragment>
+              {authorNodes.map(({ node, key }) => (
+                <Fragment key={key}>{node}</Fragment>
               ))}
             </Flex>
           </DataList.Value>
