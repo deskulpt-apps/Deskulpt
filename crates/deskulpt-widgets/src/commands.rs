@@ -27,6 +27,10 @@ pub async fn refresh_all<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> 
     Ok(())
 }
 
+/// Fetch the widgets registry index.
+///
+/// This command is a wrapper of
+/// [`crate::WidgetsManager::fetch_registry_index`].
 #[tauri::command]
 #[specta::specta]
 pub async fn fetch_registry_index<R: Runtime>(
@@ -36,6 +40,9 @@ pub async fn fetch_registry_index<R: Runtime>(
     Ok(index)
 }
 
+/// Preview a widget from the registry.
+///
+/// This command is a wrapper of [`crate::WidgetsManager::preview`].
 #[tauri::command]
 #[specta::specta]
 pub async fn preview<R: Runtime>(
@@ -46,6 +53,9 @@ pub async fn preview<R: Runtime>(
     Ok(preview)
 }
 
+/// Install a widget from the registry.
+///
+/// This command is a wrapper of [`crate::WidgetsManager::install`].
 #[tauri::command]
 #[specta::specta]
 pub async fn install<R: Runtime>(
@@ -56,6 +66,9 @@ pub async fn install<R: Runtime>(
     Ok(())
 }
 
+/// Uninstall a widget from the registry.
+///
+/// This command is a wrapper of [`crate::WidgetsManager::uninstall`].
 #[tauri::command]
 #[specta::specta]
 pub async fn uninstall<R: Runtime>(
@@ -66,6 +79,9 @@ pub async fn uninstall<R: Runtime>(
     Ok(())
 }
 
+/// Upgrade a widget from the registry.
+///
+/// This command is a wrapper of [`crate::WidgetsManager::upgrade`].
 #[tauri::command]
 #[specta::specta]
 pub async fn upgrade<R: Runtime>(
