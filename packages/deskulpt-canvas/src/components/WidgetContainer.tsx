@@ -26,7 +26,11 @@ import { deskulptSettings } from "@deskulpt/bindings";
 
 const styles = {
   wrapper: css({
-    "&:hover": { ".handle": { opacity: 1 } },
+    "&:hover": {
+      ".handle": { opacity: 1 },
+      boxShadow:
+        "0 0 20px var(--gray-a7), 0 0 40px var(--gray-a5), 0 0 60px var(--gray-a3), inset 0 0 20px var(--gray-a2)",
+    },
   }),
   handle: css({
     cursor: "grab",
