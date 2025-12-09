@@ -10,15 +10,6 @@ A **Deskulpt widget** is a small, interactive web component rendered on the Desk
 
 Deskulpt widgets are built with web technologies, primarily React, JavaScript, and TypeScript. This allows widgets to leverage the full power and flexibility of modern web development. Anything you can build as a web application can become a Deskulpt widget, empowering you to bring advanced functionalities directly onto your desktop. Widgets can seamlessly gather data from your system, web APIs, local files, etc., and dynamically present data using rich and interactive visual elements and user interfaces.
 
-### Deskulpt Canvas
-
-The **Deskulpt canvas** is a transparent webview window layered on your desktop, always staying below your other application windows. The Deskulpt canvas has two interaction modes: **sink mode** and **float mode**.
-
-- In sink mode, widgets are not user-interactable, though they are still dynamic. You can use your desktop as normal, as if the widgets are just small dynamic wallpapers.
-- In float mode, widgets are fully user-interactable, meaning that they are responsive to clicks, keyboard events, etc. and you can drag them around. However you cannot interact with your desktop, e.g., you cannot click desktop icons.
-
-This means you cannot interact with your widgets and the desktop at the same time, but you can easily switch between these two modes to gain the best experience.
-
 ## Why Deskulpt?
 
 :::warning 🚧 Under Construction 🚧
