@@ -1,6 +1,5 @@
 //! State management for canvas interaction mode.
 
-use std::sync::RwLock;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 
@@ -8,6 +7,7 @@ use anyhow::Result;
 use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
 use deskulpt_settings::{CanvasImode, SettingsExt, SettingsPatch};
+use parking_lot::RwLock;
 use seqlock::SeqLock;
 use tauri::{App, AppHandle, Manager, PhysicalPosition, Runtime, WebviewWindow};
 use tracing::error;
@@ -142,7 +142,7 @@ fn on_new_canvas_imode<R: Runtime>(canvas: &WebviewWindow<R>, mode: &CanvasImode
             // Set the flag with write lock acquired to avoid racing with the
             // mousemove hook on setting `ignore_cursor_events`
             let state = canvas.state::<CanvasImodeState>();
-            let _guard = state.lock.write().unwrap();
+            let _guard = state.lock.write();
             LISTENING_MOUSEMOVE.store(false, Ordering::Release);
             canvas.set_ignore_cursor_events(*mode == CanvasImode::Sink)?;
         },
@@ -208,8 +208,8 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
             // writers on setting `ignore_cursor_events`
             let state = canvas.state::<CanvasImodeState>();
             let _guard = match state.lock.try_read() {
-                Ok(guard) => guard,
-                Err(_) => return, // Avoid blocking
+                Some(guard) => guard,
+                None => return, // Avoid blocking
             };
 
             if !LISTENING_MOUSEMOVE.load(Ordering::Acquire) {
