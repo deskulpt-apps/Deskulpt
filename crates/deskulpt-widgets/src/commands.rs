@@ -5,6 +5,7 @@ use deskulpt_common::SerResult;
 use tauri::{AppHandle, Runtime, WebviewWindow};
 
 use crate::WidgetsExt;
+use crate::registry::{RegistryIndex, RegistryWidgetPreview, RegistryWidgetReference};
 
 /// Refresh a specific widget by its ID.
 ///
@@ -23,6 +24,71 @@ pub async fn refresh<R: Runtime>(app_handle: AppHandle<R>, id: String) -> SerRes
 #[specta::specta]
 pub async fn refresh_all<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
     app_handle.widgets().refresh_all()?;
+    Ok(())
+}
+
+/// Fetch the widgets registry index.
+///
+/// This command is a wrapper of
+/// [`crate::WidgetsManager::fetch_registry_index`].
+#[tauri::command]
+#[specta::specta]
+pub async fn fetch_registry_index<R: Runtime>(
+    app_handle: AppHandle<R>,
+) -> SerResult<RegistryIndex> {
+    let index = app_handle.widgets().fetch_registry_index().await?;
+    Ok(index)
+}
+
+/// Preview a widget from the registry.
+///
+/// This command is a wrapper of [`crate::WidgetsManager::preview`].
+#[tauri::command]
+#[specta::specta]
+pub async fn preview<R: Runtime>(
+    app_handle: AppHandle<R>,
+    widget: RegistryWidgetReference,
+) -> SerResult<RegistryWidgetPreview> {
+    let preview = app_handle.widgets().preview(&widget).await?;
+    Ok(preview)
+}
+
+/// Install a widget from the registry.
+///
+/// This command is a wrapper of [`crate::WidgetsManager::install`].
+#[tauri::command]
+#[specta::specta]
+pub async fn install<R: Runtime>(
+    app_handle: AppHandle<R>,
+    widget: RegistryWidgetReference,
+) -> SerResult<()> {
+    app_handle.widgets().install(&widget).await?;
+    Ok(())
+}
+
+/// Uninstall a widget from the registry.
+///
+/// This command is a wrapper of [`crate::WidgetsManager::uninstall`].
+#[tauri::command]
+#[specta::specta]
+pub async fn uninstall<R: Runtime>(
+    app_handle: AppHandle<R>,
+    widget: RegistryWidgetReference,
+) -> SerResult<()> {
+    app_handle.widgets().uninstall(&widget).await?;
+    Ok(())
+}
+
+/// Upgrade a widget from the registry.
+///
+/// This command is a wrapper of [`crate::WidgetsManager::upgrade`].
+#[tauri::command]
+#[specta::specta]
+pub async fn upgrade<R: Runtime>(
+    app_handle: AppHandle<R>,
+    widget: RegistryWidgetReference,
+) -> SerResult<()> {
+    app_handle.widgets().upgrade(&widget).await?;
     Ok(())
 }
 

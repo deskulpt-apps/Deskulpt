@@ -29,6 +29,151 @@ export type DeskulptWindow =
 export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
 
 /**
+ * An entry for a widget in the registry.
+ */
+export type RegistryEntry = { 
+/**
+ * The publisher handle.
+ */
+handle: string; 
+/**
+ * The widget ID.
+ * 
+ * Note that this ID is unique only within the publisher's namespace.
+ */
+id: string; 
+/**
+ * The name of the widget.
+ */
+name: string; 
+/**
+ * The authors of the widget.
+ */
+authors: WidgetManifestAuthor[]; 
+/**
+ * A short description of the widget.
+ */
+description: string; 
+/**
+ * The releases of the widget, ordered from newest to oldest.
+ */
+releases: RegistryEntryRelease[] }
+
+/**
+ * An entry for a specific release of a widget in the registry.
+ */
+export type RegistryEntryRelease = { 
+/**
+ * The version string of the release.
+ */
+version: string; 
+/**
+ * The publication datetime of the release, in ISO 8601 format.
+ */
+publishedAt: string; 
+/**
+ * The SHA-256 digest of the release package.
+ * 
+ * This is used to verify integrity but also an immutable identifier for
+ * uniquely locating the released widget package.
+ */
+digest: string }
+
+/**
+ * The widgets registry index.
+ */
+export type RegistryIndex = { 
+/**
+ * The API version.
+ */
+api: number; 
+/**
+ * The datetime when the index was generated, in ISO 8601 format.
+ */
+generatedAt: string; 
+/**
+ * The list of widgets in the registry.
+ */
+widgets: RegistryEntry[] }
+
+/**
+ * Preview information about a widget in the registry.
+ */
+export type RegistryWidgetPreview = 
+/**
+ * More information as in the widget manifest.
+ */
+({ 
+/**
+ * The display name of the widget.
+ */
+name: string; 
+/**
+ * The version of the widget.
+ */
+version?: string; 
+/**
+ * The authors of the widget.
+ */
+authors?: WidgetManifestAuthor[]; 
+/**
+ * The license of the widget.
+ */
+license?: string; 
+/**
+ * A short description of the widget.
+ */
+description?: string; 
+/**
+ * URL to the homepage of the widget.
+ */
+homepage?: string }) & { 
+/**
+ * The local ID of the widget.
+ * 
+ * See [`RegistryWidgetReference::local_id`] for details.
+ */
+id: string; 
+/**
+ * The size of the widget package in bytes.
+ */
+size: number; 
+/**
+ * The URL of the widget package in the registry.
+ */
+registryUrl: string; 
+/**
+ * The creation datetime of the widget package, in ISO 8601 format.
+ */
+created?: string; 
+/**
+ * The git repository URL of the widget source code.
+ */
+git?: string }
+
+/**
+ * A reference to a widget in the registry.
+ * 
+ * These information uniquely and immutably identify a widget package in the
+ * widgets registry.
+ */
+export type RegistryWidgetReference = { 
+/**
+ * The publisher handle.
+ */
+handle: string; 
+/**
+ * The widget ID.
+ * 
+ * Note that this ID is unique only within the publisher's namespace.
+ */
+id: string; 
+/**
+ * The SHA-256 digest of the widget package.
+ */
+digest: string }
+
+/**
  * Event for reporting the rendering result of a widget to the canvas.
  */
 export type RenderEvent = { 
@@ -77,7 +222,11 @@ license?: string;
 /**
  * A short description of the widget.
  */
-description?: string }
+description?: string; 
+/**
+ * URL to the homepage of the widget.
+ */
+homepage?: string }
 
 /**
  * An author of a Deskulpt widget.
@@ -148,6 +297,36 @@ export const commands = {
   completeSetup: () => invoke<null>("plugin:deskulpt-widgets|complete_setup"),
 
   /**
+   * Fetch the widgets registry index.
+   * 
+   * This command is a wrapper of
+   * [`crate::WidgetsManager::fetch_registry_index`].
+   */
+  fetchRegistryIndex: () => invoke<RegistryIndex>("plugin:deskulpt-widgets|fetch_registry_index"),
+
+  /**
+   * Install a widget from the registry.
+   * 
+   * This command is a wrapper of [`crate::WidgetsManager::install`].
+   */
+  install: (
+    widget: RegistryWidgetReference,
+  ) => invoke<null>("plugin:deskulpt-widgets|install", {
+    widget,
+  }),
+
+  /**
+   * Preview a widget from the registry.
+   * 
+   * This command is a wrapper of [`crate::WidgetsManager::preview`].
+   */
+  preview: (
+    widget: RegistryWidgetReference,
+  ) => invoke<RegistryWidgetPreview>("plugin:deskulpt-widgets|preview", {
+    widget,
+  }),
+
+  /**
    * Refresh a specific widget by its ID.
    * 
    * This command is a wrapper of [`crate::WidgetsManager::refresh`].
@@ -164,4 +343,26 @@ export const commands = {
    * This command is a wrapper of [`crate::WidgetsManager::refresh_all`].
    */
   refreshAll: () => invoke<null>("plugin:deskulpt-widgets|refresh_all"),
+
+  /**
+   * Uninstall a widget from the registry.
+   * 
+   * This command is a wrapper of [`crate::WidgetsManager::uninstall`].
+   */
+  uninstall: (
+    widget: RegistryWidgetReference,
+  ) => invoke<null>("plugin:deskulpt-widgets|uninstall", {
+    widget,
+  }),
+
+  /**
+   * Upgrade a widget from the registry.
+   * 
+   * This command is a wrapper of [`crate::WidgetsManager::upgrade`].
+   */
+  upgrade: (
+    widget: RegistryWidgetReference,
+  ) => invoke<null>("plugin:deskulpt-widgets|upgrade", {
+    widget,
+  }),
 };
