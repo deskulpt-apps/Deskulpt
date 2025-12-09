@@ -17,24 +17,25 @@ pub fn run() {
     Builder::default()
         .setup(move |app| {
             app.init_widgets_dir()?;
-            println!("widgets dir: {:?}", app.widgets_dir()?);
             app.init_persist_dir()?;
-            println!("persist dir: {:?}", app.persist_dir()?);
             app.init_logs_dir()?;
-            println!("logs dir: {:?}", app.logs_dir()?);
 
             app.manage_logging()?;
-            println!("logging dir: {:?}", app.logs_dir()?);
+
             // Hide the application from the dock on macOS because skipping
             // taskbar is not applicable for macOS
             #[cfg(target_os = "macos")]
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
             app.init_shortcuts();
             app.create_manager()?;
             app.create_canvas()?;
             app.create_tray()?;
+
             app.manage_canvas_imode()?;
+
             app.widgets().maybe_add_starter()?;
+
             Ok(())
         })
         .on_window_event(deskulpt_core::window::on_window_event)
