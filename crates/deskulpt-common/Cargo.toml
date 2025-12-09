@@ -16,5 +16,8 @@ serde           = { workspace = true, features = ["derive"] }
 specta          = { workspace = true, features = ["function"] }
 tauri           = { workspace = true }
 
+[dev-dependencies]
+serde_json = { workspace = true }
+
 [package.metadata.docs.rs]
 rustdoc-args = ["--document-private-items"]

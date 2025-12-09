@@ -1270,6 +1270,7 @@ dependencies = [
  "anyhow",
  "deskulpt-macros",
  "serde",
+ "serde_json",
  "specta",
  "tauri",
 ]
@@ -1320,6 +1321,7 @@ dependencies = [
  "deskulpt-plugin-macros",
  "serde",
  "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -1329,6 +1331,8 @@ dependencies = [
  "anyhow",
  "deskulpt-plugin",
  "serde",
+ "serde_json",
+ "tempfile",
 ]
 
 [[package]]
@@ -1346,6 +1350,7 @@ dependencies = [
  "anyhow",
  "deskulpt-plugin",
  "serde",
+ "serde_json",
  "sysinfo",
 ]
 
