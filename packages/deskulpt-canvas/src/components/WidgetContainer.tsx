@@ -188,12 +188,8 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
   // Do not render anything if the widget is not fully configured; there could
   // be a gap between widget and settings updates, but they should eventually be
   // in sync
-  if (settings === undefined || geometry === undefined) {
+  if (settings === undefined || geometry === undefined || !settings.isLoaded) {
     return null;
-  }
-
-  if (!settings.isLoaded) {
-    return null; // The widget is marked to not be loaded
   }
 
   return (

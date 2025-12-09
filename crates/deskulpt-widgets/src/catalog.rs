@@ -72,13 +72,20 @@ pub struct WidgetManifest {
     /// This is a path relative to the root of the widget.
     #[serde(skip_serializing)]
     pub entry: String,
+    /// Whether to ignore the widget.
+    ///
+    /// If set to true, the widget will not be discovered by the application,
+    /// despite the presence of the manifest file.
+    #[serde(default, skip_serializing)]
+    pub ignore: bool,
 }
 
 impl WidgetManifest {
     /// Load the widget manifest from a directory.
     ///
-    /// If the directory does not contain a widget manifest file, this method
-    /// returns `Ok(None)` (meaning this directory is **NOT A WIDGET**). If
+    /// This method returns `Ok(None)` if the directory is **NOT A WIDGET**,
+    /// i.e., either the directory does not contain a widget manifest file, or
+    /// the widget manifest marks itself as ignored (see [`Self::ignore`]). If
     /// loading or parsing the widget manifest fails, an error is returned.
     /// Otherwise, the widget manifest is returned wrapped in `Ok(Some(...))`.
     ///
@@ -93,8 +100,11 @@ impl WidgetManifest {
         let file = File::open(&path)
             .with_context(|| format!("Failed to open widget manifest: {}", path.display()))?;
         let reader = BufReader::new(file);
-        let config = serde_json::from_reader(reader)
+        let config: Self = serde_json::from_reader(reader)
             .with_context(|| format!("Failed to parse widget manifest: {}", path.display()))?;
+        if config.ignore {
+            return Ok(None);
+        }
         Ok(Some(config))
     }
 }
