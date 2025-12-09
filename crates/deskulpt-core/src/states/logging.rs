@@ -43,8 +43,13 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
 
         let file_layer = fmt::layer()
             .json()
-            .flatten_event(true)
+            .with_target(true)
+            .with_file(true)
+            .with_line_number(true)
             .with_timer(UtcTime::rfc_3339())
+            .with_current_span(false)
+            .with_span_list(true)
+            .flatten_event(true)
             .with_writer(writer.clone())
             .with_filter(
                 Targets::new()
