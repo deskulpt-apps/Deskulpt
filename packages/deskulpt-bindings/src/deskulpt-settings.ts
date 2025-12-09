@@ -147,7 +147,11 @@ height: number;
 /**
  * The opacity in percentage.
  */
-opacity: number }
+opacity: number; 
+/**
+ * Whether the widget should be loaded on the canvas or not.
+ */
+isLoaded: boolean }
 
 /**
  * A patch for partial updates to [`WidgetSettings`].
@@ -172,7 +176,11 @@ height?: number;
 /**
  * If not `None`, update [`WidgetSettings::opacity`].
  */
-opacity?: number }
+opacity?: number; 
+/**
+ * If not `None`, update [`WidgetSettings::is_loaded`].
+ */
+isLoaded?: boolean }
 
 // =============================================================================
 // Events

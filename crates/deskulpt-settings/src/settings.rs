@@ -79,6 +79,9 @@ pub struct WidgetSettings {
     #[serde(deserialize_with = "WidgetSettings::deserialize_opacity")]
     #[schemars(range(min = 1, max = 100))]
     pub opacity: u8,
+    /// Whether the widget should be loaded on the canvas or not.
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pub is_loaded: bool,
 }
 
 impl Default for WidgetSettings {
@@ -89,6 +92,7 @@ impl Default for WidgetSettings {
             width: 300,
             height: 200,
             opacity: 100,
+            is_loaded: true,
         }
     }
 }
@@ -128,6 +132,9 @@ pub struct WidgetSettingsPatch {
     /// If not `None`, update [`WidgetSettings::opacity`].
     #[specta(optional, type = u8)]
     pub opacity: Option<u8>,
+    /// If not `None`, update [`WidgetSettings::is_loaded`].
+    #[specta(optional, type = bool)]
+    pub is_loaded: Option<bool>,
 }
 
 impl WidgetSettings {
@@ -153,6 +160,7 @@ impl WidgetSettings {
         dirty |= set_if_changed(&mut self.width, patch.width);
         dirty |= set_if_changed(&mut self.height, patch.height);
         dirty |= set_if_changed(&mut self.opacity, patch.opacity);
+        dirty |= set_if_changed(&mut self.is_loaded, patch.is_loaded);
         dirty
     }
 }
@@ -177,6 +185,7 @@ pub struct Settings {
     #[serde_as(deserialize_as = "MapSkipError<_, _>")]
     pub widgets: BTreeMap<String, WidgetSettings>,
     /// Whether the starter widgets have been added.
+    #[serde_as(deserialize_as = "DefaultOnError")]
     #[specta(skip)]
     pub starter_widgets_added: bool,
 }

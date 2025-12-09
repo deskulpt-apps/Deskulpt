@@ -102,6 +102,11 @@
           "minimum": 1,
           "maximum": 100,
           "default": 100
+        },
+        "isLoaded": {
+          "description": "Whether the widget should be loaded on the canvas or not.",
+          "type": "boolean",
+          "default": true
         }
       }
     }

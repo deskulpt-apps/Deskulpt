@@ -1,9 +1,12 @@
 import { create } from "zustand";
-import { deskulptSettings } from "@deskulpt/bindings";
 import { FC } from "react";
 
-interface WidgetProps extends deskulptSettings.WidgetSettings {
+interface WidgetProps {
   id: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 interface WidgetState {
