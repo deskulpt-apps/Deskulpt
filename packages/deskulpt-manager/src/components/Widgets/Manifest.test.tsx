@@ -59,6 +59,7 @@ describe("Widget Manifest", () => {
       initialWidgetCatalog: catalog,
     });
 
-    expect(screen.getByText(/Author 1.*Author 2/)).toBeInTheDocument();
+    expect(screen.getByText("Author 1")).toBeInTheDocument();
+    expect(screen.getByText("Author 2")).toBeInTheDocument();
   });
 });
