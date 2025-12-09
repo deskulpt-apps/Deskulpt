@@ -21,8 +21,8 @@ function Welcome() {
         settings, and more.
       </Text>
       <Text size="1">
-        Switch to the "Gallery" tab in the manager to explore and install
-        widgets from the official gallery.
+        Switch to the &quot;Gallery&quot; tab in the manager to explore and
+        install widgets from the official gallery.
       </Text>
       <Text size="1">
         Click the folder icon in the bottom left of the manager to open the
