@@ -47,30 +47,8 @@ jobs:
           git-cliff --latest >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
-      - name: Build Deskulpt
-        uses: tauri-apps/tauri-action@v0
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          args: --target ${{ matrix.target }}
-          tagName: v__VERSION__
-          releaseName: "Deskulpt v__VERSION__"
-          releaseBody: ${{ steps.release-notes.outputs.RELEASE_NOTES }}
-
-  build-macos:
-    strategy:
-      matrix:
-        include:
-          - args: "--target aarch64-apple-darwin"
-            arch: "silicon"
-          - args: "--target x86_64-apple-darwin"
-            arch: "intel"
-    runs-on: macos-latest
-    env:
-      APPLE_ID: ${{ secrets.APPLE_ID }}
-      APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
-    steps:
       - name: Import Apple Developer Certificate
+        if: matrix.platform == 'macos-latest'
         env:
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
@@ -86,17 +64,22 @@ jobs:
           security find-identity -v -p codesigning build.keychain
 
       - name: Verify Certificate
+        if: matrix.platform == 'macos-latest'
         run: |
           CERT_INFO=$(security find-identity -v -p codesigning build.keychain | grep "Apple Development")
           CERT_ID=$(echo "$CERT_INFO" | awk -F'"' '{print $2}')
           echo "CERT_ID=$CERT_ID" >> $GITHUB_ENV
           echo "Certificate imported."
 
-      - uses: tauri-apps/tauri-action@v0
+      - name: Build Deskulpt
+        uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
           APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
           APPLE_SIGNING_IDENTITY: ${{ env.CERT_ID }}
         with:
-          args: ${{ matrix.args }}
+          args: --target ${{ matrix.target }}
+          tagName: v__VERSION__
+          releaseName: "Deskulpt v__VERSION__"
+          releaseBody: ${{ steps.release-notes.outputs.RELEASE_NOTES }}
