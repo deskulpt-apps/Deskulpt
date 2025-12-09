@@ -8,7 +8,7 @@ edition    = "2024"
 homepage   = "https://deskulpt-apps.github.io/"
 license    = "MIT"
 repository = "https://github.com/deskulpt-apps/Deskulpt"
-version    = "0.2.0"
+version    = "0.3.0"
 
 [workspace.dependencies]
 anyhow                         = "1.0.100"
@@ -56,19 +56,19 @@ tracing-panic                  = "0.1.2"
 tracing-subscriber             = "0.3.21"
 
 # Deskulpt crates
-deskulpt-build         = { version = "0.2.0", path = "crates/deskulpt-build" }
-deskulpt-common        = { version = "0.2.0", path = "crates/deskulpt-common" }
-deskulpt-core          = { version = "0.2.0", path = "crates/deskulpt-core" }
-deskulpt-macros        = { version = "0.2.0", path = "crates/deskulpt-macros" }
-deskulpt-plugin        = { version = "0.2.0", path = "crates/deskulpt-plugin" }
-deskulpt-plugin-macros = { version = "0.2.0", path = "crates/deskulpt-plugin-macros" }
-deskulpt-settings      = { version = "0.2.0", path = "crates/deskulpt-settings" }
-deskulpt-widgets       = { version = "0.2.0", path = "crates/deskulpt-widgets" }
-deskulpt-workspace     = { version = "0.2.0", path = "crates/deskulpt-workspace" }
+deskulpt-build         = { version = "0.3.0", path = "crates/deskulpt-build" }
+deskulpt-common        = { version = "0.3.0", path = "crates/deskulpt-common" }
+deskulpt-core          = { version = "0.3.0", path = "crates/deskulpt-core" }
+deskulpt-macros        = { version = "0.3.0", path = "crates/deskulpt-macros" }
+deskulpt-plugin        = { version = "0.3.0", path = "crates/deskulpt-plugin" }
+deskulpt-plugin-macros = { version = "0.3.0", path = "crates/deskulpt-plugin-macros" }
+deskulpt-settings      = { version = "0.3.0", path = "crates/deskulpt-settings" }
+deskulpt-widgets       = { version = "0.3.0", path = "crates/deskulpt-widgets" }
+deskulpt-workspace     = { version = "0.3.0", path = "crates/deskulpt-workspace" }
 
 # TODO: Remove these since they will not be dependencies of other crates when finalized
-deskulpt-plugin-fs  = { version = "0.2.0", path = "crates/deskulpt-plugin-fs" }
-deskulpt-plugin-sys = { version = "0.2.0", path = "crates/deskulpt-plugin-sys" }
+deskulpt-plugin-fs  = { version = "0.3.0", path = "crates/deskulpt-plugin-fs" }
+deskulpt-plugin-sys = { version = "0.3.0", path = "crates/deskulpt-plugin-sys" }
 sysinfo             = "0.37.2"
 
 [profile.dev]
