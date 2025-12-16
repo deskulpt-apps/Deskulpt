@@ -6,13 +6,12 @@ runs:
   steps:
     - name: Install pnpm
       uses: pnpm/action-setup@v4
-      with:
-        version: latest
 
     - name: Node setup
-      uses: actions/setup-node@v4
+      uses: actions/setup-node@v6
       with:
-        node-version: lts/*
+        node-version-file: .node-version
+        package-manager-cache: false
 
     # https://github.com/rolldown/rolldown/blob/8f346736079d3e1280302dc7f18f95eaa1b0bb29/.github/actions/setup-node/action.yml
 
