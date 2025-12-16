@@ -11,7 +11,6 @@ runs:
       uses: actions/setup-node@v4
       with:
         node-version-file: .node-version
-        package-manager-cache: false
 
     # https://github.com/rolldown/rolldown/blob/8f346736079d3e1280302dc7f18f95eaa1b0bb29/.github/actions/setup-node/action.yml
 
