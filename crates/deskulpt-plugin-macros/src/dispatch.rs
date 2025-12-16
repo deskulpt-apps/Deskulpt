@@ -28,7 +28,7 @@ pub fn proc_dispatch(_attr: TokenStream, item: TokenStream) -> TokenStream {
             && ident.ident == "input"
         {
             input_type = Some(ty.clone());
-            *ty = Box::new(parse_quote!(::deskulpt_plugin::serde_json::Value));
+            **ty = parse_quote!(::deskulpt_plugin::serde_json::Value);
         }
     }
     let input_type = input_type.expect("Missing `input` parameter");
