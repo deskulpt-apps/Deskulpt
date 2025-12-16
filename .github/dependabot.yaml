@@ -12,6 +12,14 @@ updates:
         patterns:
           - "*"
 
+  # Rust toolchain
+  - package-ecosystem: rust-toolchain
+    directory: /
+    schedule:
+      interval: weekly
+    labels:
+      - dependencies
+
   # Node dependencies
   - package-ecosystem: npm
     directory: /

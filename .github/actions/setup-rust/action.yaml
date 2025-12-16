@@ -61,10 +61,10 @@ runs:
         sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
 
     - name: Setup toolchain
-      uses: dtolnay/rust-toolchain@stable
-      with:
-        components: ${{ inputs.components }}
-        targets: ${{ inputs.targets }}
+      shell: bash
+      run: |
+        channel=$(grep -E '^\s*channel\s*=' rust-toolchain.toml | head -n1 | sed -E 's/.*=\s*"(.*)".*/\1/')
+        rustup toolchain install "$channel" --component ${{ inputs.components }} --target ${{ inputs.targets }} --profile minimal --no-self-update
 
     - name: Setup cache
       uses: Swatinem/rust-cache@v2
