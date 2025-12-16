@@ -62,17 +62,10 @@ runs:
 
     - name: Parse toolchain
       id: parse-toolchain
-      shell: python
+      shell: bash
       run: |
-        import os
-        import tomllib
-        from pathlib import Path
-
-        content = Path("rust-toolchain.toml").read_text(encoding="utf-8")
-        data = tomllib.loads(content)
-        channel = data["toolchain"]["channel"]
-        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
-            print(f"channel={channel}", file=f)
+        channel=$(awk -F '"' '/^[[:space:]]*channel[[:space:]]*=/ { print $2; exit }' rust-toolchain.toml)
+        echo "channel=$channel" >> $GITHUB_OUTPUT
 
     - name: Setup toolchain
       uses: dtolnay/rust-toolchain@master
