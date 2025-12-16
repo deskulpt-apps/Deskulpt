@@ -35,11 +35,4 @@ catalog:
   tslib: ^2.8.1
   typescript: ^5.9.3
   vite: ^7.2.7
-  vitest: ^4.0.15
-  "@vitest/ui": ^4.0.15
-  "@vitest/coverage-v8": ^4.0.15
-  "@testing-library/react": ^16.1.0
-  "@testing-library/jest-dom": ^6.6.3
-  "@testing-library/user-event": ^14.5.2
-  jsdom: ^27.3.0
   zustand: ^5.0.9

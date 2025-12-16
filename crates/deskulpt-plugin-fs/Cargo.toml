@@ -14,9 +14,5 @@ anyhow          = { workspace = true }
 deskulpt-plugin = { workspace = true }
 serde           = { workspace = true, features = ["derive"] }
 
-[dev-dependencies]
-serde_json = { workspace = true }
-tempfile   = { workspace = true }
-
 [package.metadata.docs.rs]
 rustdoc-args = ["--document-private-items"]

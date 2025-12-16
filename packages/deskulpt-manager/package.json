@@ -19,12 +19,7 @@
     "zustand": "catalog:"
   },
   "devDependencies": {
-    "@testing-library/react": "catalog:",
-    "@testing-library/user-event": "catalog:",
     "@types/react": "catalog:",
-    "@types/react-dom": "catalog:",
-    "@vitejs/plugin-react": "catalog:",
-    "jsdom": "catalog:",
-    "vitest": "catalog:"
+    "@types/react-dom": "catalog:"
   }
 }
