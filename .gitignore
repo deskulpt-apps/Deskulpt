@@ -36,4 +36,3 @@ crates/deskulpt/gen/
 crates/deskulpt-*/permissions/
 docs/.source/
 docs/.tanstack/
-docs/src/routeTree.gen.ts

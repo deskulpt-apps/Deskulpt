@@ -14,6 +14,9 @@ export default defineConfig({
     tailwindcss(),
     tsConfigPaths({ projects: ["./tsconfig.json"] }),
     tanstackStart({
+      router: {
+        generatedRouteTree: "route-tree.gen.ts",
+      },
       prerender: {
         enabled: true,
         crawlLinks: true,

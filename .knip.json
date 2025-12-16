@@ -11,7 +11,7 @@
       "entry": ["src/index.ts", "src/jsx-runtime.ts"]
     },
     "docs": {
-      "entry": ["src/router.tsx", "src/routes/**"]
+      "entry": ["src/router.tsx", "src/route-tree.gen.ts"]
     }
   }
 }
