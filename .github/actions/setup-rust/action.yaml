@@ -60,9 +60,17 @@ runs:
         sudo apt-get update
         sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
 
+    - name: Parse toolchain
+      id: parse-toolchain
+      shell: bash
+      run: |
+        channel=$(awk -F '"' '/^[[:space:]]*channel[[:space:]]*=/ { print $2; exit }' rust-toolchain.toml)
+        echo "channel=$channel" >> $GITHUB_OUTPUT
+
     - name: Setup toolchain
-      uses: dtolnay/rust-toolchain@stable
+      uses: dtolnay/rust-toolchain@master
       with:
+        toolchain: ${{ steps.parse-toolchain.outputs.channel }}
         components: ${{ inputs.components }}
         targets: ${{ inputs.targets }}
 
