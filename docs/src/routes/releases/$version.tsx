@@ -17,7 +17,6 @@ import { AppleLogo, LinuxLogo, WindowsLogo } from "@/components/logos";
 import * as Select from "@radix-ui/react-select";
 import {
   ComponentProps,
-  FC,
   PropsWithChildren,
   ReactNode,
   useEffect,
@@ -29,11 +28,7 @@ import { staticFunctionMiddleware } from "@tanstack/start-static-server-function
 import { releasesSource } from "@/lib/source";
 import browserCollections from "fumadocs-mdx:collections/browser";
 import { TreeContextProvider } from "fumadocs-ui/contexts/tree";
-import {
-  DocsBody,
-  DocsPage,
-  PageLastUpdate,
-} from "fumadocs-ui/layouts/notebook/page";
+import { DocsBody, DocsPage } from "fumadocs-ui/layouts/notebook/page";
 import defaultMdxComponents from "fumadocs-ui/mdx";
 import * as TabsComponents from "fumadocs-ui/components/tabs";
 import { useFumadocsLoader } from "fumadocs-core/source/client";
@@ -245,7 +240,7 @@ function PlatformDownload({
   options: DownloadOption[];
   caption: string;
 }) {
-  const [option, setOption] = useState<DownloadOption>(options[0]);
+  const [option, setOption] = useState<DownloadOption>(options[0]!);
 
   const currentPlatform = useCurrentPlatform();
   const isCurrentPlatform = currentPlatform === platform.toLowerCase();

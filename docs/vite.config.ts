@@ -16,6 +16,8 @@ export default defineConfig({
     tanstackStart({
       router: {
         generatedRouteTree: "route-tree.gen.ts",
+        quoteStyle: "double",
+        semicolons: true,
       },
       prerender: {
         enabled: true,

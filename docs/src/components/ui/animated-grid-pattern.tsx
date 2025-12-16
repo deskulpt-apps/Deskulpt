@@ -35,10 +35,11 @@ export default function AnimatedGridPattern({
   const [dimensions, setDimensions] = useState({ width: 0, height: 0 });
 
   const getPos = useCallback(
-    () => [
-      Math.floor((Math.random() * dimensions.width) / width),
-      Math.floor((Math.random() * dimensions.height) / height),
-    ],
+    () =>
+      [
+        Math.floor((Math.random() * dimensions.width) / width),
+        Math.floor((Math.random() * dimensions.height) / height),
+      ] as const,
     [dimensions, width, height],
   );
 

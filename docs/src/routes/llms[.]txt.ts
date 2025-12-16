@@ -8,7 +8,7 @@ function formatCollection(collection: GenericSourceType) {
 
   for (const page of collection.getPages()) {
     const segments = page.path.split("/");
-    const sectionKey = segments.length > 1 ? segments[0] : ROOT_KEY;
+    const sectionKey = segments.length > 1 ? segments[0]! : ROOT_KEY;
     const section = sectionMap.get(sectionKey) ?? [];
     let entry = `- [${page.data.title}](${page.url}.md)`;
     if (page.data.description) {

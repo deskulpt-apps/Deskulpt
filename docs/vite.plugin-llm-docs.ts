@@ -25,8 +25,8 @@ export default function llmDocs() {
     name: `${PLUGIN_NAME}:dev`,
     apply: "serve",
 
-    async configureServer(server) {
-      server.middlewares.use(async (req, res, next) => {
+    configureServer(server) {
+      server.middlewares.use((req, res, next) => {
         if (!req.url || req.method !== "GET") {
           return next();
         }
@@ -44,19 +44,32 @@ export default function llmDocs() {
           path.join(CONTENT_DIR, relNoExt, "index.mdx"),
         ];
 
-        for (const candidate of candidates) {
-          try {
-            const content = await getLLMDoc(candidate, url.pathname);
-            res.statusCode = 200;
-            res.setHeader("Content-Type", "text/markdown; charset=utf-8");
-            res.end(content);
-            return;
-          } catch {
-            // Silently ignore
+        async function processCandidates() {
+          /* oxlint-disable no-await-in-loop */
+          // This is intentional to try candidates in order
+          for (const candidate of candidates) {
+            try {
+              const content = await getLLMDoc(candidate, url.pathname);
+              res.statusCode = 200;
+              res.setHeader("Content-Type", "text/markdown; charset=utf-8");
+              res.end(content);
+              return true;
+            } catch (error) {
+              // Ignore file not found errors and try the next candidate;
+              // otherwise file exists but some other error occurred, so we
+              // propagate the error
+              if ((error as NodeJS.ErrnoException).code !== "ENOENT") {
+                throw error;
+              }
+            }
           }
+          /* oxlint-enable no-await-in-loop */
+          return false;
         }
 
-        return next();
+        processCandidates()
+          .then((found) => !found && next())
+          .catch(next);
       });
     },
   };
@@ -73,7 +86,7 @@ export default function llmDocs() {
       for await (const relPath of glob("**/*.mdx", { cwd: CONTENT_DIR })) {
         const relNoExt = relPath.slice(0, -4); // Remove .mdx
         const segments = relNoExt.split(path.sep);
-        if (segments[segments.length - 1] === "index") {
+        if (segments.at(-1) === "index") {
           segments.pop();
         }
 

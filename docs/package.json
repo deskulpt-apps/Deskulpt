@@ -4,9 +4,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
-    "build": "vite build",
+    "build": "tsc && vite build",
     "start": "http-server dist/client -p 5173",
-    "tsc": "tsc",
     "mdx": "fumadocs-mdx"
   },
   "dependencies": {
