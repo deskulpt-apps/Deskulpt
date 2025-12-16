@@ -40,7 +40,10 @@
     "Theme": {
       "description": "The light/dark theme of the application interface.",
       "type": "string",
-      "enum": ["light", "dark"]
+      "enum": [
+        "light",
+        "dark"
+      ]
     },
     "CanvasImode": {
       "description": "The canvas interaction mode.",
