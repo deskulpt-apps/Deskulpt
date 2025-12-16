@@ -60,17 +60,24 @@ runs:
         sudo apt-get update
         sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
 
-    - name: Parse toolchain version
-      id: toolchain-version
-      shell: bash
+    - name: Parse toolchain
+      id: parse-toolchain
+      shell: python
       run: |
-        channel=$(grep -E '^\s*channel\s*=' rust-toolchain.toml | head -n1 | sed -E 's/.*=\s*"(.*)".*/\1/')
-        echo "channel=$channel" >> $GITHUB_OUTPUT
+        import os
+        import tomllib
+        from pathlib import Path
+
+        content = Path("rust-toolchain.toml").read_text(encoding="utf-8")
+        data = tomllib.loads(content)
+        channel = data["toolchain"]["channel"]
+        with open(os.environ["GITHUB_OUTPUT"], "a", encoding="utf-8") as f:
+            print(f"channel={channel}", file=f)
 
     - name: Setup toolchain
       uses: dtolnay/rust-toolchain@master
       with:
-        toolchain: ${{ steps.toolchain-version.outputs.channel }}
+        toolchain: ${{ steps.parse-toolchain.outputs.channel }}
         components: ${{ inputs.components }}
         targets: ${{ inputs.targets }}
 
