@@ -1,0 +1,11 @@
+{
+  "title": "User Guide",
+  "pages": [
+    "index",
+    "installation",
+    "first-launch",
+    "manager",
+    "create-your-first-widget",
+    "distributing-your-widget"
+  ]
+}

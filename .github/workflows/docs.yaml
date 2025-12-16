@@ -38,13 +38,13 @@ jobs:
         run: |
           pnpm docs:rs
           rm -f target/doc/.lock
-          cp -r target/doc/ docs/.vitepress/dist/rustdoc/
+          cp -r target/doc/ docs/dist/client/rustdoc/
 
       - name: Upload build artifact
         uses: actions/upload-artifact@v5
         with:
           name: docs-dist
-          path: docs/.vitepress/dist
+          path: docs/dist/client
 
   docs-deploy:
     needs: docs-build

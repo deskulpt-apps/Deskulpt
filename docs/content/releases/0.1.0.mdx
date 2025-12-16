@@ -1,0 +1,92 @@
+---
+title: What's New in Deskulpt v0.1.0
+version: 0.1.0
+date: 2025-10-24T12:46:36Z
+---
+
+We are excited to announce the release of Deskulpt v0.1.0! You can download it from [GitHub Releases](https://github.com/deskulpt-apps/Deskulpt/releases/tag/v0.1.0). For an exhaustive list of changes, please refer to the "Full Changelog" section of the [release notes](https://github.com/deskulpt-apps/Deskulpt/releases/tag/v0.1.0).
+
+## Writing Desktop Widgets in React
+
+The core of Deskulpt is the ability to create desktop widgets using web technologies. Here we demonstrate how to create a simple clock widget.
+
+When you open Deskulpt, you will see an icon in the system tray. Right-clicking on it and selecting "Manage" will open the manager interface, like below:
+
+<img
+  width="600"
+  alt="Deskulpt Manager"
+  src="https://github.com/user-attachments/assets/50480edb-292e-4872-b012-5589902f5bfa"
+/>
+
+Click on the third button in the bottom-left corner to open the widgets directory. Each widget is a top-level folder in this directory with a `deskulpt.widget.json` manifest file. Let's create a new folder called `simple-clock`, inside which we create `deskulpt.widget.json` with the following content:
+
+```json
+{
+  "name": "Simple Clock",
+  "entry": "index.jsx"
+}
+```
+
+Next, we create the entry file `index.jsx` which should export our clock React component:
+
+```jsx
+import { useState, useEffect } from "@deskulpt-test/react";
+
+export default () => {
+  const [time, setTime] = useState(new Date());
+
+  useEffect(() => {
+    const timer = setInterval(() => setTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const formatTime = (date) =>
+    date.toLocaleTimeString("en-US", {
+      hour: "2-digit",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+
+  const formatDate = (date) =>
+    date.toLocaleDateString("en-US", {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    });
+
+  return (
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        justifyItems: "center",
+        alignItems: "center",
+        height: "100%",
+        width: "100%",
+      }}
+    >
+      <span style={{ fontWeight: "bold", fontSize: "1.6rem" }}>
+        {formatTime(time)}
+      </span>
+      <span>{formatDate(time)}</span>
+    </div>
+  );
+};
+```
+
+The only difference from standard React is that we import from `@deskulpt-test/react` instead of `react`. It is simply a re-export of React, so most (if not all) React features should be available.
+
+Go back to the manager interface and click on the second button in the bottom-left corner to rescan the widgets directory. You should see `simple-clock` appear in the list. You should also see a clock widget appear on your desktop! This rescanning needs to be done whenever you add/remove widgets or modify the manifest files. If you only modify the code of existing widgets, then you only need to click the "Refresh" button in the top right corner of that widget's tab to apply your changes.
+
+## Interacting with Widgets
+
+All Deskulpt widgets are rendered on a transparent window layered on top of your desktop called the "Deskulpt canvas". It has two interaction modes: **float** and **sink**. In **float** mode, widgets can be clicked and interacted, but desktop interactions (icons, context menu, etc.) are blocked. In **sink** mode, desktop interactions are restored, but widgets are not interactable. We are actively working on a way mitigate this limitation, but for now what we can do is to make switching between these two modes as seamless as possible. There are currently three ways available:
+
+- Left click the tray icon (not available on Linux).
+- Right click the tray icon and select "Sink" or "Float".
+- Go to the settings tab in the manager interface and register a keyboard shortcut for toggling the canvas interaction mode. Then you can use that shortcut to toggle the mode at any time.
+
+## Adjusting Widget settings
+
+Each widget currently has the following settings: position, size, and opacity. You can adjust these settings in the manager interface. In particular for the position and size settings, when the canvas is in float mode, you can also drag and resize the widgets directly on the desktop.

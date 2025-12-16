@@ -26,7 +26,7 @@
     "test:rs": "cargo test --workspace",
     "docs:dev": "pnpm --filter @deskulpt/docs dev",
     "docs:build": "pnpm --filter @deskulpt/docs build",
-    "docs:preview": "pnpm --filter @deskulpt/docs preview",
+    "docs:start": "pnpm --filter @deskulpt/docs start",
     "docs:rs": "cargo +nightly doc --workspace --no-deps --exclude xtask-gen -Z rustdoc-map",
     "build": "tsc -b && vite build",
     "build:packages": "pnpm run --sequential --filter @deskulpt-test/* build"
@@ -50,6 +50,7 @@
     "lint-staged": "catalog:",
     "oxlint": "catalog:",
     "prettier": "catalog:",
+    "prettier-plugin-tailwindcss": "catalog:",
     "prettier-plugin-toml": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
@@ -57,10 +58,19 @@
   },
   "prettier": {
     "plugins": [
+      "prettier-plugin-tailwindcss",
       "prettier-plugin-toml"
     ],
     "alignEntries": true,
-    "reorderKeys": true
+    "reorderKeys": true,
+    "overrides": [
+      {
+        "files": "docs/**",
+        "options": {
+          "tailwindStylesheet": "docs/src/styles/app.css"
+        }
+      }
+    ]
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,md,mdx,html,css,scss,yml,yaml,toml}": "prettier --write",

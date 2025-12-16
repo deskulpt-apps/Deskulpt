@@ -1,0 +1,43 @@
+@import "tailwindcss";
+@import "fumadocs-ui/css/vitepress.css";
+@import "fumadocs-ui/css/preset.css";
+
+@import "@fontsource-variable/geist";
+@import "@fontsource-variable/geist-mono";
+
+@import "tw-animate-css";
+
+@theme {
+  --color-primary-shifted: var(--color-purple-800);
+}
+
+.dark {
+  --color-primary-shifted: var(--color-purple-200);
+}
+
+@theme inline {
+  --font-sans: "Geist Variable", sans-serif;
+  --font-mono: "Geist Mono Variable", monospace;
+
+  --animate-shimmer: shimmer 6s linear infinite;
+  --bg-size-shimmer: 200% auto;
+
+  @keyframes shimmer {
+    0% {
+      background-position: 200% 0;
+    }
+    100% {
+      background-position: -200% 0;
+    }
+  }
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
+#nd-notebook-layout #nd-page {
+  @apply xl:pt-8; /* Same top padding as md */
+}

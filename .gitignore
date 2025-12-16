@@ -34,5 +34,6 @@ dist-ssr
 target/
 crates/deskulpt/gen/
 crates/deskulpt-*/permissions/
-docs/.vitepress/dist/
-docs/.vitepress/cache/
+docs/.source/
+docs/.tanstack/
+docs/src/routeTree.gen.ts
