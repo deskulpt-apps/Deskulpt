@@ -60,11 +60,19 @@ runs:
         sudo apt-get update
         sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev librsvg2-dev
 
-    - name: Setup toolchain
+    - name: Parse toolchain version
+      id: toolchain-version
       shell: bash
       run: |
         channel=$(grep -E '^\s*channel\s*=' rust-toolchain.toml | head -n1 | sed -E 's/.*=\s*"(.*)".*/\1/')
-        rustup toolchain install "$channel" --component ${{ inputs.components }} --target ${{ inputs.targets }} --profile minimal --no-self-update
+        echo "channel=$channel" >> $GITHUB_OUTPUT
+
+    - name: Setup toolchain
+      uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: ${{ steps.toolchain-version.outputs.channel }}
+        components: ${{ inputs.components }}
+        targets: ${{ inputs.targets }}
 
     - name: Setup cache
       uses: Swatinem/rust-cache@v2
