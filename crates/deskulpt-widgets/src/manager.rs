@@ -97,6 +97,9 @@ impl<R: Runtime> WidgetsManager<R> {
         let mut watcher = RecommendedWatcher::new(WatcherHandler {
             app_handle: self.app_handle.clone(),
             action: Arc::new(move |app| {
+                if !app.settings().read().hot_reload_enabled {
+                    return;
+                }
                 if let Err(error) = app.widgets().reload_all() {
                     error!(?error, "Failed to reload all widgets after root change");
                 }
@@ -408,6 +411,9 @@ impl<R: Runtime> WidgetDiscoveryHandler for WidgetsManager<R> {
                 let mut watcher = RecommendedWatcher::new(WatcherHandler {
                     app_handle: self.app_handle.clone(),
                     action: Arc::new(move |app| {
+                        if !app.settings().read().hot_reload_enabled {
+                            return;
+                        }
                         if let Err(error) = app.widgets().refresh(&id_clone) {
                             error!(?error, %id_clone, "Failed to refresh widget after change");
                         }
