@@ -26,7 +26,11 @@ import { deskulptSettings } from "@deskulpt/bindings";
 
 const styles = {
   wrapper: css({
-    "&:hover": { ".handle": { opacity: 1 } },
+    "&:hover": {
+      ".handle": { opacity: 1 },
+      boxShadow:
+        "0 0 20px var(--gray-a7), 0 0 40px var(--gray-a5), 0 0 60px var(--gray-a3), inset 0 0 20px var(--gray-a2)",
+    },
   }),
   handle: css({
     cursor: "grab",
@@ -91,7 +95,6 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
   const { component: Widget } = useWidgetsStore((state) => state[id]!);
 
   const settings = useSettingsStore((state) => state.widgets[id]);
-  const opacity = settings?.opacity;
 
   // Local state to avoid jittery movement during dragging and resizing
   const [geometry, setGeometry] = useState(
@@ -185,7 +188,7 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
   // Do not render anything if the widget is not fully configured; there could
   // be a gap between widget and settings updates, but they should eventually be
   // in sync
-  if (geometry === undefined || opacity === undefined) {
+  if (settings === undefined || geometry === undefined || !settings.isLoaded) {
     return null;
   }
 
@@ -202,6 +205,7 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
         overflow="hidden"
         position="absolute"
         css={styles.wrapper}
+        style={{ zIndex: settings.zIndex }}
       >
         <Box
           className="handle"
@@ -219,7 +223,7 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
           onResize={onResize}
           onResizeStop={onResizeStop}
           css={styles.container}
-          style={{ opacity: opacity / 100 }}
+          style={{ opacity: settings.opacity / 100 }}
         >
           <ErrorBoundary
             resetKeys={[Widget]}
@@ -238,7 +242,6 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
               y={geometry.y}
               width={geometry.width}
               height={geometry.height}
-              opacity={opacity}
             />
           </ErrorBoundary>
         </Resizable>

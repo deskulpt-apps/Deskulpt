@@ -147,7 +147,19 @@ height: number;
 /**
  * The opacity in percentage.
  */
-opacity: number }
+opacity: number; 
+/**
+ * The z-index.
+ * 
+ * Higher z-index means the widget will be rendered above those with lower
+ * z-index. Widgets with the same z-index can have arbitrary rendering
+ * order. The allowed range is from -999 to 999.
+ */
+zIndex: number; 
+/**
+ * Whether the widget should be loaded on the canvas or not.
+ */
+isLoaded: boolean }
 
 /**
  * A patch for partial updates to [`WidgetSettings`].
@@ -172,7 +184,15 @@ height?: number;
 /**
  * If not `None`, update [`WidgetSettings::opacity`].
  */
-opacity?: number }
+opacity?: number; 
+/**
+ * If not `None`, update [`WidgetSettings::z_index`].
+ */
+zIndex?: number; 
+/**
+ * If not `None`, update [`WidgetSettings::is_loaded`].
+ */
+isLoaded?: boolean }
 
 // =============================================================================
 // Events
