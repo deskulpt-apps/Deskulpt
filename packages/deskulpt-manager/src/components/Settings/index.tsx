@@ -1,28 +1,17 @@
-import { Box, Button, Flex, ScrollArea, Select, Table } from "@radix-ui/themes";
+import { Box, Button, Flex, ScrollArea, Table } from "@radix-ui/themes";
 import { memo, useCallback } from "react";
 import { LuSquarePen } from "react-icons/lu";
 import CanvasImode from "./CanvasImode";
+import HotReload from "./HotReload";
 import Shortcut from "./Shortcut";
 import SectionTable from "./SectionTable";
-import { deskulptCore, deskulptSettings } from "@deskulpt/bindings";
+import { deskulptCore } from "@deskulpt/bindings";
 import { logger } from "@deskulpt/utils";
-import { useSettingsStore } from "../../hooks";
 
 const Settings = memo(() => {
-  const hotReloadEnabled = useSettingsStore((state) => state.hotReloadEnabled);
-
   const openSettingsJson = useCallback(() => {
     deskulptCore.commands.open("settings").catch(logger.error);
   }, []);
-
-  const onHotReloadChange = useCallback((value: string) => {
-    const enabled = value === "on";
-    deskulptSettings.commands
-      .update({ hotReloadEnabled: enabled })
-      .catch(logger.error);
-  }, []);
-
-  const hotReloadValue = hotReloadEnabled ? "on" : "off";
 
   return (
     <Flex direction="column" gap="4" px="1">
@@ -41,17 +30,7 @@ const Settings = memo(() => {
               <Table.Row align="center">
                 <Table.RowHeaderCell>Enable hot reload</Table.RowHeaderCell>
                 <Table.Cell justify="end">
-                  <Select.Root
-                    size="1"
-                    value={hotReloadValue}
-                    onValueChange={onHotReloadChange}
-                  >
-                    <Select.Trigger />
-                    <Select.Content>
-                      <Select.Item value="on">On</Select.Item>
-                      <Select.Item value="off">Off</Select.Item>
-                    </Select.Content>
-                  </Select.Root>
+                  <HotReload />
                 </Table.Cell>
               </Table.Row>
             </SectionTable>
