@@ -14,6 +14,7 @@ const defaultSettings: deskulptSettings.Settings = {
   canvasImode: "auto",
   shortcuts: {},
   widgets: {},
+  hotReloadEnabled: false,
 };
 
 /**
