@@ -1,6 +1,5 @@
 mod bindings;
 mod schema;
-mod whatsnew;
 
 use anyhow::Result;
 use clap::{Parser, Subcommand};
@@ -11,8 +10,6 @@ enum Commands {
     Bindings,
     /// Generate JSON schemas.
     Schema,
-    /// Generate a "What's New" template for the next release.
-    Whatsnew(whatsnew::Args),
 }
 
 /// [XTASK] Code generation for Deskulpt.
@@ -28,7 +25,6 @@ fn main() -> Result<()> {
     match args.command {
         Commands::Bindings => bindings::run()?,
         Commands::Schema => schema::run()?,
-        Commands::Whatsnew(args) => whatsnew::run(args)?,
     }
     Ok(())
 }

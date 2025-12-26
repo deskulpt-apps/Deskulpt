@@ -3,7 +3,5 @@ Cargo.lock
 *.hbs
 
 # Auto-generated files
-crates/deskulpt-core/gen/
 gen/
 packages/deskulpt-bindings/src/
-docs/src/public/settings-schema.json

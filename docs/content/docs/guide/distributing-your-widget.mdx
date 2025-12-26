@@ -1,0 +1,103 @@
+---
+title: Distributing Your Widget
+description: Guide to packaging and distributing your custom Deskulpt widget.
+---
+
+Once you've created a custom Deskulpt widget, you may want to share it with others. This guide will walk you through the steps to package and distribute your widget effectively.
+
+## Step 1: Widget Manifest
+
+For widgets meant to be distributed, many optional fields in `deskulpt.widget.json` will become required. Ensure your manifest includes the following fields (see also [Manifest Options](./create-your-first-widget#manifest-options)):
+
+- `name`: The display name of the widget.
+- `entry`: The relative path to the main widget component file.
+- `version`: The version of the widget. In must follow the [semantic versioning](https://semver.org/) format (e.g., "1.0.0", "0.1.0-alpha.0"), and updates to the widget should increment the version.
+- `authors`: The authors of the widget. At least one author must be specified. Email and homepage fields are optional but highly recommended.
+- `license`: The license under which the widget is distributed. It must be a valid [SPDX License Identifier](https://spdx.org/licenses/). Deskulpt currently only accepts the following licenses: `MIT`, `Apache-2.0`. Make sure to include the full license text in a `LICENSE` file also placed in the root of the widget folder.
+- `description`: A brief description of the widget.
+- `homepage`: The URL of the widget's homepage. If there is no dedicated homepage, you can use a link to the repository hosting the widget's source code.
+
+## Step 2: Create a Repository
+
+Create a publicly accessible Git repository, preferably on GitHub. The widget folder can be either the root of the repository, or under a subfolder.
+
+## Step 3: Prepare for Distribution
+
+To have your widget distributed via Deskulpt's official widget registry (so it can be easily discovered from the "Gallery" tab in the Deskulpt manager interface), you need to fork this repository and make a pull request: https://github.com/deskulpt-apps/widgets.
+
+### Publisher Identity
+
+If you are a first-time publisher, you need to first create a publisher identity file under `publishers/{handle}.yaml`. Replace `{handle}` with any identifier that has not been used by other publishers. It must include only alphanumeric characters or hyphens (`-`).
+
+If you are publishing on behalf or yourself as an individual, you need to include:
+
+```yaml
+user: GITHUB_ID
+```
+
+Your GitHub ID can be found by visiting `https://api.github.com/users/{GITHUB_USERNAME}` and looking for the `id` field, or if you have [GitHub CLI](https://cli.github.com/) installed, you can run the following command, replacing `{GITHUB_USERNAME}` with your actual GitHub username:
+
+```bash
+gh api users/{GITHUB_USERNAME} --jq '.id'
+```
+
+If you are publishing on behalf of an organization, you need to include:
+
+```yaml
+organization: GITHUB_ORG_ID
+```
+
+The GitHub organization ID can be found by visiting `https://api.github.com/orgs/{GITHUB_ORG_NAME}` and looking for the `id` field, or if you have [GitHub CLI](https://cli.github.com/) installed, you can run the following command, replacing `{GITHUB_ORG_NAME}` with your actual GitHub organization name:
+
+```bash
+gh api orgs/{GITHUB_ORG_NAME} --jq '.id'
+```
+
+### Widget Declaration
+
+You need to declare your widget in `widgets/{handle}.yaml`, replacing `{handle}` with the publisher identity handle you are publishing under. This file contains all widgets published under that publisher identity, with each widget keyed by a unique ID. This ID does not need to be globally unique, but only unique within the scope of the publisher identity. Same as the handle, it must include only alphanumeric characters or hyphens (`-`). An example declaration looks like this:
+
+```yaml
+my-widget:
+  version: 0.1.0
+  repo: https://github.com/your-username/your-widget-repo.git
+  commit: FULL_COMMIT_HASH
+  path: optional/subfolder/path
+
+# More widgets...
+```
+
+- `version`: The version of the widget being published. It must match the `version` field in the widget's manifest at the specified commit.
+- `repo`: The URL of the Git repository hosting the widget's source code.
+- `commit`: The full commit hash (40 characters) corresponding to the version being published. This ensures that the exact version of the widget can be retrieved.
+- `path` (optional): The relative path to the widget folder within the repository. If the widget folder is at the root of the repository, this field can be omitted.
+
+If you are updating an already published widget, you don't need to create a new entry; simply update the existing entry with a larger version number (according to [semantic versioning](https://semver.org/)) and the new `commit` hash. Other fields can be updated as well if needed. If you create a new entry, then it will be treated as a new widget.
+
+## Step 4: Submit a Pull Request
+
+Once you have prepared the necessary files in your forked repository, submit a pull request targeting the `main` branch of the widgets registry: https://github.com/deskulpt-apps/widgets. Note that when every commit in your pull request must be signed off. You can do this by adding the `-s` flag when committing changes:
+
+```bash
+git commit -s -m "Your commit message"
+```
+
+If you have already made commits without signing off, you can retroactively sign off the last commit using:
+
+```bash
+git commit --amend -s
+```
+
+If you have multiple commits to sign off, you can do an interactive rebase and sign off each commit:
+
+```bash
+git rebase -i -s HEAD~N  # Replace N with the number of commits to sign off
+```
+
+If unsigned commits have already been pushed to remote, you will need to force push after amending the commits:
+
+```bash
+git push --force-with-lease
+```
+
+Automated checks will run on your pull request to validate the manifest and other details. Once everything is verified and approved, your widget will go over manual review and finally get merged into the registry. After merging, it may take up to 24 hours for the widget to appear in the Deskulpt manager interface's "Gallery" tab for users to discover and install. If you encounter any issues during the submission process, feel free to reach out to the maintainers for assistance.

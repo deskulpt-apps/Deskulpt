@@ -1,0 +1,32 @@
+---
+title: Documentation
+description: Deskulpt documentation website and internal backend rustdoc.
+---
+
+## Documentation Website
+
+This documentation website is built with [Fumadocs](https://www.fumadocs.dev/). You can find the source code for the site under the `docs/` directory. To start a development server for the documentation website, run the following command (at project root):
+
+```bash
+pnpm docs:dev
+```
+
+Any changes to the documentation will automatically trigger reload. Normally, you would only need to modify the [MDX](https://mdxjs.com/) files under the `docs/content/` directory. See [Fumadocs](https://www.fumadocs.dev/) documentation for more details on writing documentation with Fumadocs MDX. For more complicated changes (e.g., structure, layout, etc), refer to [Tanstack Start](https://tanstack.com/start/latest) which is the underlying framework we use.
+
+If you want to build the documentation website into a static site instead of using the development server, you can use the following commands:
+
+```bash
+pnpm docs:build
+pnpm docs:start
+```
+
+## Internal Backend Rustdoc
+
+The Deskulpt backend is documented with [rustdoc](https://doc.rust-lang.org/rustdoc/) for developers' internal reference. Unlike the public docs hosted on [docs.rs](https://docs.rs/), the internal rustdoc includes private crate items and is meant specifically to be used by Deskulpt developers. It is built separately from the main documentation website and hosted under its `rustdoc/` subdirectory. To build the internal backend rustdoc locally, run the following command:
+
+```bash
+pnpm docs:rs
+pnpm docs:rs --open # automatically open in your default browser
+```
+
+This command will print the path to the generated documentation, which you can open directly in our browser.

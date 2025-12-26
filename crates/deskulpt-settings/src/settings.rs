@@ -265,7 +265,8 @@ impl Settings {
             settings: &'a Settings,
         }
 
-        const SETTINGS_SCHEMA_URL: &str = "https://deskulpt-apps.github.io/settings-schema.json";
+        const SETTINGS_SCHEMA_URL: &str =
+            "https://deskulpt-apps.github.io/gen/settings-schema.json";
 
         if let Some(parent) = path.parent()
             && !parent.as_os_str().is_empty()
