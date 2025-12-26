@@ -201,6 +201,9 @@ pub struct Settings {
     #[serde_as(deserialize_as = "DefaultOnError")]
     #[specta(skip)]
     pub starter_widgets_added: bool,
+    /// Whether widget hot reload is enabled.
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pub hot_reload_enabled: bool,
 }
 
 /// A patch for partial updates to [`Settings`].
@@ -232,6 +235,9 @@ pub struct SettingsPatch {
     /// If not `None`, update [`Settings::starter_widgets_added`].
     #[serde(skip)]
     pub starter_widgets_added: Option<bool>,
+    /// If not `None`, update [`Settings::hot_reload_enabled`].
+    #[specta(optional, type = bool)]
+    pub hot_reload_enabled: Option<bool>,
 }
 
 impl Settings {

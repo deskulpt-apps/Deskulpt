@@ -261,6 +261,13 @@ impl<R: Runtime> SettingsManager<R> {
             should_persist = true;
         }
 
+        if let Some(hot_reload_enabled) = patch.hot_reload_enabled
+            && settings.hot_reload_enabled != hot_reload_enabled
+        {
+            settings.hot_reload_enabled = hot_reload_enabled;
+            should_emit = true;
+        }
+
         if should_emit {
             UpdateEvent(&settings).emit(&self.app_handle)?;
         }

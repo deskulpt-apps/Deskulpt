@@ -1392,6 +1392,7 @@ dependencies = [
  "reqwest",
  "rolldown",
  "rolldown_common",
+ "rolldown_watcher",
  "serde",
  "serde_json",
  "specta",
