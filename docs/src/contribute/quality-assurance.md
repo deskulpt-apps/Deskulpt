@@ -2,6 +2,28 @@
 
 Before submitting a pull request, it is recommended to run several quality assurance checks to ensure that your changes are in good shape. These quality assurance checks are also enforced in the CI. We understand that some rules are opinionated and can be counter-productive in certain cases, but please try to follow them as much as possible for consistency of the Deskulpt codebase.
 
+## Local CI
+
+You can run the full suite of CI checks locally to verify your changes before pushing. This runs the same checks as the GitHub Actions pipeline (hygiene, auto-generated files, linting, build, and tests).
+
+```bash
+pnpm ci:local
+```
+
+This command runs:
+
+- **Hygiene checks**: Formatting, unused dependencies (Node and Rust), and auto-generated files verification
+- **Linting checks**: JavaScript/TypeScript and Rust linting
+- **Build checks**: Package builds, Rust type checking, and Rust binary build
+
+If you want to skip the build and test steps for faster feedback (only checking hygiene, auto-generated files, and linting), you can use:
+
+```bash
+pnpm ci:local:fast
+```
+
+This command runs hygiene checks and linting, but skips the build steps.
+
 ## Formatting
 
 ```bash

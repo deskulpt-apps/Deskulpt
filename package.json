@@ -30,7 +30,17 @@
     "docs:preview": "pnpm --filter @deskulpt/docs preview",
     "docs:rs": "cargo +nightly doc --workspace --no-deps --exclude xtask-gen -Z rustdoc-map",
     "build": "tsc -b && vite build",
-    "build:packages": "pnpm run --sequential --filter @deskulpt-test/* build"
+    "build:packages": "pnpm run --sequential --filter @deskulpt-test/* build",
+    "ci:local": "pnpm ci:hygiene && pnpm ci:verify",
+    "ci:local:fast": "pnpm ci:hygiene && pnpm ci:lint",
+    "ci:hygiene": "pnpm ci:format && pnpm ci:deps && pnpm ci:generated",
+    "ci:format": "pnpm format:check",
+    "ci:deps": "pnpm knip && pnpm ci:deps:rust",
+    "ci:deps:rust": "command -v cargo-shear >/dev/null 2>&1 && cargo shear || echo '⚠ cargo-shear not found, skipping...'",
+    "ci:generated": "pnpm build:packages && cargo gen bindings && cargo gen schema && (git diff --exit-code --quiet || (echo '✗ Auto-generated files are out of date' && git status --porcelain && git --no-pager diff && exit 1))",
+    "ci:verify": "pnpm ci:lint && pnpm ci:build",
+    "ci:lint": "pnpm lint:check",
+    "ci:build": "pnpm --filter deskulpt build && cargo check --workspace && cargo build --bin deskulpt"
   },
   "dependencies": {
     "@emotion/react": "catalog:",
