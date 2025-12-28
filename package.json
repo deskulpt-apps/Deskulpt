@@ -51,7 +51,6 @@
     "lint-staged": "catalog:",
     "oxlint": "catalog:",
     "prettier": "catalog:",
-    "prettier-plugin-tailwindcss": "catalog:",
     "prettier-plugin-toml": "catalog:",
     "typescript": "catalog:",
     "vite": "catalog:",
@@ -59,19 +58,10 @@
   },
   "prettier": {
     "plugins": [
-      "prettier-plugin-tailwindcss",
       "prettier-plugin-toml"
     ],
     "alignEntries": true,
-    "reorderKeys": true,
-    "overrides": [
-      {
-        "files": "docs/**",
-        "options": {
-          "tailwindStylesheet": "docs/src/styles/app.css"
-        }
-      }
-    ]
+    "reorderKeys": true
   },
   "lint-staged": {
     "*.{js,jsx,ts,tsx,json,md,mdx,html,css,scss,yml,yaml,toml}": "prettier --write",
