@@ -28,7 +28,7 @@
     "docs:dev": "pnpm --filter @deskulpt/docs dev",
     "docs:build": "pnpm --filter @deskulpt/docs build",
     "docs:start": "pnpm --filter @deskulpt/docs start",
-    "docs:rs": "cargo +nightly doc --workspace --no-deps --exclude xtask-gen -Z rustdoc-map",
+    "docs:rs": "cargo +nightly docs",
     "build": "tsc -b && vite build",
     "build:packages": "pnpm run --sequential --filter @deskulpt-test/* build"
   },
