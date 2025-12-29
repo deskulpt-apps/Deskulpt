@@ -25,10 +25,6 @@
     "test:js:watch": "vitest",
     "test:js:coverage": "vitest run --coverage",
     "test:rs": "cargo test --workspace",
-    "docs:dev": "pnpm --filter @deskulpt/docs dev",
-    "docs:build": "pnpm --filter @deskulpt/docs build",
-    "docs:start": "pnpm --filter @deskulpt/docs start",
-    "docs:rs": "cargo +nightly docs",
     "build": "tsc -b && vite build",
     "build:packages": "pnpm run --sequential --filter @deskulpt-test/* build"
   },

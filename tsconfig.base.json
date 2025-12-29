@@ -3,8 +3,8 @@
     "noEmit": true,
     "isolatedModules": true,
     "skipLibCheck": true,
-    "target": "ES2023",
-    "lib": ["DOM", "DOM.Iterable", "ES2023"],
+    "target": "ES2022",
+    "lib": ["DOM", "DOM.Iterable", "ES2022"],
 
     /* Modules & Resolution */
     "module": "ESNext",
