@@ -1,6 +1,5 @@
 packages:
   - packages/*
-  - docs
 
 catalog:
   "@emotion/react": ^11.14.0
@@ -13,11 +12,17 @@ catalog:
   "@tauri-apps/cli": ^2.9.6
   "@tauri-apps/plugin-clipboard-manager": ^2.3.2
   "@tauri-apps/plugin-opener": ^2.5.2
+  "@testing-library/jest-dom": ^6.6.3
+  "@testing-library/react": ^16.1.0
+  "@testing-library/user-event": ^14.5.2
   "@types/node": ^25.0.2
   "@types/react": ^19.2.7
   "@types/react-dom": ^19.2.3
   "@vitejs/plugin-react": ^5.1.2
+  "@vitest/coverage-v8": ^4.0.15
+  "@vitest/ui": ^4.0.15
   husky: ^9.1.6
+  jsdom: ^27.3.0
   knip: ^5.74.0
   lint-staged: ^16.2.7
   oxlint: ^1.33.0
@@ -36,10 +41,4 @@ catalog:
   typescript: ^5.9.3
   vite: ^7.3.0
   vitest: ^4.0.15
-  "@vitest/ui": ^4.0.15
-  "@vitest/coverage-v8": ^4.0.15
-  "@testing-library/react": ^16.3.1
-  "@testing-library/jest-dom": ^6.6.3
-  "@testing-library/user-event": ^14.5.2
-  jsdom: ^27.3.0
   zustand: ^5.0.9

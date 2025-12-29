@@ -9,9 +9,6 @@
     },
     "packages/ui": {
       "entry": ["src/index.ts", "src/jsx-runtime.ts"]
-    },
-    "docs": {
-      "entry": [".vitepress/config.ts", ".vitepress/theme/index.ts"]
     }
   }
 }

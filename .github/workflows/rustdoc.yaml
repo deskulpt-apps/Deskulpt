@@ -1,0 +1,68 @@
+name: Deploy rustdoc
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  docs-build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      - uses: ./.github/actions/setup-rust
+        with:
+          platform: ubuntu-latest
+          cache-key: debug
+          nightly-components: rust-docs
+
+      - name: Build rustdoc
+        run: |
+          cargo +nightly docs
+          rm -f target/doc/.lock
+
+      - name: Create Internal Deployment App token
+        id: token
+        uses: actions/create-github-app-token@v2
+        with:
+          app-id: ${{ vars.INTERNAL_DEPLOYMENT_APP_ID }}
+          private-key: ${{ secrets.INTERNAL_DEPLOYMENT_APP_PRIVATE_KEY }}
+          owner: deskulpt-apps
+          repositories: rustdoc
+
+      - name: Checkout rustdoc repo
+        uses: actions/checkout@v6
+        with:
+          token: ${{ steps.token.outputs.token }}
+          repository: deskulpt-apps/rustdoc
+          ref: main
+          path: rustdoc-repo
+
+      - name: Sync rustdoc
+        shell: bash
+        run: |
+          rsync -av --delete --exclude ".git" target/doc/ rustdoc-repo/
+          touch rustdoc-repo/.nojekyll
+
+      - name: Commit and push
+        shell: bash
+        run: |
+          cd rustdoc-repo
+
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR_ID}+${GITHUB_ACTOR}@users.noreply.github.com"
+
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git add -A
+            git commit -m "deploy: ${GITHUB_REPOSITORY}@${GITHUB_SHA}"
+            git push origin HEAD:main
+          else
+            echo "No changes to commit"
+          fi
