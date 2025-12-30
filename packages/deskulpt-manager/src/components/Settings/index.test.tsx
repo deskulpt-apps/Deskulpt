@@ -21,6 +21,14 @@ describe("Settings Tab", () => {
     });
   });
 
+  it("renders hot reload toggle", async () => {
+    renderWithProviders(<Settings />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Enable hot reload")).toBeInTheDocument();
+    });
+  });
+
   it("renders keyboard shortcuts section", async () => {
     renderWithProviders(<Settings />);
 

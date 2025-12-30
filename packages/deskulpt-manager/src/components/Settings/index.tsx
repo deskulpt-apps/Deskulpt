@@ -2,6 +2,7 @@ import { Box, Button, Flex, ScrollArea, Table } from "@radix-ui/themes";
 import { memo, useCallback } from "react";
 import { LuSquarePen } from "react-icons/lu";
 import CanvasImode from "./CanvasImode";
+import HotReload from "./HotReload";
 import Shortcut from "./Shortcut";
 import SectionTable from "./SectionTable";
 import { deskulptCore } from "@deskulpt/bindings";
@@ -24,6 +25,12 @@ const Settings = memo(() => {
                 </Table.RowHeaderCell>
                 <Table.Cell justify="end">
                   <CanvasImode />
+                </Table.Cell>
+              </Table.Row>
+              <Table.Row align="center">
+                <Table.RowHeaderCell>Enable hot reload</Table.RowHeaderCell>
+                <Table.Cell justify="end">
+                  <HotReload />
                 </Table.Cell>
               </Table.Row>
             </SectionTable>

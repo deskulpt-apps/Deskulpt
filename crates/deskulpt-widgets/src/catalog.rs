@@ -10,6 +10,11 @@ use deskulpt_common::outcome::Outcome;
 use deskulpt_settings::{Settings, SettingsPatch};
 use serde::{Deserialize, Serialize};
 
+/// Handler for widget discovery events during catalog loading.
+pub trait WidgetDiscoveryHandler {
+    fn on_widget_discovered(&self, id: &str) -> Result<()>;
+}
+
 /// The name of the Deskulpt widget manifest file.
 ///
 /// A directory containing this file is considered a Deskulpt widget.
@@ -124,7 +129,7 @@ impl WidgetCatalog {
     /// manifests or error messages are stored accordingly, depending on
     /// whether the directory is successfully loaded as a widget. Non-widget
     /// directories are not included in the catalog.
-    pub fn load(dir: &Path) -> Result<Self> {
+    pub fn load_with_handler(dir: &Path, handler: &dyn WidgetDiscoveryHandler) -> Result<Self> {
         let mut catalog = Self::default();
 
         let entries = std::fs::read_dir(dir)?;
@@ -141,7 +146,8 @@ impl WidgetCatalog {
                 // directory, the directory names must be unique and we can use
                 // them as widget IDs
                 let id = entry.file_name().to_string_lossy().to_string();
-                catalog.0.insert(id, manifest.into());
+                catalog.0.insert(id.clone(), manifest.into());
+                handler.on_widget_discovered(&id)?;
             }
         }
 

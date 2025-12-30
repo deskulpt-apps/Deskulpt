@@ -68,7 +68,11 @@ shortcuts: Partial<{ [key in ShortcutAction]: string }>;
 /**
  * The mapping from widget IDs to their respective settings.
  */
-widgets: { [key in string]: WidgetSettings } }
+widgets: { [key in string]: WidgetSettings }; 
+/**
+ * Whether widget hot reload is enabled.
+ */
+hotReloadEnabled: boolean }
 
 /**
  * A patch for partial updates to [`Settings`].
@@ -99,7 +103,11 @@ shortcuts?: Partial<{ [key in ShortcutAction]: string | null }>;
  * new widget settings will be created with default values, and then the
  * patch will be applied to it.
  */
-widgets?: { [key in string]: WidgetSettingsPatch | null } }
+widgets?: { [key in string]: WidgetSettingsPatch | null }; 
+/**
+ * If not `None`, update [`Settings::hot_reload_enabled`].
+ */
+hotReloadEnabled?: boolean }
 
 /**
  * Actions that can be bound to keyboard shortcuts.

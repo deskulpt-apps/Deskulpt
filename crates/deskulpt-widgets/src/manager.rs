@@ -1,15 +1,23 @@
 //! Deskulpt widgets manager and its APIs.
 
+use std::collections::hash_map::Entry;
+use std::collections::{HashMap, HashSet};
+use std::sync::Arc;
+
 use anyhow::{Context, Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use deskulpt_core::path::PathExt;
 use deskulpt_settings::{SettingsExt, SettingsPatch};
-use parking_lot::RwLock;
+use parking_lot::{Mutex, RwLock};
+use rolldown_watcher::{
+    EventHandler, FileChangeResult, RecommendedWatcher, RecursiveMode, Watcher,
+};
 use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
 use tracing::{debug, error, info};
 
-use crate::catalog::{WidgetCatalog, WidgetManifest};
+use crate::WidgetsExt;
+use crate::catalog::{WidgetCatalog, WidgetDiscoveryHandler, WidgetManifest};
 use crate::events::UpdateEvent;
 use crate::registry::{
     RegistryIndex, RegistryIndexFetcher, RegistryWidgetFetcher, RegistryWidgetPreview,
@@ -28,6 +36,34 @@ pub struct WidgetsManager<R: Runtime> {
     render_worker: RenderWorkerHandle,
     /// The setup state for frontend windows.
     setup_state: SetupState,
+    /// Watcher for the widgets root directory.
+    root_watcher: Mutex<Option<RecommendedWatcher>>,
+    /// Watchers for individual widget directories keyed by widget ID.
+    widget_watchers: RwLock<HashMap<String, RecommendedWatcher>>,
+}
+
+/// Generic file watcher handler that executes a callback on file changes.
+struct WatcherHandler<R: Runtime> {
+    app_handle: AppHandle<R>,
+    action: Arc<dyn Fn(AppHandle<R>) + Send + Sync>,
+    context: String,
+}
+
+impl<R: Runtime> EventHandler for WatcherHandler<R> {
+    fn handle_event(&mut self, event: FileChangeResult) {
+        if let Err(errors) = event {
+            for error in errors {
+                error!(error = ?error, context = %self.context, "Watcher error");
+            }
+            return;
+        }
+
+        let app_handle = self.app_handle.clone();
+        let action = self.action.clone();
+        tauri::async_runtime::spawn(async move {
+            action(app_handle);
+        });
+    }
 }
 
 impl<R: Runtime> WidgetsManager<R> {
@@ -39,12 +75,40 @@ impl<R: Runtime> WidgetsManager<R> {
     pub fn new(app_handle: AppHandle<R>) -> Self {
         let render_worker = RenderWorkerHandle::new(app_handle.clone());
 
-        Self {
+        let manager = Self {
             app_handle,
             catalog: Default::default(),
             render_worker,
             setup_state: Default::default(),
+            root_watcher: Default::default(),
+            widget_watchers: Default::default(),
+        };
+
+        if let Err(error) = manager.start_root_watcher() {
+            error!(?error, "Failed to start widgets root watcher");
         }
+
+        manager
+    }
+
+    /// Start watching the widgets root directory for top-level changes.
+    fn start_root_watcher(&self) -> Result<()> {
+        let widgets_dir = self.app_handle.widgets_dir()?;
+        let mut watcher = RecommendedWatcher::new(WatcherHandler {
+            app_handle: self.app_handle.clone(),
+            action: Arc::new(move |app| {
+                if !app.settings().read().hot_reload_enabled {
+                    return;
+                }
+                if let Err(error) = app.widgets().reload_all() {
+                    error!(?error, "Failed to reload all widgets after root change");
+                }
+            }),
+            context: "root".to_string(),
+        })?;
+        watcher.watch(widgets_dir, RecursiveMode::NonRecursive)?;
+        *self.root_watcher.lock() = Some(watcher);
+        Ok(())
     }
 
     /// Reload a specific widget by its ID.
@@ -60,8 +124,10 @@ impl<R: Runtime> WidgetsManager<R> {
         let mut catalog = self.catalog.write();
         if let Some(manifest) = manifest.transpose() {
             catalog.0.insert(id.to_string(), manifest.into());
+            self.on_widget_discovered(id)?;
         } else {
             catalog.0.remove(id);
+            self.widget_watchers.write().remove(id);
         }
         UpdateEvent(&catalog).emit(&self.app_handle)?;
 
@@ -78,15 +144,23 @@ impl<R: Runtime> WidgetsManager<R> {
     /// updated catalog. If any step fails, an error is returned.
     pub fn reload_all(&self) -> Result<()> {
         let widgets_dir = self.app_handle.widgets_dir()?;
-        let new_catalog = WidgetCatalog::load(widgets_dir)?;
+        let new_catalog = WidgetCatalog::load_with_handler(widgets_dir, self)?;
+        let new_ids: HashSet<_> = new_catalog.0.keys().cloned().collect();
 
-        let mut catalog = self.catalog.write();
-        *catalog = new_catalog;
-        UpdateEvent(&catalog).emit(&self.app_handle)?;
+        self.widget_watchers
+            .write()
+            .retain(|id, _| new_ids.contains(id));
 
-        self.app_handle
-            .settings()
-            .update_with(|settings| catalog.compute_settings_patch(settings))?;
+        {
+            let mut catalog = self.catalog.write();
+            *catalog = new_catalog;
+            UpdateEvent(&catalog).emit(&self.app_handle)?;
+        }
+
+        self.app_handle.settings().update_with(|settings| {
+            let catalog = self.catalog.read();
+            catalog.compute_settings_patch(settings)
+        })?;
         Ok(())
     }
 
@@ -324,5 +398,32 @@ impl<R: Runtime> WidgetsManager<R> {
 
         self.refresh(&id)?;
         Ok(())
+    }
+}
+
+/// Creates a file watcher for each discovered widget.
+impl<R: Runtime> WidgetDiscoveryHandler for WidgetsManager<R> {
+    fn on_widget_discovered(&self, id: &str) -> Result<()> {
+        match self.widget_watchers.write().entry(id.to_string()) {
+            Entry::Occupied(_) => Ok(()),
+            Entry::Vacant(e) => {
+                let id_clone = id.to_string();
+                let mut watcher = RecommendedWatcher::new(WatcherHandler {
+                    app_handle: self.app_handle.clone(),
+                    action: Arc::new(move |app| {
+                        if !app.settings().read().hot_reload_enabled {
+                            return;
+                        }
+                        if let Err(error) = app.widgets().refresh(&id_clone) {
+                            error!(?error, %id_clone, "Failed to refresh widget after change");
+                        }
+                    }),
+                    context: format!("widget:{}", id),
+                })?;
+                watcher.watch(&self.app_handle.widget_dir(id)?, RecursiveMode::Recursive)?;
+                e.insert(watcher);
+                Ok(())
+            },
+        }
     }
 }
