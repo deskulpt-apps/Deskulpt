@@ -6,20 +6,25 @@ use anyhow::Result;
 use deskulpt_common::window::DeskulptWindow;
 use deskulpt_settings::{CanvasImode, SettingsExt, Theme};
 use script::{CanvasInitJS, ManagerInitJS};
-use tauri::{
-    App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, Window, WindowEvent,
-};
-use tracing::error;
+use tauri::{App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
 use crate::states::CanvasImodeStateExt;
 
 /// Extention trait for window-related operations.
 pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
-    /// Create the manager window.
-    fn create_manager(&self) -> Result<()>
+    /// Open the manager window.
+    ///
+    /// If the manager window already exists, it will be focused. Otherwise it
+    /// will be created first.
+    fn open_manager(&self) -> Result<()>
     where
         Self: Sized,
     {
+        if let Ok(manager) = DeskulptWindow::Manager.webview_window(self) {
+            manager.set_focus()?;
+            return Ok(());
+        }
+
         let settings = self.settings().read();
         let init_js = ManagerInitJS::generate(&settings)?;
 
@@ -29,7 +34,7 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
             Theme::Dark => (17, 17, 19),     // #111113
         };
 
-        WebviewWindowBuilder::new(
+        let manager = WebviewWindowBuilder::new(
             self,
             DeskulptWindow::Manager,
             WebviewUrl::App("packages/deskulpt-manager/index.html".into()),
@@ -41,9 +46,10 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         .resizable(false)
         .maximizable(false)
         .minimizable(false)
-        .visible(false)
         .initialization_script(&init_js)
         .build()?;
+
+        manager.set_focus()?;
 
         Ok(())
     }
@@ -78,47 +84,24 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         // https://github.com/tauri-apps/tauri/issues/9597
         canvas.show()?;
 
+        let app_handle = self.app_handle().clone();
+        canvas.on_window_event(move |event| match event {
+            WindowEvent::Moved(position) => {
+                app_handle.set_canvas_position(position);
+            },
+            WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
+                app_handle.set_canvas_scale_factor(*scale_factor);
+            },
+            _ => {},
+        });
+
         if settings.canvas_imode == CanvasImode::Sink {
             canvas.set_ignore_cursor_events(true)?;
         }
 
         Ok(())
     }
-
-    /// Open the manager window.
-    fn open_manager(&self) -> Result<()> {
-        let manager = DeskulptWindow::Manager.webview_window(self)?;
-        manager.show()?;
-        manager.set_focus()?;
-        Ok(())
-    }
 }
 
 impl<R: Runtime> WindowExt<R> for App<R> {}
 impl<R: Runtime> WindowExt<R> for AppHandle<R> {}
-
-/// Window event handler for all Deskulpt windows.
-pub fn on_window_event(window: &Window, event: &WindowEvent) {
-    match window.label() {
-        "manager" => {
-            // Prevent the manager window from closing when the close button is
-            // clicked, but only hide it instead
-            if let WindowEvent::CloseRequested { api, .. } = event {
-                api.prevent_close();
-                if let Err(e) = window.hide() {
-                    error!("Failed to hide the manager window: {e}");
-                }
-            }
-        },
-        "canvas" => match event {
-            WindowEvent::Moved(position) => {
-                window.app_handle().set_canvas_position(position);
-            },
-            WindowEvent::ScaleFactorChanged { scale_factor, .. } => {
-                window.app_handle().set_canvas_scale_factor(*scale_factor);
-            },
-            _ => {},
-        },
-        _ => {},
-    }
-}
