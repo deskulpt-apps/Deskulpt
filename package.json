@@ -3,6 +3,7 @@
   "private": true,
   "version": "0.3.0",
   "type": "module",
+  "packageManager": "pnpm@10.25.0",
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky",
@@ -19,10 +20,9 @@
     "lint:js:check": "oxlint --max-warnings=0 .",
     "lint:rs": "cargo clippy --fix --allow-dirty --allow-staged -- -D warnings",
     "lint:rs:check": "cargo clippy -- -D warnings",
-    "docs:dev": "pnpm --filter @deskulpt/docs dev",
-    "docs:build": "pnpm --filter @deskulpt/docs build",
-    "docs:preview": "pnpm --filter @deskulpt/docs preview",
-    "docs:rs": "cargo +nightly doc --workspace --no-deps --exclude xtask-gen -Z rustdoc-map",
+    "test": "pnpm test:js && pnpm test:rs",
+    "test:js": "echo \"Frontend test suite not implemented yet.\"",
+    "test:rs": "cargo test --workspace",
     "build": "tsc -b && vite build",
     "build:packages": "pnpm run --sequential --filter @deskulpt-test/* build"
   },

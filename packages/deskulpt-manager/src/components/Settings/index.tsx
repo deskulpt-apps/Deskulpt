@@ -13,7 +13,7 @@ const Settings = memo(() => {
   }, []);
 
   return (
-    <Flex direction="column" gap="4" px="1">
+    <Flex direction="column" gap="4" px="1" height="100%">
       <ScrollArea asChild>
         <Box height="380px">
           <Flex direction="column" gap="4">
