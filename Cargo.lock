@@ -1351,6 +1351,7 @@ version = "0.3.0"
 dependencies = [
  "anyhow",
  "deskulpt-plugin-macros",
+ "serde",
  "serde_json",
 ]
 
