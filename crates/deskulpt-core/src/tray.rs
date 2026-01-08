@@ -53,7 +53,7 @@ fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
     match event.id().as_ref() {
         "tray-manage" => {
             if let Err(e) = app_handle.open_manager() {
-                error!("Error opening manager window: {e}");
+                error!("Failed to open the manager window: {e}");
             }
         },
         "tray-exit" => {
@@ -79,6 +79,6 @@ fn on_tray_icon_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
         && button_state == MouseButtonState::Down
         && let Err(e) = tray.app_handle().open_manager()
     {
-        error!("Error opening manager window: {e}");
+        error!("Failed to open the manager window: {e}");
     }
 }
