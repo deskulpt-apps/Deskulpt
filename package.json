@@ -21,9 +21,7 @@
     "lint:rs": "cargo clippy --fix --allow-dirty --allow-staged -- -D warnings",
     "lint:rs:check": "cargo clippy -- -D warnings",
     "test": "pnpm test:js && pnpm test:rs",
-    "test:js": "vitest run",
-    "test:js:watch": "vitest",
-    "test:js:coverage": "vitest run --coverage",
+    "test:js": "echo \"Frontend test suite not implemented yet.\"",
     "test:rs": "cargo test --workspace",
     "build": "tsc -b && vite build",
     "build:packages": "pnpm run --sequential --filter @deskulpt-test/* build"
@@ -36,21 +34,15 @@
   },
   "devDependencies": {
     "@tauri-apps/cli": "catalog:",
-    "@testing-library/jest-dom": "catalog:",
-    "@testing-library/react": "catalog:",
-    "@vitest/coverage-v8": "catalog:",
-    "@vitest/ui": "catalog:",
     "@vitejs/plugin-react": "catalog:",
     "husky": "catalog:",
-    "jsdom": "catalog:",
     "knip": "catalog:",
     "lint-staged": "catalog:",
     "oxlint": "catalog:",
     "prettier": "catalog:",
     "prettier-plugin-toml": "catalog:",
     "typescript": "catalog:",
-    "vite": "catalog:",
-    "vitest": "catalog:"
+    "vite": "catalog:"
   },
   "prettier": {
     "plugins": [
