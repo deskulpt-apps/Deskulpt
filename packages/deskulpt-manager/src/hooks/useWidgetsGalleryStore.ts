@@ -63,8 +63,7 @@ export const useWidgetsGalleryStore = create<
 
   addInFlightOp: (id: string) => {
     set((state) => {
-      const newSet = new Set(state.inFlightOps);
-      newSet.add(id);
+      const newSet = new Set([...state.inFlightOps, id]);
       return { inFlightOps: newSet };
     });
   },
