@@ -3,3 +3,4 @@
 export * as deskulptCore from "./deskulpt-core.ts";
 export * as deskulptSettings from "./deskulpt-settings.ts";
 export * as deskulptWidgets from "./deskulpt-widgets.ts";
+export * as deskulptLogs from "./deskulpt-logs.ts";

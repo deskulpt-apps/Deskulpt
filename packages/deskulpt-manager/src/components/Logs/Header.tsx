@@ -1,4 +1,4 @@
-import { deskulptCore } from "@deskulpt/bindings";
+import { deskulptCore, deskulptLogs } from "@deskulpt/bindings";
 import { LOGGING_LEVELS, formatBytes, logger } from "@deskulpt/utils";
 import { css } from "@emotion/react";
 import { Button, Flex, Popover, Select, Text } from "@radix-ui/themes";
@@ -17,8 +17,8 @@ const styles = {
 };
 
 interface HeaderProps {
-  minLevel: deskulptCore.LoggingLevel;
-  setMinLevel: Dispatch<SetStateAction<deskulptCore.LoggingLevel>>;
+  minLevel: deskulptLogs.Level;
+  setMinLevel: Dispatch<SetStateAction<deskulptLogs.Level>>;
   refreshLogs: () => void;
 }
 
@@ -28,8 +28,8 @@ const Header = memo(({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
   }, []);
 
   const clearLogs = useCallback(() => {
-    deskulptCore.commands
-      .clearLogs()
+    deskulptLogs.commands
+      .clear()
       .then((bytes) => {
         toast.success(`Cleaned up ${formatBytes(bytes)} of logs.`);
         refreshLogs();
@@ -42,9 +42,7 @@ const Header = memo(({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
       <Select.Root
         size="1"
         value={minLevel}
-        onValueChange={(value) =>
-          setMinLevel(value as deskulptCore.LoggingLevel)
-        }
+        onValueChange={(value) => setMinLevel(value as deskulptLogs.Level)}
       >
         <Select.Trigger css={styles.minLevelSelect} />
         <Select.Content position="popper">

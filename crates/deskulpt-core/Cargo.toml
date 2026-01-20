@@ -13,6 +13,7 @@ version    = { workspace = true }
 [dependencies]
 anyhow                       = { workspace = true }
 deskulpt-common              = { workspace = true }
+deskulpt-logs                = { workspace = true }
 deskulpt-settings            = { workspace = true }
 dunce                        = { workspace = true }
 global-mousemove             = { workspace = true }
@@ -26,9 +27,6 @@ serialize-to-javascript      = { workspace = true }
 specta                       = { workspace = true, features = ["derive", "function", "serde_json"] }
 tauri-plugin-global-shortcut = { workspace = true }
 tracing                      = { workspace = true }
-tracing-appender             = { workspace = true }
-tracing-panic                = { workspace = true }
-tracing-subscriber           = { workspace = true, features = ["time"] }
 
 tauri = { workspace = true, features = [
   "specta",

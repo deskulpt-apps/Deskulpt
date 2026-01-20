@@ -1,9 +1,7 @@
-//! State management for logging.
-
 use std::path::PathBuf;
 
 use anyhow::Result;
-use tauri::{App, AppHandle, Manager, Runtime};
+use tauri::{AppHandle, Manager, Runtime};
 use tracing::Level;
 use tracing_appender::non_blocking::{NonBlockingBuilder, WorkerGuard};
 use tracing_appender::rolling::{RollingFileAppender, Rotation};
@@ -12,33 +10,40 @@ use tracing_subscriber::fmt::time::UtcTime;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::{Layer, Registry, fmt};
 
-use crate::path::PathExt;
-
 /// Maximum number of log files to retain.
 const MAX_LOG_FILES: usize = 10;
 
-/// Managed state for logging.
-struct LoggingState {
+/// Manager for Deskulpt logs.
+pub struct LogsManager<R: Runtime> {
+    /// The Tauri app handle.
+    _app_handle: AppHandle<R>,
+    /// The directory where log files are stored.
+    pub dir: PathBuf,
     /// Guard that flushes the tracing worker on drop.
     _guard: WorkerGuard,
 }
 
-/// Extension trait for operations related to logging.
-pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
+impl<R: Runtime> LogsManager<R> {
     /// Initialize state management for logging.
     ///
     /// This will set up structured logging in newline-delimited JSON format
     /// with daily rotation and maximum [`MAX_LOG_FILES`] log files retained.
     /// A panic hook is also set up to log uncaught panics.
-    fn manage_logging(&self) -> Result<()> {
-        let logs_dir = self.logs_dir()?;
+    pub fn new(app_handle: AppHandle<R>) -> Self {
+        Self::init(app_handle).expect("Failed to initialize logging")
+    }
+
+    fn init(app_handle: AppHandle<R>) -> Result<Self> {
+        let logs_dir = app_handle.path().app_log_dir()?;
+        std::fs::create_dir_all(&logs_dir)?;
 
         let appender = RollingFileAppender::builder()
             .rotation(Rotation::DAILY)
             .max_log_files(MAX_LOG_FILES)
             .filename_prefix("deskulpt")
             .filename_suffix("log")
-            .build(logs_dir)?;
+            .build(&logs_dir)?;
+
         let (writer, guard) = NonBlockingBuilder::default().finish(appender);
 
         let file_layer = fmt::layer()
@@ -67,8 +72,11 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
             previous_hook(panic_info);
         }));
 
-        self.manage(LoggingState { _guard: guard });
-        Ok(())
+        Ok(Self {
+            _app_handle: app_handle,
+            dir: logs_dir,
+            _guard: guard,
+        })
     }
 
     /// Discover log files and return their paths by newest first.
@@ -78,10 +86,8 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
     /// not verified here. The returned list is sorted by filename in descending
     /// order, which should correspond to most recent first if the `*`s are
     /// indeed timestamps.
-    fn collect_logs(&self) -> Result<Vec<PathBuf>> {
-        let logs_dir = self.logs_dir()?;
-
-        let mut files = std::fs::read_dir(logs_dir)?
+    pub fn collect(&self) -> Result<Vec<PathBuf>> {
+        let mut files = std::fs::read_dir(&self.dir)?
             .filter_map(|entry| {
                 let entry = entry.ok()?;
                 let path = entry.path();
@@ -108,8 +114,8 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
     /// error, but will not contribute to the computed freed space. Failure to
     /// discover the log files in the first place (before actual clearing
     /// begins), however, willl result in an error.
-    fn clear_logs(&self) -> Result<u64> {
-        let log_files = self.collect_logs()?;
+    pub fn clear(&self) -> Result<u64> {
+        let log_files = self.collect()?;
 
         let mut total_size: u64 = log_files
             .iter()
@@ -135,6 +141,3 @@ pub trait LoggingStateExt<R: Runtime>: Manager<R> + PathExt<R> {
         Ok(total_size)
     }
 }
-
-impl<R: Runtime> LoggingStateExt<R> for App<R> {}
-impl<R: Runtime> LoggingStateExt<R> for AppHandle<R> {}

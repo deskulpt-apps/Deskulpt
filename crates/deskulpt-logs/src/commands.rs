@@ -6,10 +6,10 @@ use std::str::FromStr;
 use anyhow::Result;
 use deskulpt_common::SerResult;
 use serde::{Deserialize, Serialize};
-use tauri::{AppHandle, Runtime, WebviewWindow, command};
+use tauri::{AppHandle, Runtime, WebviewWindow};
 use tracing::{debug, error, info, trace, warn};
 
-use crate::states::LoggingStateExt;
+use crate::LogsExt;
 
 /// Size of each log block to read.
 ///
@@ -23,7 +23,7 @@ const BLOCK_SIZE: u64 = 1 << 14;
 /// They correspond to the [`tracing::Level`] variants.
 #[derive(Debug, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub enum LoggingLevel {
+pub enum Level {
     Trace,
     Debug,
     Info,
@@ -31,14 +31,14 @@ pub enum LoggingLevel {
     Error,
 }
 
-impl From<LoggingLevel> for tracing::Level {
-    fn from(level: LoggingLevel) -> Self {
+impl From<Level> for tracing::Level {
+    fn from(level: Level) -> Self {
         match level {
-            LoggingLevel::Trace => tracing::Level::TRACE,
-            LoggingLevel::Debug => tracing::Level::DEBUG,
-            LoggingLevel::Info => tracing::Level::INFO,
-            LoggingLevel::Warn => tracing::Level::WARN,
-            LoggingLevel::Error => tracing::Level::ERROR,
+            Level::Trace => tracing::Level::TRACE,
+            Level::Debug => tracing::Level::DEBUG,
+            Level::Info => tracing::Level::INFO,
+            Level::Warn => tracing::Level::WARN,
+            Level::Error => tracing::Level::ERROR,
         }
     }
 }
@@ -46,11 +46,11 @@ impl From<LoggingLevel> for tracing::Level {
 /// A page of log entries.
 #[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct LogPage {
+pub struct Page {
     /// Log entries in reverse chronological order, i.e., newest first.
-    pub entries: Vec<LogEntry>,
+    pub entries: Vec<Entry>,
     /// Cursor for fetching the next page of older log entries.
-    pub cursor: Option<LogCursor>,
+    pub cursor: Option<Cursor>,
     /// Whether there are more log entries available beyond this page.
     pub has_more: bool,
 }
@@ -58,7 +58,7 @@ pub struct LogPage {
 /// Cursor for log pagination.
 #[derive(Debug, Deserialize, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct LogCursor {
+pub struct Cursor {
     /// The rotating log file path.
     pub path: PathBuf,
     /// The byte offset within the log file.
@@ -72,7 +72,7 @@ pub struct LogCursor {
 /// A single log entry.
 #[derive(Debug, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct LogEntry {
+pub struct Entry {
     /// Timestamp of the log entry in RFC 3339 format.
     pub timestamp: String,
     /// The logging level, all capitals.
@@ -83,7 +83,7 @@ pub struct LogEntry {
     pub raw: serde_json::Value,
 }
 
-impl LogEntry {
+impl Entry {
     /// Parse a log entry from bytes.
     ///
     /// If the bytes cannot be parsed as valid JSON or required log fields are
@@ -104,13 +104,13 @@ impl LogEntry {
     }
 
     /// Check if the log entry meets the minimum logging level.
-    fn meets_min_level(&self, min_level: &LoggingLevel) -> bool {
+    fn meets_min_level(&self, min_level: &Level) -> bool {
         let min_level = match min_level {
-            LoggingLevel::Trace => tracing::Level::TRACE,
-            LoggingLevel::Debug => tracing::Level::DEBUG,
-            LoggingLevel::Info => tracing::Level::INFO,
-            LoggingLevel::Warn => tracing::Level::WARN,
-            LoggingLevel::Error => tracing::Level::ERROR,
+            Level::Trace => tracing::Level::TRACE,
+            Level::Debug => tracing::Level::DEBUG,
+            Level::Info => tracing::Level::INFO,
+            Level::Warn => tracing::Level::WARN,
+            Level::Error => tracing::Level::ERROR,
         };
 
         match tracing::Level::from_str(&self.level) {
@@ -125,28 +125,28 @@ impl LogEntry {
 ///
 /// Optional metadata can be provided as a JSON value. If no metadata is needed,
 /// pass null.
-#[command]
+#[tauri::command]
 #[specta::specta]
 pub async fn log<R: Runtime>(
     window: WebviewWindow<R>,
-    level: LoggingLevel,
+    level: Level,
     message: String,
     meta: serde_json::Value,
 ) -> SerResult<()> {
     match window.label() {
         "canvas" => match level {
-            LoggingLevel::Trace => trace!(target: "frontend::canvas", %meta, message),
-            LoggingLevel::Debug => debug!(target: "frontend::canvas", %meta, message),
-            LoggingLevel::Info => info!(target: "frontend::canvas", %meta, message),
-            LoggingLevel::Warn => warn!(target: "frontend::canvas", %meta, message),
-            LoggingLevel::Error => error!(target: "frontend::canvas", %meta, message),
+            Level::Trace => trace!(target: "frontend::canvas", %meta, message),
+            Level::Debug => debug!(target: "frontend::canvas", %meta, message),
+            Level::Info => info!(target: "frontend::canvas", %meta, message),
+            Level::Warn => warn!(target: "frontend::canvas", %meta, message),
+            Level::Error => error!(target: "frontend::canvas", %meta, message),
         },
         "manager" => match level {
-            LoggingLevel::Trace => trace!(target: "frontend::manager", %meta, message),
-            LoggingLevel::Debug => debug!(target: "frontend::manager", %meta, message),
-            LoggingLevel::Info => info!(target: "frontend::manager", %meta, message),
-            LoggingLevel::Warn => warn!(target: "frontend::manager", %meta, message),
-            LoggingLevel::Error => error!(target: "frontend::manager", %meta, message),
+            Level::Trace => trace!(target: "frontend::manager", %meta, message),
+            Level::Debug => debug!(target: "frontend::manager", %meta, message),
+            Level::Info => info!(target: "frontend::manager", %meta, message),
+            Level::Warn => warn!(target: "frontend::manager", %meta, message),
+            Level::Error => error!(target: "frontend::manager", %meta, message),
         },
         _ => {},
     }
@@ -183,7 +183,7 @@ fn find_next_nonempty_file(files: &[PathBuf], start_idx: usize) -> Result<Option
 /// process, it returns an error.
 fn resolve_initial_position(
     files: &[PathBuf],
-    cursor: &Option<LogCursor>,
+    cursor: &Option<Cursor>,
 ) -> Result<Option<(usize, u64)>> {
     match cursor {
         None => find_next_nonempty_file(files, 0),
@@ -214,16 +214,16 @@ fn resolve_initial_position(
 /// The buffer `buf` is used for reading file data and should be at least
 /// [`BLOCK_SIZE`] bytes in length.
 ///
-/// This function returns a vector of matching [`LogEntry`]s and an optional
+/// This function returns a vector of matching [`Entry`]s and an optional
 /// byte offset indicating where to continue scanning in the next call. If the
 /// entire file has been scanned, the offset is `None`.
 fn scan_file_for_matches(
     path: &Path,
     mut end_offset: u64,
     limit_remaining: usize,
-    min_level: &LoggingLevel,
+    min_level: &Level,
     buf: &mut [u8],
-) -> Result<(Vec<LogEntry>, Option<u64>)> {
+) -> Result<(Vec<Entry>, Option<u64>)> {
     let mut file = File::open(path)?;
     let mut matches = vec![];
 
@@ -250,7 +250,7 @@ fn scan_file_for_matches(
                     current_line_rev.reverse();
                     let line_bytes = std::mem::take(&mut current_line_rev);
 
-                    if let Some(entry) = LogEntry::from_bytes(&line_bytes)
+                    if let Some(entry) = Entry::from_bytes(&line_bytes)
                         && entry.meets_min_level(min_level)
                     {
                         matches.push(entry);
@@ -281,7 +281,7 @@ fn scan_file_for_matches(
         current_line_rev.reverse();
         let line_bytes = std::mem::take(&mut current_line_rev);
 
-        if let Some(entry) = LogEntry::from_bytes(&line_bytes)
+        if let Some(entry) = Entry::from_bytes(&line_bytes)
             && entry.meets_min_level(min_level)
         {
             matches.push(entry);
@@ -305,19 +305,19 @@ fn scan_file_for_matches(
 /// - The limit is zero.
 /// - Failed to retrieve metadata of log files.
 /// - Failed to read log files.
-#[command]
+#[tauri::command]
 #[specta::specta]
-pub async fn fetch_logs<R: Runtime>(
+pub async fn read<R: Runtime>(
     app_handle: AppHandle<R>,
     limit: usize,
-    cursor: Option<LogCursor>,
-    min_level: LoggingLevel,
-) -> SerResult<LogPage> {
+    cursor: Option<Cursor>,
+    min_level: Level,
+) -> SerResult<Page> {
     assert!(limit > 0, "Limit must be strictly positive");
 
-    let files = app_handle.collect_logs()?;
+    let files = app_handle.logs().collect()?;
     if files.is_empty() {
-        return Ok(LogPage {
+        return Ok(Page {
             entries: Vec::new(),
             cursor: None,
             has_more: false,
@@ -358,11 +358,11 @@ pub async fn fetch_logs<R: Runtime>(
         if let Some(next_offset) = cursor_in_file {
             // We have filled the quota while still within this file, so we
             // return a cursor pointing to where we left off
-            let next_cursor = LogCursor {
+            let next_cursor = Cursor {
                 path: path.clone(),
                 offset: next_offset,
             };
-            return Ok(LogPage {
+            return Ok(Page {
                 entries,
                 cursor: Some(next_cursor),
                 has_more: true,
@@ -376,7 +376,7 @@ pub async fn fetch_logs<R: Runtime>(
 
     // We ran out of files or reached the limit, either case we declare no more
     // further entries
-    Ok(LogPage {
+    Ok(Page {
         entries,
         cursor: None,
         has_more: false,
@@ -388,9 +388,9 @@ pub async fn fetch_logs<R: Runtime>(
 /// ### Errors
 ///
 /// - Error discovering log files.
-#[command]
+#[tauri::command]
 #[specta::specta]
-pub async fn clear_logs<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<u64> {
-    let cleared_size = app_handle.clear_logs()?;
+pub async fn clear<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<u64> {
+    let cleared_size = app_handle.logs().clear()?;
     Ok(cleared_size)
 }

@@ -1,0 +1,29 @@
+[package]
+description = "Deskulpt logging utilities."
+links       = "deskulpt-logs"
+name        = "deskulpt-logs"
+
+authors    = { workspace = true }
+edition    = { workspace = true }
+homepage   = { workspace = true }
+license    = { workspace = true }
+repository = { workspace = true }
+version    = { workspace = true }
+
+[dependencies]
+anyhow             = { workspace = true }
+deskulpt-common    = { workspace = true }
+serde              = { workspace = true, features = ["derive"] }
+serde_json         = { workspace = true }
+specta             = { workspace = true, features = ["derive", "function", "serde_json"] }
+tauri              = { workspace = true, features = ["specta"] }
+tracing            = { workspace = true }
+tracing-appender   = { workspace = true }
+tracing-panic      = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["time"] }
+
+[build-dependencies]
+deskulpt-build = { workspace = true }
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--extend-css", "../rustdoc.css"]

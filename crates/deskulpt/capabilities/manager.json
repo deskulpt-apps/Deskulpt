@@ -4,10 +4,10 @@
   "description": "Capabilities of the manager window.",
   "windows": ["manager"],
   "permissions": [
-    "deskulpt-core:allow-clear-logs",
-    "deskulpt-core:allow-fetch-logs",
-    "deskulpt-core:allow-log",
     "deskulpt-core:allow-open",
+    "deskulpt-logs:allow-clear",
+    "deskulpt-logs:allow-read",
+    "deskulpt-logs:allow-log",
     "deskulpt-settings:allow-update",
     "deskulpt-widgets:allow-complete-setup",
     "deskulpt-widgets:allow-fetch-registry-index",
