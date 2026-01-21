@@ -1,4 +1,6 @@
-use std::path::PathBuf;
+//! Deskulpt logs manager and its APIs.
+
+use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 use tauri::{AppHandle, Manager, Runtime};
@@ -10,39 +12,34 @@ use tracing_subscriber::fmt::time::UtcTime;
 use tracing_subscriber::layer::SubscriberExt;
 use tracing_subscriber::{Layer, Registry, fmt};
 
-/// Maximum number of log files to retain.
-const MAX_LOG_FILES: usize = 10;
+use crate::reader::{Cursor, Page, RollingTailReader};
 
 /// Manager for Deskulpt logs.
 pub struct LogsManager<R: Runtime> {
     /// The Tauri app handle.
     _app_handle: AppHandle<R>,
     /// The directory where log files are stored.
-    pub dir: PathBuf,
-    /// Guard that flushes the tracing worker on drop.
+    dir: PathBuf,
+    /// A guard that flushes pending logs when dropped.
     _guard: WorkerGuard,
 }
 
 impl<R: Runtime> LogsManager<R> {
-    /// Initialize state management for logging.
+    /// Initialize state management for logs.
     ///
     /// This will set up structured logging in newline-delimited JSON format
-    /// with daily rotation and maximum [`MAX_LOG_FILES`] log files retained.
-    /// A panic hook is also set up to log uncaught panics.
-    pub fn new(app_handle: AppHandle<R>) -> Self {
-        Self::init(app_handle).expect("Failed to initialize logging")
-    }
-
-    fn init(app_handle: AppHandle<R>) -> Result<Self> {
-        let logs_dir = app_handle.path().app_log_dir()?;
-        std::fs::create_dir_all(&logs_dir)?;
+    /// with daily rotation. The lifetime of the logger is tied to the lifetime
+    /// of the manager.
+    pub fn new(app_handle: AppHandle<R>) -> Result<Self> {
+        let dir = app_handle.path().app_log_dir()?;
+        std::fs::create_dir_all(&dir)?;
 
         let appender = RollingFileAppender::builder()
             .rotation(Rotation::DAILY)
-            .max_log_files(MAX_LOG_FILES)
+            .max_log_files(10)
             .filename_prefix("deskulpt")
             .filename_suffix("log")
-            .build(&logs_dir)?;
+            .build(&dir)?;
 
         let (writer, guard) = NonBlockingBuilder::default().finish(appender);
 
@@ -55,7 +52,7 @@ impl<R: Runtime> LogsManager<R> {
             .with_current_span(false)
             .with_span_list(true)
             .flatten_event(true)
-            .with_writer(writer.clone())
+            .with_writer(writer)
             .with_filter(
                 Targets::new()
                     .with_target("deskulpt", Level::TRACE)
@@ -66,6 +63,7 @@ impl<R: Runtime> LogsManager<R> {
         let subscriber = Registry::default().with(file_layer);
         tracing::subscriber::set_global_default(subscriber)?;
 
+        // Set up panic hook to log uncaught panics
         let previous_hook = std::panic::take_hook();
         std::panic::set_hook(Box::new(move |panic_info| {
             tracing_panic::panic_hook(panic_info);
@@ -73,20 +71,19 @@ impl<R: Runtime> LogsManager<R> {
         }));
 
         Ok(Self {
+            dir,
             _app_handle: app_handle,
-            dir: logs_dir,
             _guard: guard,
         })
     }
 
-    /// Discover log files and return their paths by newest first.
-    ///
-    /// This looks for log files in the logs directory with names matching the
-    /// pattern `deskulpt.*.log`, where `*` should be a timestamp though this is
-    /// not verified here. The returned list is sorted by filename in descending
-    /// order, which should correspond to most recent first if the `*`s are
-    /// indeed timestamps.
-    pub fn collect(&self) -> Result<Vec<PathBuf>> {
+    /// Get the directory where log files are stored.
+    pub fn dir(&self) -> &Path {
+        &self.dir
+    }
+
+    /// Collect log files in most recent first order.
+    fn collect(&self) -> Result<Vec<PathBuf>> {
         let mut files = std::fs::read_dir(&self.dir)?
             .filter_map(|entry| {
                 let entry = entry.ok()?;
@@ -100,20 +97,33 @@ impl<R: Runtime> LogsManager<R> {
             })
             .collect::<Vec<_>>();
 
+        // Here we assume that the filenames are timestamps, so sorting by
+        // filename in descending order should correspond to most recent first
         files.sort_by(|a, b| b.file_name().cmp(&a.file_name()));
         Ok(files)
+    }
+
+    /// Read a page of log entries.
+    ///
+    /// This will filter up to `limit` entries that are at least the severity of
+    /// `min_level`. If a cursor is provided, it will continue reading from the
+    /// specified position. Otherwise, it will start from the latest entry.
+    pub fn read(&self, limit: usize, min_level: Level, cursor: Option<Cursor>) -> Result<Page> {
+        let files = self.collect()?;
+        let mut reader = RollingTailReader::new(files, min_level);
+        reader.read(limit, cursor)
     }
 
     /// Clear all log files and return the freed disk space in bytes.
     ///
     /// The latest log file is truncated instead of deleted to ensure that
     /// logging can continue without interruption. All older log files are
-    /// deleted. The total freed disk space is returned.
+    /// deleted.
     ///
-    /// Note that failure to delete or truncate a log file will not result in an
-    /// error, but will not contribute to the computed freed space. Failure to
-    /// discover the log files in the first place (before actual clearing
-    /// begins), however, willl result in an error.
+    /// The only possible failure is failure to collect the log files to clear
+    /// (before actual operations begin). Failure to delete or truncate a log
+    /// file will not result in an error, but will not contribute to the
+    /// computed freed space.
     pub fn clear(&self) -> Result<u64> {
         let log_files = self.collect()?;
 

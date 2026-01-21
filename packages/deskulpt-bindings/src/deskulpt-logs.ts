@@ -60,11 +60,29 @@ raw: JsonValue }
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key in string]: JsonValue }
 
 /**
- * Logging levels supported.
- * 
- * They correspond to the [`tracing::Level`] variants.
+ * Level of severity for logging.
  */
-export type Level = "trace" | "debug" | "info" | "warn" | "error"
+export type Level = 
+/**
+ * At least the severity of [`tracing::Level::TRACE`].
+ */
+"trace" | 
+/**
+ * At least the severity of [`tracing::Level::DEBUG`].
+ */
+"debug" | 
+/**
+ * At least the severity of [`tracing::Level::INFO`].
+ */
+"info" | 
+/**
+ * At least the severity of [`tracing::Level::WARN`].
+ */
+"warn" | 
+/**
+ * At least the severity of [`tracing::Level::ERROR`].
+ */
+"error"
 
 /**
  * A page of log entries.
@@ -75,7 +93,7 @@ export type Page = {
  */
 entries: Entry[]; 
 /**
- * Cursor for fetching the next page of older log entries.
+ * Cursor for reading the next page of older log entries.
  */
 cursor: Cursor | null; 
 /**
@@ -91,44 +109,28 @@ hasMore: boolean }
 export const commands = {
   /**
    * Clear all log files and return the freed disk space in bytes.
-   * 
-   * ### Errors
-   * 
-   * - Error discovering log files.
    */
   clear: () => invoke<number>("plugin:deskulpt-logs|clear"),
 
   /**
-   * Fetch a page of log entries.
-   * 
-   * The limit specifies the maximum number of log entries to retrieve and must
-   * be strictly positive. The cursor is for pagination. The first call should
-   * pass `None` for the cursor to start from the newest log entries, and
-   * subsequent calls should use the cursor returned from the previous call to
-   * fetch older entries. `min_level` filters log entries to only those at or
-   * above the specified logging level (ordered by severity).
-   * 
-   * ### Errors
-   * 
-   * - The limit is zero.
-   * - Failed to retrieve metadata of log files.
-   * - Failed to read log files.
+   * Read a page of log entries.
    */
   read: (
     limit: number,
-    cursor: Cursor | null,
     minLevel: Level,
+    cursor: Cursor | null,
   ) => invoke<Page>("plugin:deskulpt-logs|read", {
     limit,
-    cursor,
     minLevel,
+    cursor,
   }),
 
   /**
-   * Log a message at the specified level from the frontend.
+   * Emit a log at the specified level.
    * 
-   * Optional metadata can be provided as a JSON value. If no metadata is needed,
-   * pass null.
+   * This shares the logging system of the backend. Optional metadata can be
+   * provided as arbitrary JSON-serializable value. If no metadata is needed,
+   * pass `null`.
    */
   log: (
     level: Level,
