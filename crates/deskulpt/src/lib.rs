@@ -6,7 +6,7 @@
 
 use deskulpt_core::path::PathExt;
 use deskulpt_core::shortcuts::ShortcutsExt;
-use deskulpt_core::states::{CanvasImodeStateExt, LoggingStateExt};
+use deskulpt_core::states::CanvasImodeStateExt;
 use deskulpt_core::tray::TrayExt;
 use deskulpt_core::window::WindowExt;
 use deskulpt_widgets::WidgetsExt;
@@ -18,9 +18,6 @@ pub fn run() {
         .setup(move |app| {
             app.init_widgets_dir()?;
             app.init_persist_dir()?;
-            app.init_logs_dir()?;
-
-            app.manage_logging()?;
 
             // Hide the application from the dock on macOS because skipping
             // taskbar is not applicable for macOS
@@ -49,6 +46,7 @@ pub fn run() {
         .plugin(deskulpt_core::init())
         .plugin(deskulpt_settings::init())
         .plugin(deskulpt_widgets::init())
+        .plugin(deskulpt_logs::init())
         .run(generate_context!())
         .expect("Error running the Deskulpt application");
 }

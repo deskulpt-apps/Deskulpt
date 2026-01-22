@@ -23,68 +23,6 @@ export type DeskulptWindow =
 export type JsonValue = null | boolean | number | string | JsonValue[] | { [key in string]: JsonValue }
 
 /**
- * Cursor for log pagination.
- */
-export type LogCursor = { 
-/**
- * The rotating log file path.
- */
-path: string; 
-/**
- * The byte offset within the log file.
- * 
- * If offset is non-zero, there is older data in this file in [0, offset).
- * If offset is zero, this file is fully consumed and the next older
- * non-empty file should be read.
- */
-offset: number }
-
-/**
- * A single log entry.
- */
-export type LogEntry = { 
-/**
- * Timestamp of the log entry in RFC 3339 format.
- */
-timestamp: string; 
-/**
- * The logging level, all capitals.
- */
-level: string; 
-/**
- * The log message.
- */
-message: string; 
-/**
- * The raw JSON representation of the log entry.
- */
-raw: JsonValue }
-
-/**
- * A page of log entries.
- */
-export type LogPage = { 
-/**
- * Log entries in reverse chronological order, i.e., newest first.
- */
-entries: LogEntry[]; 
-/**
- * Cursor for fetching the next page of older log entries.
- */
-cursor: LogCursor | null; 
-/**
- * Whether there are more log entries available beyond this page.
- */
-hasMore: boolean }
-
-/**
- * Logging levels supported.
- * 
- * They correspond to the [`tracing::Level`] variants.
- */
-export type LoggingLevel = "trace" | "debug" | "info" | "warn" | "error"
-
-/**
  * The target to open.
  */
 export type OpenTarget = 
@@ -176,57 +114,6 @@ export const commands = {
     command,
     id,
     payload,
-  }),
-
-  /**
-   * Clear all log files and return the freed disk space in bytes.
-   * 
-   * ### Errors
-   * 
-   * - Error discovering log files.
-   */
-  clearLogs: () => invoke<number>("plugin:deskulpt-core|clear_logs"),
-
-  /**
-   * Fetch a page of log entries.
-   * 
-   * The limit specifies the maximum number of log entries to retrieve and must
-   * be strictly positive. The cursor is for pagination. The first call should
-   * pass `None` for the cursor to start from the newest log entries, and
-   * subsequent calls should use the cursor returned from the previous call to
-   * fetch older entries. `min_level` filters log entries to only those at or
-   * above the specified logging level (ordered by severity).
-   * 
-   * ### Errors
-   * 
-   * - The limit is zero.
-   * - Failed to retrieve metadata of log files.
-   * - Failed to read log files.
-   */
-  fetchLogs: (
-    limit: number,
-    cursor: LogCursor | null,
-    minLevel: LoggingLevel,
-  ) => invoke<LogPage>("plugin:deskulpt-core|fetch_logs", {
-    limit,
-    cursor,
-    minLevel,
-  }),
-
-  /**
-   * Log a message at the specified level from the frontend.
-   * 
-   * Optional metadata can be provided as a JSON value. If no metadata is needed,
-   * pass null.
-   */
-  log: (
-    level: LoggingLevel,
-    message: string,
-    meta: JsonValue,
-  ) => invoke<null>("plugin:deskulpt-core|log", {
-    level,
-    message,
-    meta,
   }),
 
   /**

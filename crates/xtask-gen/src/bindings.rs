@@ -8,6 +8,7 @@ pub fn run() -> Result<()> {
         deskulpt_core::build_bindings(),
         deskulpt_settings::build_bindings(),
         deskulpt_widgets::build_bindings(),
+        deskulpt_logs::build_bindings(),
     ];
 
     let mut index = index::Template::default();

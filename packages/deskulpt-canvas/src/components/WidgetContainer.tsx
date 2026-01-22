@@ -175,7 +175,7 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
   );
 
   const onRenderError = useCallback(
-    (error: Error, info: ErrorInfo) => {
+    (error: unknown, info: ErrorInfo) => {
       logger.error(`Error rendering widget: ${id}`, {
         widgetId: id,
         error,

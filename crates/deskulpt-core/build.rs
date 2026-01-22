@@ -1,6 +1,6 @@
 fn main() {
     deskulpt_build::Builder::default()
-        .commands(&["call_plugin", "clear_logs", "fetch_logs", "log", "open"])
+        .commands(&["call_plugin", "open"])
         .events(&["ShowToastEvent"])
         .build();
 }

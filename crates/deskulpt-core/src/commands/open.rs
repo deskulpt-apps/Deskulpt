@@ -1,4 +1,5 @@
 use deskulpt_common::SerResult;
+use deskulpt_logs::LogsExt;
 use serde::Deserialize;
 use tauri::{AppHandle, Runtime, command};
 
@@ -33,7 +34,7 @@ pub async fn open<R: Runtime>(app_handle: AppHandle<R>, target: OpenTarget) -> S
         OpenTarget::Widgets => app_handle.widgets_dir()?,
         OpenTarget::Widget(id) => &app_handle.widget_dir(&id)?,
         OpenTarget::Settings => &app_handle.persist_dir()?.join("settings.json"),
-        OpenTarget::Logs => app_handle.logs_dir()?,
+        OpenTarget::Logs => app_handle.logs().dir(),
     };
 
     open::that_detached(path)?;
