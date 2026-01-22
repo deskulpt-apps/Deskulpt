@@ -25,7 +25,6 @@ pub fn run() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             app.init_shortcuts();
-            app.create_manager()?;
             app.create_canvas()?;
             app.create_tray()?;
 
@@ -35,7 +34,6 @@ pub fn run() {
 
             Ok(())
         })
-        .on_window_event(deskulpt_core::window::on_window_event)
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
         // Prevent the opener plugin from registering handler for click event
