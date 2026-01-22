@@ -1,11 +1,4 @@
-import {
-  ErrorInfo,
-  memo,
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 import { flushSync } from "react-dom";
 import Draggable, { DraggableData, DraggableEvent } from "react-draggable";
 import {
@@ -86,7 +79,7 @@ function computeResizedGeometry(
   return { x: newX, y: newY, width: newWidth, height: newHeight };
 }
 
-const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
+const WidgetContainer = ({ id }: WidgetContainerProps) => {
   const draggableRef = useRef<HTMLDivElement>(null);
   const resizeStartRef = useRef<WidgetGeometry>(null);
 
@@ -120,24 +113,21 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
     });
   }, [settings]);
 
-  const onDragStop = useCallback(
-    (_: DraggableEvent, data: DraggableData) => {
-      setGeometry((prev) => prev && { ...prev, x: data.x, y: data.y });
-      deskulptSettings.commands.update({
-        widgets: { [id]: { x: data.x, y: data.y } },
-      });
-    },
-    [id],
-  );
+  const onDragStop = (_: DraggableEvent, data: DraggableData) => {
+    setGeometry((prev) => prev && { ...prev, x: data.x, y: data.y });
+    deskulptSettings.commands.update({
+      widgets: { [id]: { x: data.x, y: data.y } },
+    });
+  };
 
-  const onResizeStart: ResizeStartCallback = useCallback(() => {
+  const onResizeStart: ResizeStartCallback = () => {
     if (geometry === undefined) {
       return;
     }
     resizeStartRef.current = { ...geometry };
-  }, [geometry]);
+  };
 
-  const onResize: ResizeCallback = useCallback((_, direction, __, delta) => {
+  const onResize: ResizeCallback = (_, direction, __, delta) => {
     if (resizeStartRef.current === null) {
       return;
     }
@@ -152,38 +142,24 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
     flushSync(() => {
       setGeometry(newGeometry);
     });
-  }, []);
+  };
 
-  const onResizeStop: ResizeCallback = useCallback(
-    (_, direction, __, delta) => {
-      if (resizeStartRef.current === null) {
-        return;
-      }
+  const onResizeStop: ResizeCallback = (_, direction, __, delta) => {
+    if (resizeStartRef.current === null) {
+      return;
+    }
 
-      // We recompute with delta instead of using local state because at time
-      // this callback is triggered, we cannot guarantee that the local state
-      // updates has all been flushed due to react's asynchronous state updates;
-      // using delta also reduces the dependency array of this callback
-      const newGeometry = computeResizedGeometry(
-        resizeStartRef.current,
-        direction,
-        delta,
-      );
-      deskulptSettings.commands.update({ widgets: { [id]: newGeometry } });
-    },
-    [id],
-  );
-
-  const onRenderError = useCallback(
-    (error: unknown, info: ErrorInfo) => {
-      logger.error(`Error rendering widget: ${id}`, {
-        widgetId: id,
-        error,
-        info,
-      });
-    },
-    [id],
-  );
+    // We recompute with delta instead of using local state because at time
+    // this callback is triggered, we cannot guarantee that the local state
+    // updates has all been flushed due to react's asynchronous state updates;
+    // using delta also reduces the dependency array of this callback
+    const newGeometry = computeResizedGeometry(
+      resizeStartRef.current,
+      direction,
+      delta,
+    );
+    deskulptSettings.commands.update({ widgets: { [id]: newGeometry } });
+  };
 
   // Do not render anything if the widget is not fully configured; there could
   // be a gap between widget and settings updates, but they should eventually be
@@ -227,7 +203,13 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
         >
           <ErrorBoundary
             resetKeys={[Widget]}
-            onError={onRenderError}
+            onError={(error, info) => {
+              logger.error(`Error rendering widget: ${id}`, {
+                widgetId: id,
+                error,
+                info,
+              });
+            }}
             fallbackRender={({ error }) => (
               <ErrorDisplay
                 id={id}
@@ -248,6 +230,6 @@ const WidgetContainer = memo(({ id }: WidgetContainerProps) => {
       </Box>
     </Draggable>
   );
-});
+};
 
 export default WidgetContainer;

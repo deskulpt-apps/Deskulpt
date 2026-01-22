@@ -2,7 +2,7 @@ import { deskulptCore, deskulptLogs } from "@deskulpt/bindings";
 import { LOGGING_LEVELS, formatBytes, logger } from "@deskulpt/utils";
 import { css } from "@emotion/react";
 import { Button, Flex, Popover, Select, Text } from "@radix-ui/themes";
-import { Dispatch, SetStateAction, memo, useCallback } from "react";
+import { Dispatch, SetStateAction } from "react";
 import { LuFolderOpen, LuRepeat, LuTrash } from "react-icons/lu";
 import { toast } from "sonner";
 
@@ -22,12 +22,8 @@ interface HeaderProps {
   refreshLogs: () => void;
 }
 
-const Header = memo(({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
-  const openLogsDir = useCallback(() => {
-    deskulptCore.commands.open("logs").catch(logger.error);
-  }, []);
-
-  const clearLogs = useCallback(() => {
+const Header = ({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
+  const clearLogs = () => {
     deskulptLogs.commands
       .clear()
       .then((bytes) => {
@@ -35,7 +31,7 @@ const Header = memo(({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
         refreshLogs();
       })
       .catch(logger.error);
-  }, [refreshLogs]);
+  };
 
   return (
     <Flex align="center" gap="2" justify="between">
@@ -55,7 +51,11 @@ const Header = memo(({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
       </Select.Root>
 
       <Flex align="center" justify="end" gap="2">
-        <Button size="1" variant="surface" onClick={openLogsDir}>
+        <Button
+          size="1"
+          variant="surface"
+          onClick={() => deskulptCore.commands.open("logs").catch(logger.error)}
+        >
           <LuFolderOpen /> Open
         </Button>
         <Button size="1" variant="surface" onClick={refreshLogs}>
@@ -97,6 +97,6 @@ const Header = memo(({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
       </Flex>
     </Flex>
   );
-});
+};
 
 export default Header;

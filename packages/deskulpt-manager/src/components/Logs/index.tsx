@@ -1,5 +1,5 @@
 import { Box, Flex, ScrollArea, Text } from "@radix-ui/themes";
-import { memo, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { deskulptLogs } from "@deskulpt/bindings";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useLogs } from "../../hooks";
@@ -7,7 +7,7 @@ import Header from "./Header";
 import Entry from "./Entry";
 import { LuLogs } from "react-icons/lu";
 
-const Logs = memo(() => {
+const Logs = () => {
   const parentRef = useRef<HTMLDivElement>(null);
   const [minLevel, setMinLevel] = useState<deskulptLogs.Level>("info");
 
@@ -88,6 +88,6 @@ const Logs = memo(() => {
       </Flex>
     </Flex>
   );
-});
+};
 
 export default Logs;

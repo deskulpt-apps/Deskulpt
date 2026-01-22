@@ -1,5 +1,4 @@
 import { Box, Button, Flex, ScrollArea, Table } from "@radix-ui/themes";
-import { memo, useCallback } from "react";
 import { LuSquarePen } from "react-icons/lu";
 import CanvasImode from "./CanvasImode";
 import Shortcut from "./Shortcut";
@@ -7,11 +6,7 @@ import SectionTable from "./SectionTable";
 import { deskulptCore } from "@deskulpt/bindings";
 import { logger } from "@deskulpt/utils";
 
-const Settings = memo(() => {
-  const openSettingsJson = useCallback(() => {
-    deskulptCore.commands.open("settings").catch(logger.error);
-  }, []);
-
+const Settings = () => {
   return (
     <Flex direction="column" gap="4" px="1" height="100%">
       <ScrollArea asChild>
@@ -47,11 +42,18 @@ const Settings = memo(() => {
         </Box>
       </ScrollArea>
 
-      <Button size="2" variant="soft" color="gray" onClick={openSettingsJson}>
+      <Button
+        size="2"
+        variant="soft"
+        color="gray"
+        onClick={() => {
+          deskulptCore.commands.open("settings").catch(logger.error);
+        }}
+      >
         <LuSquarePen /> Edit in settings.json
       </Button>
     </Flex>
   );
-});
+};
 
 export default Settings;

@@ -1,6 +1,5 @@
 import { Flex, ScrollArea, Separator, Tabs, Text } from "@radix-ui/themes";
 import { useWidgetsStore } from "../../hooks";
-import { memo } from "react";
 import { useShallow } from "zustand/shallow";
 import Trigger from "./Trigger";
 import GlobalActions from "./GlobalActions";
@@ -13,7 +12,7 @@ const styles = {
   tabContent: css({ boxShadow: "inset 1px 0 0 0 var(--gray-a5)" }),
 };
 
-const WidgetsTab = memo(() => {
+const WidgetsTab = () => {
   const ids = useWidgetsStore(useShallow((state) => Object.keys(state)));
 
   return (
@@ -61,6 +60,6 @@ const WidgetsTab = memo(() => {
       </Flex>
     </Tabs.Root>
   );
-});
+};
 
 export default WidgetsTab;

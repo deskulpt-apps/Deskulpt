@@ -1,6 +1,5 @@
 import { css } from "@emotion/react";
 import { Box, Code, Dialog, ScrollArea, Text } from "@radix-ui/themes";
-import { memo } from "react";
 
 const styles = {
   trigger: css({ cursor: "pointer" }),
@@ -12,7 +11,7 @@ interface ErrorDisplayProps {
   message: string;
 }
 
-const ErrorDisplay = memo(({ id, error, message }: ErrorDisplayProps) => {
+const ErrorDisplay = ({ id, error, message }: ErrorDisplayProps) => {
   return (
     <Dialog.Root>
       <Dialog.Trigger>
@@ -44,6 +43,6 @@ const ErrorDisplay = memo(({ id, error, message }: ErrorDisplayProps) => {
       </Dialog.Content>
     </Dialog.Root>
   );
-});
+};
 
 export default ErrorDisplay;

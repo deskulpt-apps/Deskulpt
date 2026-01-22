@@ -38,6 +38,7 @@
   "devDependencies": {
     "@tauri-apps/cli": "catalog:",
     "@vitejs/plugin-react": "catalog:",
+    "babel-plugin-react-compiler": "catalog:",
     "husky": "catalog:",
     "knip": "catalog:",
     "lint-staged": "catalog:",

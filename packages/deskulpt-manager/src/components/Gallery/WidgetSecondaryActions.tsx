@@ -2,7 +2,7 @@ import { deskulptWidgets } from "@deskulpt/bindings";
 import { logger } from "@deskulpt/utils";
 import { DropdownMenu, Flex, IconButton } from "@radix-ui/themes";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { LuCopy, LuDownload, LuEllipsis, LuEye } from "react-icons/lu";
 import { toast } from "sonner";
 import { useWidgetsGalleryStore } from "../../hooks";
@@ -26,7 +26,7 @@ const WidgetSecondaryActions = ({
 
   const id = `@${reference.handle}.${reference.id}`;
 
-  const preview = useCallback(async () => {
+  const preview = async () => {
     setIsLoadingPreview(true);
     try {
       const previewData = await deskulptWidgets.commands.preview(reference);
@@ -37,19 +37,19 @@ const WidgetSecondaryActions = ({
     } finally {
       setIsLoadingPreview(false);
     }
-  }, [reference, version, openPreview]);
+  };
 
-  const pickVersion = useCallback(() => {
+  const pickVersion = () => {
     openVersionPicker({
       handle: reference.handle,
       id: reference.id,
       releases,
     });
-  }, [reference, releases, openVersionPicker]);
+  };
 
-  const copyWidgetId = useCallback(() => {
+  const copyWidgetId = () => {
     writeText(id).then(() => toast.success("Copied to clipboard."));
-  }, [id]);
+  };
 
   return (
     <Flex align="center" gap="3" pr="1">

@@ -1,13 +1,13 @@
 import { Box, Flex, ScrollArea, Spinner, Text } from "@radix-ui/themes";
 import { useVirtualizer } from "@tanstack/react-virtual";
-import { memo, useEffect, useRef } from "react";
+import { useEffect, useRef } from "react";
 import Header from "./Header";
 import WidgetCard from "./WidgetCard";
 import WidgetPreview from "./WidgetPreview";
 import WidgetVersionPicker from "./WidgetVersionPicker";
 import { useWidgetsGalleryStore } from "../../hooks";
 
-const Gallery = memo(() => {
+const Gallery = () => {
   const parentRef = useRef<HTMLDivElement>(null);
 
   const numWidgets = useWidgetsGalleryStore((state) => state.widgets.length);
@@ -75,6 +75,6 @@ const Gallery = memo(() => {
       <WidgetVersionPicker />
     </Flex>
   );
-});
+};
 
 export default Gallery;

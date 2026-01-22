@@ -1,7 +1,6 @@
 import { Select } from "@radix-ui/themes";
 import { deskulptSettings } from "@deskulpt/bindings";
 import { useSettingsStore } from "../../hooks";
-import { useCallback } from "react";
 import { logger } from "@deskulpt/utils";
 
 const options: { value: deskulptSettings.CanvasImode; label: string }[] = [
@@ -13,14 +12,16 @@ const options: { value: deskulptSettings.CanvasImode; label: string }[] = [
 const CanvasImode = () => {
   const canvasImode = useSettingsStore((state) => state.canvasImode);
 
-  const onValueChange = useCallback((value: deskulptSettings.CanvasImode) => {
-    deskulptSettings.commands
-      .update({ canvasImode: value })
-      .catch(logger.error);
-  }, []);
-
   return (
-    <Select.Root size="1" value={canvasImode} onValueChange={onValueChange}>
+    <Select.Root
+      size="1"
+      value={canvasImode}
+      onValueChange={(value: deskulptSettings.CanvasImode) => {
+        deskulptSettings.commands
+          .update({ canvasImode: value })
+          .catch(logger.error);
+      }}
+    >
       <Select.Trigger />
       <Select.Content>
         {options.map((option) => (

@@ -7,12 +7,7 @@ import {
   Text,
   TextField,
 } from "@radix-ui/themes";
-import {
-  KeyboardEvent as ReactKeyboardEvent,
-  useCallback,
-  useRef,
-  useState,
-} from "react";
+import { KeyboardEvent as ReactKeyboardEvent, useRef, useState } from "react";
 import { LuSquarePen, LuTrash } from "react-icons/lu";
 import { deskulptSettings } from "@deskulpt/bindings";
 import { useSettingsStore } from "../../hooks";
@@ -45,23 +40,20 @@ const ShortcutAction = ({ action }: Props) => {
   const [placeholder, setPlaceholder] = useState(INITIAL_PLACEHOLDER);
   const [isValid, setIsValid] = useState(true);
 
-  const handleFocus = useCallback(() => {
+  const handleFocus = () => {
     setPlaceholder("Press key combination...");
-  }, []);
+  };
 
-  const handleOpenChange = useCallback(
-    (open: boolean) => {
-      if (open) {
-        // Reset states on popover open
-        setValue(shortcut ?? "");
-        setPlaceholder(INITIAL_PLACEHOLDER);
-        setIsValid(true);
-      }
-    },
-    [shortcut],
-  );
+  const handleOpenChange = (open: boolean) => {
+    if (open) {
+      // Reset states on popover open
+      setValue(shortcut ?? "");
+      setPlaceholder(INITIAL_PLACEHOLDER);
+      setIsValid(true);
+    }
+  };
 
-  const handleKeyDown = useCallback((event: ReactKeyboardEvent) => {
+  const handleKeyDown = (event: ReactKeyboardEvent) => {
     if (event.key === "Tab" || event.repeat) {
       // Ignore key repeats for performance; ignore tab key for keyboard
       // accessibility, i.e., on should be able to use it to navigate to the
@@ -102,9 +94,9 @@ const ShortcutAction = ({ action }: Props) => {
 
     setValue(keys.join(" + "));
     setIsValid(localHasKey && localHasModifier);
-  }, []);
+  };
 
-  const confirmAction = useCallback(() => {
+  const confirmAction = () => {
     deskulptSettings.commands
       .update({ shortcuts: { [action]: value === "" ? null : value } })
       .then(() => {
@@ -115,9 +107,9 @@ const ShortcutAction = ({ action }: Props) => {
       .catch(() => {
         toast.error("Failed to update shortcut.");
       });
-  }, [action, value]);
+  };
 
-  const clearAction = useCallback(() => {
+  const clearAction = () => {
     if (inputRef.current === null) {
       setPlaceholder(INITIAL_PLACEHOLDER);
     } else {
@@ -125,7 +117,7 @@ const ShortcutAction = ({ action }: Props) => {
     }
     setValue("");
     setIsValid(true);
-  }, []);
+  };
 
   return (
     <Flex align="center" justify="end" gap="4">

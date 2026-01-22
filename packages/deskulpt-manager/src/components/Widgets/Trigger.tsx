@@ -1,6 +1,5 @@
 import { Box, Flex, Tabs, Text } from "@radix-ui/themes";
 import { useWidgetsStore } from "../../hooks";
-import { memo } from "react";
 import { css } from "@emotion/react";
 
 const styles = {
@@ -29,7 +28,7 @@ interface TriggerProps {
   value: string;
 }
 
-const Trigger = memo(({ id, value }: TriggerProps) => {
+const Trigger = ({ id, value }: TriggerProps) => {
   const config = useWidgetsStore((state) => state[id]);
 
   return (
@@ -47,6 +46,6 @@ const Trigger = memo(({ id, value }: TriggerProps) => {
       </Flex>
     </Tabs.Trigger>
   );
-});
+};
 
 export default Trigger;

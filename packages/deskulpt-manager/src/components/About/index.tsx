@@ -1,6 +1,5 @@
 import { Avatar, Box, Flex, Heading, Table } from "@radix-ui/themes";
 import CopyLink from "../CopyLink";
-import { memo } from "react";
 import { SiGithub } from "react-icons/si";
 import { css } from "@emotion/react";
 
@@ -19,7 +18,7 @@ const styles = {
   }),
 };
 
-const AboutTab = memo(() => {
+const AboutTab = () => {
   return (
     <Flex height="100%" pb="8" justify="center" align="center">
       <Flex align="center" justify="center" flexGrow="1">
@@ -65,6 +64,6 @@ const AboutTab = memo(() => {
       </Box>
     </Flex>
   );
-});
+};
 
 export default AboutTab;
