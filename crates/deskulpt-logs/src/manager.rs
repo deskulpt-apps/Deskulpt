@@ -116,19 +116,20 @@ impl<R: Runtime> LogsManager<R> {
         reader.read(limit, cursor)
     }
 
-    /// Clear all log files and return the freed disk space in bytes.
+    /// Clear all log files.
     ///
     /// The latest log file is truncated instead of deleted to ensure that
     /// logging can continue without interruption. All older log files are
-    /// permanently deleted.
+    /// permanently deleted. The total amount of space freed is returned in
+    /// bytes.
     ///
     /// This method returns an error if log file collection fails in the first
     /// place. Individual file deletion or truncation failures are silently
-    /// ignored and do not contribute to the computed total freed space.
+    /// ignored, and they do not contribute to the computed freed space.
     pub fn clear(&self) -> Result<u64> {
         let log_files = self.collect()?;
 
-        let mut total_size: u64 = log_files
+        let mut freed_space: u64 = log_files
             .iter()
             .skip(1)
             .filter_map(|file| {
@@ -145,10 +146,10 @@ impl<R: Runtime> LogsManager<R> {
                 .open(latest_file)
                 .is_ok()
             {
-                total_size += size;
+                freed_space += size;
             }
         }
 
-        Ok(total_size)
+        Ok(freed_space)
     }
 }

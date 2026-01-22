@@ -106,12 +106,22 @@ cursor: Cursor | null }
 
 export const commands = {
   /**
-   * Clear all log files and return the freed disk space in bytes.
+   * Clear all log files.
+   * 
+   * This returns the amount of freed space in bytes.
    */
   clear: () => invoke<number>("plugin:deskulpt-logs|clear"),
 
   /**
    * Read a page of log entries.
+   * 
+   * This retrieves log entries from the log files, from newest to oldest. At
+   * most `limit` log entries will be returned. Only log entries with at least
+   * the severity of `min_level` will be included.
+   * 
+   * An optional `cursor` can be provided. Pass `null` to start from the latest
+   * log entry. Pass a cursor returned from a previous call to continue reading
+   * from where you left off. An invalid cursor will be ignored.
    */
   read: (
     limit: number,
@@ -126,9 +136,11 @@ export const commands = {
   /**
    * Emit a log message at the specified level.
    * 
-   * This integrates with the backend's logging system. Logs are automatically
-   * tagged with the window label. Optional metadata can be provided as any
-   * JSON-serializable value. Pass `null` if no metadata is needed.
+   * This command allows the frontend to send log messages to the backend's
+   * logging system, tagged by the window label they originate from.
+   * 
+   * The `meta` parameter accepts any JSON-serializable value to include extra
+   * metadata along with the log message. Pass `null` if no metadata is needed.
    */
   log: (
     level: Level,

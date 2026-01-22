@@ -199,20 +199,24 @@ impl RollingTailReader {
     ///
     /// If no cursor is provided, this locates the first (latest) non-empty log
     /// file and starts from its end. Otherwise, it resumes from the specified
-    /// file and offset in the cursor, unless the offset is zero in which case
-    /// it automatically moves to the end of the next (older) file.
+    /// file and offset in the cursor.
     ///
-    /// This returns `None` if the cursor points to an invalid file, or if no
-    /// more files are available to read.
+    /// Specially, if the cursor's offset is zero, this method automatically
+    /// moves to the end of the next (older) file. If the cursor points to an
+    /// invalid file index, it is treated as if no cursor is provided.
+    ///
+    /// This method returns `None` if there are no more files to read.
     fn start_position(&self, cursor: &Option<Cursor>) -> Option<(usize, u64)> {
         match cursor {
             None => self.next_file_position(0),
             Some(c) => {
-                if c.file_idx >= self.files.len() {
-                    return None; // Out of range, invalid cursor
-                }
                 if c.offset > 0 {
-                    Some((c.file_idx, c.offset))
+                    if c.file_idx < self.files.len() {
+                        Some((c.file_idx, c.offset))
+                    } else {
+                        // Invalid file index in cursor, treat as no cursor
+                        self.next_file_position(0)
+                    }
                 } else {
                     self.next_file_position(c.file_idx + 1)
                 }
