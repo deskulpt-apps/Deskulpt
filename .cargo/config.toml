@@ -1,6 +1,7 @@
 [alias]
-docs = "doc --workspace --no-deps --exclude xtask-gen -Z rustdoc-map"
-gen  = "run --bin xtask-gen --"
+doc-workspace  = "doc --workspace --exclude xtask-gen --no-deps -Z rustdoc-map"
+gen            = "run --bin xtask-gen --"
+test-workspace = "test --workspace --exclude xtask-gen"
 
 [env]
 WORKSPACE_DIR = { value = "", relative = true }
