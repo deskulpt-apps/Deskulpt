@@ -25,7 +25,7 @@ jobs:
 
       - name: Build rustdoc
         run: |
-          cargo +nightly docs
+          cargo +nightly doc-workspace
           rm -f target/doc/.lock
 
       - name: Create Internal Deployment App token
