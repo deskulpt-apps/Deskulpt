@@ -25,11 +25,11 @@ pub struct LogsManager<R: Runtime> {
 }
 
 impl<R: Runtime> LogsManager<R> {
-    /// Initialize state management for logs.
+    /// Initialize the logging system.
     ///
     /// This will set up structured logging in newline-delimited JSON format
-    /// with daily rotation. The lifetime of the logger is tied to the lifetime
-    /// of the manager.
+    /// with daily rotation, retaining up to 10 log files. The logging system
+    /// remains active for the lifetime of the manager.
     pub fn new(app_handle: AppHandle<R>) -> Result<Self> {
         let dir = app_handle.path().app_log_dir()?;
         std::fs::create_dir_all(&dir)?;
@@ -105,9 +105,11 @@ impl<R: Runtime> LogsManager<R> {
 
     /// Read a page of log entries.
     ///
-    /// This will filter up to `limit` entries that are at least the severity of
-    /// `min_level`. If a cursor is provided, it will continue reading from the
-    /// specified position. Otherwise, it will start from the latest entry.
+    /// This will read up to `limit` log entries with severity at or above
+    /// `min_level`. If `cursor` is `None`, this method starts reading from the
+    /// newest entries. Otherwise, it continues reading from the provided
+    /// cursor, which should have been obtained from a previous call to this
+    /// method.
     pub fn read(&self, limit: usize, min_level: Level, cursor: Option<Cursor>) -> Result<Page> {
         let files = self.collect()?;
         let mut reader = RollingTailReader::new(files, min_level);
@@ -118,12 +120,11 @@ impl<R: Runtime> LogsManager<R> {
     ///
     /// The latest log file is truncated instead of deleted to ensure that
     /// logging can continue without interruption. All older log files are
-    /// deleted.
+    /// permanently deleted.
     ///
-    /// The only possible failure is failure to collect the log files to clear
-    /// (before actual operations begin). Failure to delete or truncate a log
-    /// file will not result in an error, but will not contribute to the
-    /// computed freed space.
+    /// This method returns an error if log file collection fails in the first
+    /// place. Individual file deletion or truncation failures are silently
+    /// ignored and do not contribute to the computed total freed space.
     pub fn clear(&self) -> Result<u64> {
         let log_files = self.collect()?;
 
@@ -137,7 +138,7 @@ impl<R: Runtime> LogsManager<R> {
             .sum();
 
         if let Some(latest_file) = log_files.first() {
-            let size = latest_file.metadata().map(|m| m.len()).unwrap_or(0);
+            let size = latest_file.metadata().map_or(0, |m| m.len());
             if std::fs::OpenOptions::new()
                 .write(true)
                 .truncate(true)

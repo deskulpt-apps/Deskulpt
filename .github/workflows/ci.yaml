@@ -123,7 +123,7 @@ jobs:
       # a plain `cargo build` is sufficient for CI verification
       - name: Check build
         run: |
-          pnpm build
+          pnpm build:js
           cargo build --bin deskulpt
 
       - name: Check tests

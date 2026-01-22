@@ -37,11 +37,11 @@ impl From<Level> for tracing::Level {
     }
 }
 
-/// Emit a log at the specified level.
+/// Emit a log message at the specified level.
 ///
-/// This shares the logging system of the backend. Optional metadata can be
-/// provided as arbitrary JSON-serializable value. If no metadata is needed,
-/// pass `null`.
+/// This integrates with the backend's logging system. Logs are automatically
+/// tagged with the window label. Optional metadata can be provided as any
+/// JSON-serializable value. Pass `null` if no metadata is needed.
 #[tauri::command]
 #[specta::specta]
 pub async fn log<R: Runtime>(

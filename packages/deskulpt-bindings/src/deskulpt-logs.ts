@@ -11,15 +11,15 @@ import { invoke } from "@tauri-apps/api/core";
  */
 export type Cursor = { 
 /**
- * The rotating log file path.
+ * The index of the log file in the files list.
  */
-path: string; 
+fileIdx: number; 
 /**
  * The byte offset within the log file.
  * 
- * If offset is non-zero, there is older data in this file in [0, offset).
- * If offset is zero, this file is fully consumed and the next older
- * non-empty file should be read.
+ * When continuing from this cursor, reading resumes backwards from this
+ * offset. An offset of zero means this file has been fully read, and the
+ * reader should move to the next older file.
  */
 offset: number }
 
@@ -45,15 +45,15 @@ export type Entry = {
  */
 timestamp: string; 
 /**
- * The logging level, all capitals.
+ * The stringified logging level (e.g., "INFO", "ERROR").
  */
 level: string; 
 /**
- * The log message.
+ * The log message text.
  */
 message: string; 
 /**
- * The raw JSON representation of the log entry.
+ * The complete raw JSON object representing the log entry.
  */
 raw: JsonValue }
 
@@ -89,17 +89,15 @@ export type Level =
  */
 export type Page = { 
 /**
- * Log entries in reverse chronological order, i.e., newest first.
+ * Log entries in reverse chronological order (most recent first).
  */
 entries: Entry[]; 
 /**
  * Cursor for reading the next page of older log entries.
+ * 
+ * If `None`, there are no more entries to read beyond this page.
  */
-cursor: Cursor | null; 
-/**
- * Whether there are more log entries available beyond this page.
- */
-hasMore: boolean }
+cursor: Cursor | null }
 
 
 // =============================================================================
@@ -126,11 +124,11 @@ export const commands = {
   }),
 
   /**
-   * Emit a log at the specified level.
+   * Emit a log message at the specified level.
    * 
-   * This shares the logging system of the backend. Optional metadata can be
-   * provided as arbitrary JSON-serializable value. If no metadata is needed,
-   * pass `null`.
+   * This integrates with the backend's logging system. Logs are automatically
+   * tagged with the window label. Optional metadata can be provided as any
+   * JSON-serializable value. Pass `null` if no metadata is needed.
    */
   log: (
     level: Level,
