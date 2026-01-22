@@ -9,7 +9,6 @@ import {
 } from "@radix-ui/themes";
 import { css } from "@emotion/react";
 import { useWidgetsGalleryStore } from "../../hooks";
-import { useCallback } from "react";
 import { deskulptWidgets } from "@deskulpt/bindings";
 import { logger } from "@deskulpt/utils";
 import { toast } from "sonner";
@@ -28,41 +27,38 @@ const WidgetVersionPicker = () => {
   const isOpen = useWidgetsGalleryStore((state) => state.isVersionPickerOpen);
   const openPreview = useWidgetsGalleryStore((state) => state.openPreview);
 
-  const onOpenChange = useCallback((open: boolean) => {
+  const onOpenChange = (open: boolean) => {
     if (!open) {
       useWidgetsGalleryStore.setState({
         isVersionPickerOpen: false,
         versionPickerData: undefined,
       });
     }
-  }, []);
+  };
 
-  const onSelect = useCallback(
-    async (release: deskulptWidgets.RegistryEntryRelease) => {
-      if (data === undefined) {
-        return;
-      }
-      onOpenChange(false);
-      const reference = {
-        handle: data.handle,
-        id: data.id,
-        digest: release.digest,
-      };
+  const onSelect = async (release: deskulptWidgets.RegistryEntryRelease) => {
+    if (data === undefined) {
+      return;
+    }
+    onOpenChange(false);
+    const reference = {
+      handle: data.handle,
+      id: data.id,
+      digest: release.digest,
+    };
 
-      try {
-        const previewData = await deskulptWidgets.commands.preview(reference);
-        openPreview({
-          reference,
-          version: release.version,
-          preview: previewData,
-        });
-      } catch (error) {
-        logger.error(error);
-        toast.error("Failed to load preview.");
-      }
-    },
-    [data, onOpenChange, openPreview],
-  );
+    try {
+      const previewData = await deskulptWidgets.commands.preview(reference);
+      openPreview({
+        reference,
+        version: release.version,
+        preview: previewData,
+      });
+    } catch (error) {
+      logger.error(error);
+      toast.error("Failed to load preview.");
+    }
+  };
 
   if (data === undefined) {
     return null;

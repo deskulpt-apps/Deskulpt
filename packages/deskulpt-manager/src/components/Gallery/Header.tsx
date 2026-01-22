@@ -1,6 +1,5 @@
 import { css } from "@emotion/react";
 import { Button, Flex, Select } from "@radix-ui/themes";
-import { memo } from "react";
 import { LuRepeat } from "react-icons/lu";
 
 const styles = {
@@ -11,7 +10,7 @@ interface HeaderProps {
   refresh: () => void;
 }
 
-const Header = memo(({ refresh }: HeaderProps) => {
+const Header = ({ refresh }: HeaderProps) => {
   return (
     <Flex align="center" gap="2" justify="between">
       <Select.Root size="1" defaultValue="widgets">
@@ -28,6 +27,6 @@ const Header = memo(({ refresh }: HeaderProps) => {
       </Flex>
     </Flex>
   );
-});
+};
 
 export default Header;

@@ -1,6 +1,6 @@
 import { css } from "@emotion/react";
 import { Box, BoxProps, Reset } from "@radix-ui/themes";
-import { ChangeEvent, KeyboardEvent, useCallback } from "react";
+import { ChangeEvent, KeyboardEvent } from "react";
 
 const styles = {
   root: css({
@@ -38,14 +38,11 @@ const IntegerInput = ({
   readOnly = false,
   ...boxProps
 }: IntegerInputProps) => {
-  const handleChange = useCallback(
-    (event: ChangeEvent<HTMLInputElement>) => {
-      const targetValue = Number(event.target.value);
-      if (!Number.isInteger(targetValue)) return;
-      onValueChange(snap(targetValue, min, max, step));
-    },
-    [onValueChange, min, max, step],
-  );
+  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const targetValue = Number(event.target.value);
+    if (!Number.isInteger(targetValue)) return;
+    onValueChange(snap(targetValue, min, max, step));
+  };
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
     let nextValue = value ?? snap(0, min, max, step);

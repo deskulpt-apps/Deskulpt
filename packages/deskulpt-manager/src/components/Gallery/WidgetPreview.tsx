@@ -16,7 +16,6 @@ import { LuCodeXml, LuExternalLink, LuPackage, LuX } from "react-icons/lu";
 import WidgetManifest from "../WidgetManifest";
 import WidgetPrimaryActions from "./WidgetPrimaryActions";
 import { useWidgetsGalleryStore } from "../../hooks";
-import { useCallback } from "react";
 
 const styles = {
   previewScrollArea: css({
@@ -31,14 +30,14 @@ const WidgetPreview = () => {
   const data = useWidgetsGalleryStore((state) => state.previewData);
   const isOpen = useWidgetsGalleryStore((state) => state.isPreviewOpen);
 
-  const onOpenChange = useCallback((open: boolean) => {
+  const onOpenChange = (open: boolean) => {
     if (!open) {
       useWidgetsGalleryStore.setState({
         isPreviewOpen: false,
         previewData: undefined,
       });
     }
-  }, []);
+  };
 
   if (data === undefined) {
     return null;
