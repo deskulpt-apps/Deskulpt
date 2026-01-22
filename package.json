@@ -23,7 +23,9 @@
     "test": "pnpm test:js && pnpm test:rs",
     "test:js": "echo \"Frontend test suite not implemented yet.\"",
     "test:rs": "cargo test --workspace",
-    "build": "tsc -b && vite build",
+    "check:js": "tsc -b",
+    "dev:js": "vite dev",
+    "build:js": "pnpm check:js && vite build",
     "build:packages": "pnpm run --sequential --filter @deskulpt-test/* build"
   },
   "dependencies": {

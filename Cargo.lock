@@ -1276,6 +1276,7 @@ name = "deskulpt"
 version = "0.3.0"
 dependencies = [
  "deskulpt-core",
+ "deskulpt-logs",
  "deskulpt-settings",
  "deskulpt-widgets",
  "tauri",
@@ -1313,6 +1314,7 @@ dependencies = [
  "anyhow",
  "deskulpt-build",
  "deskulpt-common",
+ "deskulpt-logs",
  "deskulpt-plugin",
  "deskulpt-plugin-fs",
  "deskulpt-plugin-sys",
@@ -1329,6 +1331,20 @@ dependencies = [
  "specta",
  "tauri",
  "tauri-plugin-global-shortcut",
+ "tracing",
+]
+
+[[package]]
+name = "deskulpt-logs"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "deskulpt-build",
+ "deskulpt-common",
+ "serde",
+ "serde_json",
+ "specta",
+ "tauri",
  "tracing",
  "tracing-appender",
  "tracing-panic",
@@ -8885,6 +8901,7 @@ dependencies = [
  "clap",
  "deskulpt-common",
  "deskulpt-core",
+ "deskulpt-logs",
  "deskulpt-settings",
  "deskulpt-widgets",
  "deskulpt-workspace",

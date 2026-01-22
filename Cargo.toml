@@ -58,6 +58,7 @@ tracing-subscriber             = "0.3.21"
 deskulpt-build         = { version = "0.3.0", path = "crates/deskulpt-build" }
 deskulpt-common        = { version = "0.3.0", path = "crates/deskulpt-common" }
 deskulpt-core          = { version = "0.3.0", path = "crates/deskulpt-core" }
+deskulpt-logs          = { version = "0.3.0", path = "crates/deskulpt-logs" }
 deskulpt-macros        = { version = "0.3.0", path = "crates/deskulpt-macros" }
 deskulpt-plugin        = { version = "0.3.0", path = "crates/deskulpt-plugin" }
 deskulpt-plugin-macros = { version = "0.3.0", path = "crates/deskulpt-plugin-macros" }
