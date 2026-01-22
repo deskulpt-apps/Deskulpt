@@ -46,9 +46,9 @@ const Settings = () => {
         size="2"
         variant="soft"
         color="gray"
-        onClick={() =>
-          deskulptCore.commands.open("settings").catch(logger.error)
-        }
+        onClick={() => {
+          deskulptCore.commands.open("settings").catch(logger.error);
+        }}
       >
         <LuSquarePen /> Edit in settings.json
       </Button>
