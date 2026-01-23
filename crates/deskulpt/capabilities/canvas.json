@@ -7,7 +7,7 @@
     "deskulpt-core:allow-call-plugin",
     "deskulpt-logs:allow-log",
     "deskulpt-settings:allow-update",
-    "deskulpt-widgets:allow-complete-setup",
+    "deskulpt-widgets:allow-refresh-all",
     "core:event:default",
     "opener:allow-open-url",
     "opener:allow-default-urls"

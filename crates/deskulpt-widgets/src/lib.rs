@@ -10,7 +10,6 @@ mod events;
 mod manager;
 mod registry;
 mod render;
-mod setup;
 
 pub use manager::WidgetsManager;
 use tauri::plugin::TauriPlugin;

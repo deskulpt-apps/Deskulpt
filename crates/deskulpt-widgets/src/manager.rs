@@ -6,7 +6,7 @@ use deskulpt_common::outcome::Outcome;
 use deskulpt_core::path::PathExt;
 use deskulpt_settings::{SettingsExt, SettingsPatch};
 use parking_lot::RwLock;
-use tauri::{AppHandle, Manager, Runtime, WebviewWindow};
+use tauri::{AppHandle, Manager, Runtime};
 use tracing::{debug, error, info};
 
 use crate::catalog::{WidgetCatalog, WidgetManifest};
@@ -16,7 +16,6 @@ use crate::registry::{
     RegistryWidgetReference,
 };
 use crate::render::{RenderWorkerHandle, RenderWorkerTask};
-use crate::setup::SetupState;
 
 /// Manager for Deskulpt widgets.
 pub struct WidgetsManager<R: Runtime> {
@@ -26,16 +25,13 @@ pub struct WidgetsManager<R: Runtime> {
     catalog: RwLock<WidgetCatalog>,
     /// The handle for the render worker.
     render_worker: RenderWorkerHandle,
-    /// The setup state for frontend windows.
-    setup_state: SetupState,
 }
 
 impl<R: Runtime> WidgetsManager<R> {
     /// Initialize the [`WidgetsManager`].
     ///
-    /// The catalog is initialized as empty. When all windows complete setup,
-    /// an initial refresh would be triggered by [`Self::complete_setup`] to
-    /// populate the catalog. A render worker is started immediately.
+    /// The catalog is initialized as empty. A render worker is started
+    /// immediately.
     pub fn new(app_handle: AppHandle<R>) -> Self {
         let render_worker = RenderWorkerHandle::new(app_handle.clone());
 
@@ -43,7 +39,6 @@ impl<R: Runtime> WidgetsManager<R> {
             app_handle,
             catalog: Default::default(),
             render_worker,
-            setup_state: Default::default(),
         }
     }
 
@@ -166,21 +161,6 @@ impl<R: Runtime> WidgetsManager<R> {
     pub fn refresh_all(&self) -> Result<()> {
         self.reload_all()?;
         self.render_all()?;
-        Ok(())
-    }
-
-    /// Mark a window as having completed setup.
-    ///
-    /// If all windows have completed setup after this call, an initial refresh
-    /// of all widgets is trigger via [`Self::refresh_all`].
-    ///
-    /// Tauri command: [`crate::commands::complete_setup`].
-    pub fn complete_setup(&self, window: WebviewWindow<R>) -> Result<()> {
-        let window = window.label().try_into().unwrap();
-        let complete = self.setup_state.complete(window);
-        if complete {
-            self.refresh_all()?;
-        }
         Ok(())
     }
 
