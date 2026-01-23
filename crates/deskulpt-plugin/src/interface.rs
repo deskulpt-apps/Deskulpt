@@ -2,8 +2,6 @@
 
 use std::path::PathBuf;
 
-use anyhow::Result;
-
 /// The interface for interacting with the Deskulpt engine (🚧 TODO 🚧).
 ///
 /// ### 🚧 TODO 🚧
@@ -15,12 +13,12 @@ use anyhow::Result;
 /// This struct may need to hold the IPC channel, etc. instead.
 pub struct EngineInterface {
     #[allow(clippy::type_complexity)]
-    widget_dir_fn: Box<dyn Fn(&str) -> Result<PathBuf>>,
+    widget_dir_fn: Box<dyn Fn(&str) -> PathBuf>,
 }
 
 impl EngineInterface {
     /// Create a new engine interface instance.
-    pub(crate) fn new(widget_dir_fn: impl Fn(&str) -> Result<PathBuf> + 'static) -> Self {
+    pub(crate) fn new(widget_dir_fn: impl Fn(&str) -> PathBuf + 'static) -> Self {
         Self {
             widget_dir_fn: Box::new(widget_dir_fn),
         }
@@ -33,7 +31,7 @@ impl EngineInterface {
     /// This method is a temporary implementation. The final implementation
     /// should use IPC to communicate with the Deskulpt core to get the widget
     /// directory.
-    pub fn widget_dir(&self, id: &str) -> Result<PathBuf> {
+    pub fn widget_dir(&self, id: &str) -> PathBuf {
         (self.widget_dir_fn)(id)
     }
 }

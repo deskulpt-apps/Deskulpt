@@ -1,9 +1,10 @@
 //! Deskulpt widgets manager and its APIs.
 
+use std::path::{Path, PathBuf};
+
 use anyhow::{Context, Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
-use deskulpt_core::path::PathExt;
 use deskulpt_settings::{SettingsExt, SettingsPatch};
 use parking_lot::RwLock;
 use tauri::{AppHandle, Manager, Runtime};
@@ -21,6 +22,8 @@ use crate::render::{RenderWorkerHandle, RenderWorkerTask};
 pub struct WidgetsManager<R: Runtime> {
     /// The Tauri app handle.
     app_handle: AppHandle<R>,
+    /// The widgets directory.
+    dir: PathBuf,
     /// The widget catalog.
     catalog: RwLock<WidgetCatalog>,
     /// The handle for the render worker.
@@ -32,14 +35,28 @@ impl<R: Runtime> WidgetsManager<R> {
     ///
     /// The catalog is initialized as empty. A render worker is started
     /// immediately.
-    pub fn new(app_handle: AppHandle<R>) -> Self {
+    pub fn new(app_handle: AppHandle<R>) -> Result<Self> {
+        let dir = if cfg!(debug_assertions) {
+            app_handle.path().resource_dir()?
+        } else {
+            app_handle.path().document_dir()?.join("Deskulpt")
+        };
+        let dir = dunce::simplified(&dir).join("widgets");
+        std::fs::create_dir_all(&dir)?;
+
         let render_worker = RenderWorkerHandle::new(app_handle.clone());
 
-        Self {
+        Ok(Self {
             app_handle,
+            dir,
             catalog: Default::default(),
             render_worker,
-        }
+        })
+    }
+
+    /// Get the widgets directory.
+    pub fn dir(&self) -> &Path {
+        &self.dir
     }
 
     /// Reload a specific widget by its ID.
@@ -49,7 +66,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// an addition, removal, or modification. It then syncs the settings with
     /// the updated catalog. If any step fails, an error is returned.
     pub fn reload(&self, id: &str) -> Result<()> {
-        let widget_dir = self.app_handle.widgets_dir()?.join(id);
+        let widget_dir = self.dir.join(id);
         let manifest = WidgetManifest::load(&widget_dir);
 
         let mut catalog = self.catalog.write();
@@ -72,8 +89,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// replaces the existing catalog. It then syncs the settings with the
     /// updated catalog. If any step fails, an error is returned.
     pub fn reload_all(&self) -> Result<()> {
-        let widgets_dir = self.app_handle.widgets_dir()?;
-        let new_catalog = WidgetCatalog::load(widgets_dir)?;
+        let new_catalog = WidgetCatalog::load(&self.dir)?;
 
         let mut catalog = self.catalog.write();
         *catalog = new_catalog;
@@ -183,13 +199,12 @@ impl<R: Runtime> WidgetsManager<R> {
         }
 
         let resource_dir = self.app_handle.path().resource_dir()?;
-        let widgets_dir = self.app_handle.widgets_dir()?;
 
         let mut has_error = false;
         for widget in ["welcome"] {
             let widget_id = format!("@deskulpt-starter.{widget}");
             let src = resource_dir.join(format!("resources/widgets/starter/{widget}"));
-            let dst = widgets_dir.join(&widget_id);
+            let dst = self.dir.join(&widget_id);
             if dst.exists() {
                 debug!(%widget_id, "Starter widget already exists, skipping");
                 continue;
@@ -248,7 +263,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// catalog and render it.
     pub async fn install(&self, widget: &RegistryWidgetReference) -> Result<()> {
         let id = widget.local_id();
-        let widget_dir = self.app_handle.widget_dir(&id)?;
+        let widget_dir = self.dir.join(&id);
         if widget_dir.exists() {
             bail!("Widget {id} already installed");
         }
@@ -268,7 +283,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// the catalog.
     pub async fn uninstall(&self, widget: &RegistryWidgetReference) -> Result<()> {
         let id = widget.local_id();
-        let widget_dir = self.app_handle.widget_dir(&id)?;
+        let widget_dir = self.dir.join(&id);
         if !widget_dir.exists() {
             bail!("Widget {id} is not installed");
         }
@@ -287,7 +302,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// and render it.
     pub async fn upgrade(&self, widget: &RegistryWidgetReference) -> Result<()> {
         let id = widget.local_id();
-        let widget_dir = self.app_handle.widget_dir(&id)?;
+        let widget_dir = self.dir.join(&id);
         if !widget_dir.exists() {
             bail!("Widget {id} is not installed");
         }

@@ -29,7 +29,7 @@ impl PluginCommand for ReadFile {
         engine: &EngineInterface,
         input: ReadFileInputPayload,
     ) -> Result<String> {
-        let path = engine.widget_dir(id.as_str())?.join(input.path);
+        let path = engine.widget_dir(&id).join(input.path);
         let content = std::fs::read_to_string(&path)?;
         Ok(content)
     }
