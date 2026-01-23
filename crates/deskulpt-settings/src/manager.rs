@@ -1,6 +1,6 @@
 //! Deskulpt settings manager and its APIs.
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 use anyhow::{Result, bail};
 use deskulpt_common::event::Event;
@@ -44,12 +44,12 @@ struct SettingsHooks {
 pub struct SettingsManager<R: Runtime> {
     /// The Tauri app handle.
     app_handle: AppHandle<R>,
+    /// The path where settings are persisted.
+    persist_path: PathBuf,
     /// The Deskulpt settings.
     settings: RwLock<Settings>,
     /// The handle for the worker.
     worker: WorkerHandle,
-    /// The path where settings are persisted on disk.
-    persist_path: PathBuf,
     /// The collection of hooks on settings change.
     hooks: RwLock<SettingsHooks>,
 }
@@ -60,11 +60,10 @@ impl<R: Runtime> SettingsManager<R> {
     /// The settings are loaded from disk. If loading fails (which means
     /// corrupted settings), default settings are used. A worker is started
     /// immediately.
-    pub fn new(app_handle: AppHandle<R>) -> Self {
+    pub fn new(app_handle: AppHandle<R>) -> Result<Self> {
         let persist_path = app_handle
             .path()
-            .app_local_data_dir()
-            .unwrap()
+            .app_local_data_dir()?
             .join("settings.json");
 
         let settings = Settings::load(&persist_path).unwrap_or_else(|e| {
@@ -74,13 +73,13 @@ impl<R: Runtime> SettingsManager<R> {
 
         let worker = WorkerHandle::new(app_handle.clone());
 
-        Self {
+        Ok(Self {
             app_handle,
-            settings: RwLock::new(settings),
-            hooks: Default::default(),
-            worker,
             persist_path,
-        }
+            settings: RwLock::new(settings),
+            worker,
+            hooks: RwLock::new(Default::default()),
+        })
     }
 
     /// Get an immutable reference to the current settings.
@@ -100,6 +99,11 @@ impl<R: Runtime> SettingsManager<R> {
     /// acceptable.
     pub fn try_read(&self) -> Option<RwLockReadGuard<'_, Settings>> {
         self.settings.try_read()
+    }
+
+    /// Get the path where settings are persisted.
+    pub fn persist_path(&self) -> &Path {
+        &self.persist_path
     }
 
     /// Persist the current settings to disk.

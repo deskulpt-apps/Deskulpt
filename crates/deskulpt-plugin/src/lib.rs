@@ -41,7 +41,7 @@ pub trait Plugin {
 /// [nushell](https://docs.rs/nu-plugin/0.101.0/nu_plugin/fn.serve_plugin.html)
 /// for reference.
 pub fn call_plugin<P: Plugin>(
-    widget_dir_fn: impl Fn(&str) -> Result<PathBuf> + 'static,
+    widget_dir_fn: impl Fn(&str) -> PathBuf + 'static,
     plugin: &P,
     command: &str,
     id: String,

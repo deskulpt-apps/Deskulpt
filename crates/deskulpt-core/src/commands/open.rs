@@ -1,9 +1,9 @@
 use deskulpt_common::SerResult;
 use deskulpt_logs::LogsExt;
+use deskulpt_settings::SettingsExt;
+use deskulpt_widgets::WidgetsExt;
 use serde::Deserialize;
 use tauri::{AppHandle, Runtime, command};
-
-use crate::path::PathExt;
 
 /// The target to open.
 #[derive(Debug, Deserialize, specta::Type)]
@@ -31,9 +31,9 @@ pub enum OpenTarget {
 #[specta::specta]
 pub async fn open<R: Runtime>(app_handle: AppHandle<R>, target: OpenTarget) -> SerResult<()> {
     let path = match target {
-        OpenTarget::Widgets => app_handle.widgets_dir()?,
-        OpenTarget::Widget(id) => &app_handle.widget_dir(&id)?,
-        OpenTarget::Settings => &app_handle.persist_dir()?.join("settings.json"),
+        OpenTarget::Widgets => app_handle.widgets().dir(),
+        OpenTarget::Widget(id) => &app_handle.widgets().dir().join(id),
+        OpenTarget::Settings => app_handle.settings().persist_path(),
         OpenTarget::Logs => app_handle.logs().dir(),
     };
 

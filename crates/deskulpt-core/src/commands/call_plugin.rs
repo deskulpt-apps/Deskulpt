@@ -1,9 +1,8 @@
 use deskulpt_common::{SerResult, ser_bail};
+use deskulpt_widgets::WidgetsExt;
 use once_cell::sync::Lazy;
 use parking_lot::Mutex;
 use tauri::{AppHandle, Runtime, command};
-
-use crate::path::PathExt;
 
 // TODO: Remove this temporary implementation
 static FS_PLUGIN: Lazy<Mutex<deskulpt_plugin_fs::FsPlugin>> =
@@ -34,7 +33,7 @@ pub async fn call_plugin<R: Runtime>(
     id: String,
     payload: Option<serde_json::Value>,
 ) -> SerResult<serde_json::Value> {
-    let widget_dir_fn = move |id: &str| app_handle.widget_dir(id);
+    let widget_dir_fn = move |id: &str| app_handle.widgets().dir().join(id);
 
     match plugin.as_str() {
         "fs" => {
