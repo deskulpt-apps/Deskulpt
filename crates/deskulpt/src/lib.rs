@@ -4,7 +4,6 @@
     html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg"
 )]
 
-use deskulpt_core::path::PathExt;
 use deskulpt_core::shortcuts::ShortcutsExt;
 use deskulpt_core::states::CanvasImodeStateExt;
 use deskulpt_core::tray::TrayExt;
@@ -16,9 +15,6 @@ use tauri::{Builder, generate_context};
 pub fn run() {
     Builder::default()
         .setup(move |app| {
-            app.init_widgets_dir()?;
-            app.init_persist_dir()?;
-
             // Hide the application from the dock on macOS because skipping
             // taskbar is not applicable for macOS
             #[cfg(target_os = "macos")]
