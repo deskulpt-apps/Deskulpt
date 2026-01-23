@@ -290,13 +290,6 @@ export const events = {
 
 export const commands = {
   /**
-   * Mark a window as having completed setup.
-   * 
-   * Wrapper of [`crate::WidgetsManager::complete_setup`].
-   */
-  completeSetup: () => invoke<null>("plugin:deskulpt-widgets|complete_setup"),
-
-  /**
    * Fetch the widgets registry index.
    * 
    * This command is a wrapper of

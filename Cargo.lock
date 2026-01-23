@@ -1422,7 +1422,6 @@ dependencies = [
  "anyhow",
  "astral-tokio-tar",
  "async-compression",
- "bitflags 2.10.0",
  "copy_dir",
  "deskulpt-build",
  "deskulpt-common",

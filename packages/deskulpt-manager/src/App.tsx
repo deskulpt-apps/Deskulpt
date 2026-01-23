@@ -1,6 +1,7 @@
 import { Box, Flex, Theme as RadixTheme, Tabs } from "@radix-ui/themes";
 import { Toaster } from "sonner";
 import {
+  useInitialRefresh,
   useSettingsStore,
   useUpdateSettingsListener,
   useUpdateWidgetCatalogListener,
@@ -25,6 +26,8 @@ const App = () => {
 
   useUpdateSettingsListener();
   useUpdateWidgetCatalogListener();
+
+  useInitialRefresh();
 
   return (
     <RadixTheme appearance={theme} accentColor="indigo" grayColor="slate">

@@ -1,16 +1,15 @@
-import { createElement } from "react";
+import { createElement, useEffect } from "react";
 import { useWidgetsStore } from "./useWidgetsStore";
-import { createSetupTaskHook, logger, stringify } from "@deskulpt/utils";
+import { logger, stringify } from "@deskulpt/utils";
 import { deskulptWidgets } from "@deskulpt/bindings";
 import ErrorDisplay from "../components/ErrorDisplay";
 
 const BASE_URL = new URL(import.meta.url).origin;
 const RAW_APIS_URL = new URL("/gen/raw-apis.js", BASE_URL).href;
 
-export const useRenderWidgetListener = createSetupTaskHook({
-  task: `event:${deskulptWidgets.events.render.name}`,
-  onMount: () =>
-    deskulptWidgets.events.render.listen(async (event) => {
+export const useRenderWidgetListener = () => {
+  useEffect(() => {
+    const unlisten = deskulptWidgets.events.render.listen(async (event) => {
       const { id, report } = event.payload;
       const widgets = useWidgetsStore.getState();
 
@@ -97,6 +96,10 @@ export const useRenderWidgetListener = createSetupTaskHook({
         }),
         true,
       );
-    }),
-  onUnmount: (unlisten) => unlisten.then((f) => f()).catch(logger.error),
-});
+    });
+
+    return () => {
+      unlisten.then((f) => f()).catch(logger.error);
+    };
+  }, []);
+};

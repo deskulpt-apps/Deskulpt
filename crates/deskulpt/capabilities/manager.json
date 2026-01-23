@@ -9,7 +9,6 @@
     "deskulpt-logs:allow-read",
     "deskulpt-logs:allow-log",
     "deskulpt-settings:allow-update",
-    "deskulpt-widgets:allow-complete-setup",
     "deskulpt-widgets:allow-fetch-registry-index",
     "deskulpt-widgets:allow-install",
     "deskulpt-widgets:allow-preview",

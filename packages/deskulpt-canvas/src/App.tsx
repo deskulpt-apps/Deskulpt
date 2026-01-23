@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import { Theme as RadixTheme } from "@radix-ui/themes";
 import { useShallow } from "zustand/shallow";
 import {
+  useInitialRefresh,
   useRenderWidgetListener,
   useSettingsStore,
   useShowToastListener,
@@ -19,6 +20,8 @@ const App = () => {
   useShowToastListener();
   useUpdateSettingsListener();
   useUpdateWidgetCatalogListener();
+
+  useInitialRefresh();
 
   return (
     <RadixTheme

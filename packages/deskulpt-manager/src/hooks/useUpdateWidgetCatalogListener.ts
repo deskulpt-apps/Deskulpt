@@ -1,12 +1,16 @@
 import { deskulptWidgets } from "@deskulpt/bindings";
 import { useWidgetsStore } from "./useWidgetsStore";
-import { createSetupTaskHook, logger } from "@deskulpt/utils";
+import { logger } from "@deskulpt/utils";
+import { useEffect } from "react";
 
-export const useUpdateWidgetCatalogListener = createSetupTaskHook({
-  task: `event:${deskulptWidgets.events.update.name}`,
-  onMount: () =>
-    deskulptWidgets.events.update.listen((event) => {
+export const useUpdateWidgetCatalogListener = () => {
+  useEffect(() => {
+    const unlisten = deskulptWidgets.events.update.listen((event) => {
       useWidgetsStore.setState(() => event.payload, true);
-    }),
-  onUnmount: (unlisten) => unlisten.then((f) => f()).catch(logger.error),
-});
+    });
+
+    return () => {
+      unlisten.then((f) => f()).catch(logger.error);
+    };
+  }, []);
+};
