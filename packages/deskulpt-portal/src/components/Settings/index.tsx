@@ -34,7 +34,7 @@ const Settings = () => {
               <Table.Row align="center">
                 <Table.RowHeaderCell>Open manager</Table.RowHeaderCell>
                 <Table.Cell>
-                  <Shortcut action="openManager" />
+                  <Shortcut action="openPortal" />
                 </Table.Cell>
               </Table.Row>
             </SectionTable>

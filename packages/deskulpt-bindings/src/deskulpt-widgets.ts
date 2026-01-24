@@ -12,11 +12,11 @@ import * as tauriEvent from "@tauri-apps/api/event";
  */
 export type DeskulptWindow = 
 /**
- * The manager window.
+ * Deskulpt portal.
  */
-"manager" | 
+"portal" | 
 /**
- * The canvas window.
+ * Deskulpt canvas.
  */
 "canvas"
 
