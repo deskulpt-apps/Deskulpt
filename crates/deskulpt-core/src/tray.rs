@@ -18,7 +18,7 @@ pub trait TrayExt<R: Runtime>: Manager<R> {
     {
         let tray_menu = MenuBuilder::new(self)
             .items(&[
-                &MenuItemBuilder::with_id("tray-open-portal", "Portal").build(self)?,
+                &MenuItemBuilder::with_id("tray-open-portal", "Open Portal").build(self)?,
                 &MenuItemBuilder::with_id("tray-exit", "Exit").build(self)?,
             ])
             .build()?;
