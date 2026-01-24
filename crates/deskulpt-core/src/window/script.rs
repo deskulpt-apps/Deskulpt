@@ -4,15 +4,15 @@ use anyhow::Result;
 use deskulpt_settings::Settings;
 use serialize_to_javascript::{DefaultTemplate, Template, default_template};
 
-/// Template for the manager window initialization script.
+/// Template for Deskulpt portal initialization script.
 #[derive(Template)]
-#[default_template("manager.js")]
-pub struct ManagerInitJS<'a> {
+#[default_template("portal.js")]
+pub struct PortalInitJS<'a> {
     /// `window.__DESKULPT_INTERNALS__.initialSettings`
     initial_settings: &'a Settings,
 }
 
-/// Template for the canvas window initialization script.
+/// Template for Deskulpt canvas initialization script.
 #[derive(Template)]
 #[default_template("canvas.js")]
 pub struct CanvasInitJS<'a> {
@@ -22,8 +22,8 @@ pub struct CanvasInitJS<'a> {
     initial_settings: &'a Settings,
 }
 
-impl<'a> ManagerInitJS<'a> {
-    /// Generate JavaScript code for initializing the manager window.
+impl<'a> PortalInitJS<'a> {
+    /// Generate JavaScript code for initializing Deskulpt portal.
     pub fn generate(initial_settings: &'a Settings) -> Result<String> {
         let template = Self { initial_settings };
         let serialized = template.render_default(&Default::default())?;
@@ -32,7 +32,7 @@ impl<'a> ManagerInitJS<'a> {
 }
 
 impl<'a> CanvasInitJS<'a> {
-    /// Generate JavaScript code for initializing the canvas window.
+    /// Generate JavaScript code for initializing Deskulpt canvas.
     pub fn generate(initial_settings: &'a Settings) -> Result<String> {
         let template = Self {
             apis_wrapper: include_str!("../../gen/apis.wrapper.js"),

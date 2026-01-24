@@ -29,9 +29,9 @@ fn reregister_shortcut<R: Runtime>(
                 error!("Failed to toggle canvas interaction mode: {e}");
             }
         },
-        ShortcutAction::OpenManager => |app_handle| {
-            if let Err(e) = app_handle.open_manager() {
-                error!("Failed to open the manager window: {e}");
+        ShortcutAction::OpenPortal => |app_handle| {
+            if let Err(e) = app_handle.open_portal() {
+                error!("Failed to open Deskulpt portal: {e}");
             }
         },
     };
@@ -52,7 +52,7 @@ pub trait ShortcutsExt<R: Runtime>: Manager<R> + SettingsExt<R> + GlobalShortcut
     /// Initialize keyboard shortcuts management.
     ///
     /// This immediately registers shortcuts based on the settings. Failure to
-    /// register the shortcuts are properly logged but not fatal. It also
+    /// register the shortcuts is properly logged but not fatal. It also
     /// re-registers shortcuts when shortcuts in the settings change.
     fn init_shortcuts(&self) {
         {

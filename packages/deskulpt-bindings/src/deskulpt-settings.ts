@@ -39,11 +39,11 @@ export type CanvasImode =
  */
 export type DeskulptWindow = 
 /**
- * The manager window.
+ * Deskulpt portal.
  */
-"manager" | 
+"portal" | 
 /**
- * The canvas window.
+ * Deskulpt canvas.
  */
 "canvas"
 
@@ -110,9 +110,9 @@ export type ShortcutAction =
  */
 "toggleCanvasImode" | 
 /**
- * Open the manager interface.
+ * Open Deskulpt portal.
  */
-"openManager"
+"openPortal"
 
 /**
  * The light/dark theme of the application interface.

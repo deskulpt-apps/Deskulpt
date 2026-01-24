@@ -7,9 +7,9 @@ use tauri::{Manager, Runtime, WebviewWindow};
 #[derive(Clone, Debug, specta::Type)]
 #[specta(rename_all = "camelCase")]
 pub enum DeskulptWindow {
-    /// The manager window.
-    Manager,
-    /// The canvas window.
+    /// Deskulpt portal.
+    Portal,
+    /// Deskulpt canvas.
     Canvas,
 }
 
@@ -29,7 +29,7 @@ impl DeskulptWindow {
 impl AsRef<str> for DeskulptWindow {
     fn as_ref(&self) -> &str {
         match self {
-            DeskulptWindow::Manager => "manager",
+            DeskulptWindow::Portal => "portal",
             DeskulptWindow::Canvas => "canvas",
         }
     }
@@ -52,7 +52,7 @@ impl TryFrom<&str> for DeskulptWindow {
 
     fn try_from(value: &str) -> Result<Self> {
         match value {
-            "manager" => Ok(DeskulptWindow::Manager),
+            "portal" => Ok(DeskulptWindow::Portal),
             "canvas" => Ok(DeskulptWindow::Canvas),
             _ => Err(anyhow!("Invalid window label: {}", value)),
         }

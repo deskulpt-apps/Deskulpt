@@ -12,11 +12,11 @@ import * as tauriEvent from "@tauri-apps/api/event";
  */
 export type DeskulptWindow = 
 /**
- * The manager window.
+ * Deskulpt portal.
  */
-"manager" | 
+"portal" | 
 /**
- * The canvas window.
+ * Deskulpt canvas.
  */
 "canvas"
 
@@ -46,7 +46,7 @@ export type OpenTarget =
 /**
  * Event for showing a toast notification.
  * 
- * This event is emitted from the backend to the canvas window when a toast
+ * This event is emitted from the backend to the canvas when a toast
  * notification needs to be displayed.
  */
 export type ShowToastEvent = 
