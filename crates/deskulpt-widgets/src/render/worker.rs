@@ -18,7 +18,7 @@ pub enum RenderWorkerTask {
     ///
     /// The worker will use [`Bundler`] to bundle the specified widget at the
     /// specified entry file. Upon completion, a [`RenderEvent`] will be emitted
-    /// to the canvas window with the bundling result, whether success or
+    /// to the canvas with the bundling result, whether success or
     /// failure.
     Render {
         /// The widget ID.

@@ -60,12 +60,12 @@ pub async fn log<R: Runtime>(
             Level::Warn => warn!(target: "frontend::canvas", %meta, message),
             Level::Error => error!(target: "frontend::canvas", %meta, message),
         },
-        "manager" => match level {
-            Level::Trace => trace!(target: "frontend::manager", %meta, message),
-            Level::Debug => debug!(target: "frontend::manager", %meta, message),
-            Level::Info => info!(target: "frontend::manager", %meta, message),
-            Level::Warn => warn!(target: "frontend::manager", %meta, message),
-            Level::Error => error!(target: "frontend::manager", %meta, message),
+        "portal" => match level {
+            Level::Trace => trace!(target: "frontend::portal", %meta, message),
+            Level::Debug => debug!(target: "frontend::portal", %meta, message),
+            Level::Info => info!(target: "frontend::portal", %meta, message),
+            Level::Warn => warn!(target: "frontend::portal", %meta, message),
+            Level::Error => error!(target: "frontend::portal", %meta, message),
         },
         _ => {},
     }

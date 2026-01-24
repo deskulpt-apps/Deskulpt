@@ -5,28 +5,28 @@ mod script;
 use anyhow::Result;
 use deskulpt_common::window::DeskulptWindow;
 use deskulpt_settings::{CanvasImode, SettingsExt, Theme};
-use script::{CanvasInitJS, ManagerInitJS};
+use script::{CanvasInitJS, PortalInitJS};
 use tauri::{App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 
 use crate::states::CanvasImodeStateExt;
 
 /// Extention trait for window-related operations.
 pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
-    /// Open the manager window.
+    /// Open Deskulpt portal.
     ///
-    /// If the manager window already exists, it will be focused. Otherwise it
-    /// will be created first.
-    fn open_manager(&self) -> Result<()>
+    /// If the portal already exists, it will be focused. Otherwise it will be
+    /// created first.
+    fn open_portal(&self) -> Result<()>
     where
         Self: Sized,
     {
-        if let Ok(manager) = DeskulptWindow::Manager.webview_window(self) {
-            manager.set_focus()?;
+        if let Ok(portal) = DeskulptWindow::Portal.webview_window(self) {
+            portal.set_focus()?;
             return Ok(());
         }
 
         let settings = self.settings().read();
-        let init_js = ManagerInitJS::generate(&settings)?;
+        let init_js = PortalInitJS::generate(&settings)?;
 
         // https://www.radix-ui.com/colors: "Slate 1" colors
         let background_color = match settings.theme {
@@ -34,12 +34,12 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
             Theme::Dark => (17, 17, 19),     // #111113
         };
 
-        let manager = WebviewWindowBuilder::new(
+        let portal = WebviewWindowBuilder::new(
             self,
-            DeskulptWindow::Manager,
-            WebviewUrl::App("packages/deskulpt-manager/index.html".into()),
+            DeskulptWindow::Portal,
+            WebviewUrl::App("packages/deskulpt-portal/index.html".into()),
         )
-        .title("Deskulpt Manager")
+        .title("Deskulpt Portal")
         .background_color(background_color.into())
         .inner_size(800.0, 500.0)
         .center()
@@ -49,12 +49,12 @@ pub trait WindowExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         .initialization_script(&init_js)
         .build()?;
 
-        manager.set_focus()?;
+        portal.set_focus()?;
 
         Ok(())
     }
 
-    /// Create the canvas window.
+    /// Create Deskulpt canvas.
     fn create_canvas(&self) -> Result<()>
     where
         Self: Sized,

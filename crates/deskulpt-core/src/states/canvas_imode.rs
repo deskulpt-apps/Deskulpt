@@ -14,7 +14,7 @@ use tracing::error;
 
 use crate::events::ShowToastEvent;
 
-/// Layout information of the canvas window.
+/// Layout information of the canvas.
 #[derive(Copy, Clone)]
 struct CanvasLayout {
     /// Physical x-coordinate.
@@ -29,13 +29,13 @@ struct CanvasLayout {
 struct CanvasImodeState {
     /// Lock for serializing `set_ignore_cursor_events` calls.
     lock: RwLock<()>,
-    /// Layout information of the canvas window.
+    /// Layout information of the canvas.
     ///
     /// We use [`SeqLock`] here for low-overhead and lock-free reads in the
     /// global mousemove event listener which cannot afford blocking, thanks to
     /// the fact that [`CanvasLayout`] is [`Copy`]. Writers must be rare, which
-    /// is the case here since they only happen when the canvas window is moved
-    /// or rescaled, mostly on startup.
+    /// is the case here since they only happen when the canvas is moved or
+    /// rescaled, mostly on startup.
     layout: SeqLock<CanvasLayout>,
 }
 
@@ -47,7 +47,7 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
     /// Initialize state management for canvas interaction mode.
     ///
     /// This will also hook into settings changes and global mousemove events
-    /// and update the canvas window's interaction mode accordingly.
+    /// and update the canvas interaction mode accordingly.
     fn manage_canvas_imode(&self) -> Result<()> {
         let canvas = DeskulptWindow::Canvas.webview_window(self)?;
         let canvas_position = canvas.inner_position()?;
@@ -64,10 +64,10 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         let canvas_cloned = canvas.clone();
         std::thread::spawn(move || {
             // Delay the start of mousemove listener to avoid interfering with
-            // canvas window initialization, which is in most cases the heaviest
-            // period of writes to states that the mousemove listener may read;
-            // users commonly won't notice such delay because window creation
-            // and widgets rendering also take time.
+            // canvas initialization, which is in most cases the heaviest period
+            // of writes to states that the mousemove listener may read; users
+            // commonly won't notice such delay because window creation and
+            // widgets rendering also take time.
             std::thread::sleep(Duration::from_secs(1));
 
             if let Err(e) = listen_to_mousemove(canvas_cloned) {
@@ -88,9 +88,9 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         Ok(())
     }
 
-    /// Set the position of the canvas window.
+    /// Set the position of the canvas.
     ///
-    /// This should be called whenever the canvas window is moved.
+    /// This should be called whenever the canvas is moved.
     fn set_canvas_position(&self, position: &PhysicalPosition<i32>) {
         let state = self.state::<CanvasImodeState>();
         let mut layout = state.layout.lock_write();
@@ -98,16 +98,16 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
         layout.y = position.y as f64;
     }
 
-    /// Set the scale factor of the canvas window.
+    /// Set the scale factor of the canvas.
     ///
-    /// This should be called whenever the canvas window's scale factor changes.
+    /// This should be called whenever the canvas scale factor changes.
     fn set_canvas_scale_factor(&self, scale_factor: f64) {
         let state = self.state::<CanvasImodeState>();
         let mut layout = state.layout.lock_write();
         layout.inv_scale = 1.0 / scale_factor;
     }
 
-    /// Toggle the interaction mode of the canvas window.
+    /// Toggle the interaction mode of the canvas.
     ///
     /// If the current mode is float or sink, it switches to the other mode. If
     /// the current mode is auto, it is no-op since auto mode is not toggleable.
@@ -129,10 +129,10 @@ impl<R: Runtime> CanvasImodeStateExt<R> for AppHandle<R> {}
 
 /// Handler for canvas interaction mode changes.
 ///
-/// This updates the canvas window's click-through state and the mousemove event
+/// This updates the canvas click-through state and the mousemove event
 /// listener's behavior according to the given mode. It also emits a toast
-/// notification to the canvas window, but failure to do so is non-fatal and
-/// will not result in an error.
+/// notification to the canvas, but failure to do so is non-fatal and will not
+/// result in an error.
 fn on_new_canvas_imode<R: Runtime>(canvas: &WebviewWindow<R>, mode: &CanvasImode) -> Result<()> {
     match mode {
         CanvasImode::Auto => {
@@ -161,8 +161,8 @@ fn on_new_canvas_imode<R: Runtime>(canvas: &WebviewWindow<R>, mode: &CanvasImode
 ///
 /// If the cheap check on [`LISTENING_MOUSEMOVE`] gives false, the hook will
 /// short-circuit immediately, effectively disabling the listener. Otherwise,
-/// it will check whether the mouse is over any widget in the canvas window. If
-/// so, the canvas will accept cursor events; otherwise, it will ignore them.
+/// it will check whether the mouse is over any widget in the canvas. If so, the
+/// canvas will accept cursor events; otherwise, it will ignore them.
 fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
     let mut is_cursor_ignored = true;
 

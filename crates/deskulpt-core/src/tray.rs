@@ -18,7 +18,7 @@ pub trait TrayExt<R: Runtime>: Manager<R> {
     {
         let tray_menu = MenuBuilder::new(self)
             .items(&[
-                &MenuItemBuilder::with_id("tray-manage", "Manage").build(self)?,
+                &MenuItemBuilder::with_id("tray-open-portal", "Portal").build(self)?,
                 &MenuItemBuilder::with_id("tray-exit", "Exit").build(self)?,
             ])
             .build()?;
@@ -51,9 +51,9 @@ impl<R: Runtime> TrayExt<R> for AppHandle<R> {}
 /// the system tray.
 fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
     match event.id().as_ref() {
-        "tray-manage" => {
-            if let Err(e) = app_handle.open_manager() {
-                error!("Failed to open the manager window: {e}");
+        "tray-open-portal" => {
+            if let Err(e) = app_handle.open_portal() {
+                error!("Failed to open Deskulpt portal: {e}");
             }
         },
         "tray-exit" => {
@@ -77,8 +77,8 @@ fn on_tray_icon_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
     } = event
         && button == MouseButton::Left
         && button_state == MouseButtonState::Down
-        && let Err(e) = tray.app_handle().open_manager()
+        && let Err(e) = tray.app_handle().open_portal()
     {
-        error!("Failed to open the manager window: {e}");
+        error!("Failed to open Deskulpt portal: {e}");
     }
 }

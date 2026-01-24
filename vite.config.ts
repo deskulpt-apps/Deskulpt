@@ -23,7 +23,7 @@ export default defineConfig({
   build: {
     rollupOptions: {
       input: {
-        manager: resolve(__dirname, "packages/deskulpt-manager/index.html"),
+        portal: resolve(__dirname, "packages/deskulpt-portal/index.html"),
         canvas: resolve(__dirname, "packages/deskulpt-canvas/index.html"),
         // Make the scripts entrypoints so that they are preserved even if not imported
         "gen/jsx-runtime": resolve(__dirname, "gen/jsx-runtime.js"),

@@ -54,8 +54,8 @@ pub enum CanvasImode {
 pub enum ShortcutAction {
     /// Toggle the canvas interaction mode (imode).
     ToggleCanvasImode,
-    /// Open the manager interface.
-    OpenManager,
+    /// Open Deskulpt portal.
+    OpenPortal,
 }
 
 /// Per-widget settings.
