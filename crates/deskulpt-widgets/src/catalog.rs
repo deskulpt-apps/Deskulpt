@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 const WIDGET_MANIFEST_FILE: &str = "deskulpt.widget.json";
 
 /// An author of a Deskulpt widget.
-#[derive(Debug, Deserialize, Serialize, specta::Type)]
+#[derive(Clone, Debug, Deserialize, Serialize, specta::Type)]
 #[serde(untagged)]
 pub enum WidgetManifestAuthor {
     /// An extended author with name, email, and homepage.
@@ -42,7 +42,7 @@ pub enum WidgetManifestAuthor {
 }
 
 /// Deskulpt widget manifest.
-#[derive(Debug, Default, Deserialize, Serialize, specta::Type)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
 pub struct WidgetManifest {
     /// The display name of the widget.
@@ -113,7 +113,7 @@ impl WidgetManifest {
 ///
 /// This keeps a mapping from widget IDs to their manifests (if valid) or error
 /// messages (if invalid).
-#[derive(Debug, Default, Serialize, specta::Type)]
+#[derive(Clone, Debug, Default, Serialize, specta::Type)]
 pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetManifest>>);
 
 impl WidgetCatalog {

@@ -1,6 +1,6 @@
 fn main() {
     deskulpt_build::Builder::default()
-        .commands(&["update"])
+        .commands(&["read", "update"])
         .events(&["UpdateEvent"])
         .build();
 }

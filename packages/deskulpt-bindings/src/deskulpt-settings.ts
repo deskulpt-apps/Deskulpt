@@ -226,6 +226,11 @@ export const events = {
 
 export const commands = {
   /**
+   * Get the current settings.
+   */
+  read: () => invoke<Settings>("plugin:deskulpt-settings|read"),
+
+  /**
    * Update the settings with a patch.
    * 
    * Wrapper of [`crate::SettingsManager::update`].

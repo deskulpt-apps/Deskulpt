@@ -1,33 +1,50 @@
 import { Box, Flex, Theme as RadixTheme, Tabs } from "@radix-ui/themes";
 import { Toaster } from "sonner";
-import {
-  useInitialRefresh,
-  useSettingsStore,
-  useUpdateSettingsListener,
-  useUpdateWidgetCatalogListener,
-} from "./hooks";
 import About from "./components/About";
 import Widgets from "./components/Widgets";
 import Settings from "./components/Settings";
 import ThemeToggler from "./components/ThemeToggler";
 import Gallery from "./components/Gallery";
 import Logs from "./components/Logs";
+import { SettingsStoreProvider, WidgetsStoreProvider } from "./hooks";
+import LoadingScreen from "./components/LoadingScreen";
 
 const tabs = [
-  { value: "widgets", label: "Widgets", content: <Widgets /> },
-  { value: "settings", label: "Settings", content: <Settings /> },
-  { value: "gallery", label: "Gallery", content: <Gallery /> },
-  { value: "logs", label: "Logs", content: <Logs /> },
-  { value: "about", label: "About", content: <About /> },
+  {
+    value: "widgets",
+    label: "Widgets",
+    render: () => (
+      <WidgetsStoreProvider fallback={<LoadingScreen />}>
+        <SettingsStoreProvider>
+          <Widgets />
+        </SettingsStoreProvider>
+      </WidgetsStoreProvider>
+    ),
+  },
+  {
+    value: "settings",
+    label: "Settings",
+    render: () => (
+      <SettingsStoreProvider fallback={<LoadingScreen />}>
+        <Settings />
+      </SettingsStoreProvider>
+    ),
+  },
+  {
+    value: "gallery",
+    label: "Gallery",
+    render: () => (
+      <WidgetsStoreProvider fallback={<LoadingScreen />}>
+        <Gallery />
+      </WidgetsStoreProvider>
+    ),
+  },
+  { value: "logs", label: "Logs", render: () => <Logs /> },
+  { value: "about", label: "About", render: () => <About /> },
 ];
 
 const App = () => {
-  const theme = useSettingsStore((state) => state.theme);
-
-  useUpdateSettingsListener();
-  useUpdateWidgetCatalogListener();
-
-  useInitialRefresh();
+  const theme = window.__DESKULPT_INTERNALS__.initialSettings.theme;
 
   return (
     <RadixTheme appearance={theme} accentColor="indigo" grayColor="slate">
@@ -48,16 +65,16 @@ const App = () => {
       <Tabs.Root defaultValue="widgets" asChild>
         <Flex direction="column" gap="2" height="100%" p="2">
           <Tabs.List>
-            {tabs.map((tab) => (
-              <Tabs.Trigger key={tab.value} value={tab.value}>
-                {tab.label}
+            {tabs.map(({ value, label }) => (
+              <Tabs.Trigger key={value} value={value}>
+                {label}
               </Tabs.Trigger>
             ))}
           </Tabs.List>
           <Box p="1" height="calc(100% - var(--space-8))">
-            {tabs.map((tab) => (
-              <Tabs.Content key={tab.value} value={tab.value} asChild>
-                <Box height="100%">{tab.content}</Box>
+            {tabs.map(({ value, render }) => (
+              <Tabs.Content key={value} value={value} asChild>
+                <Box height="100%">{render()}</Box>
               </Tabs.Content>
             ))}
           </Box>

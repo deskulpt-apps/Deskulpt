@@ -4,8 +4,15 @@
 use deskulpt_common::SerResult;
 use tauri::{AppHandle, Runtime};
 
-use crate::SettingsExt;
-use crate::settings::SettingsPatch;
+use crate::{Settings, SettingsExt, SettingsPatch};
+
+/// Get the current settings.
+#[tauri::command]
+#[specta::specta]
+pub async fn read<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Settings> {
+    let settings = app_handle.settings().read().clone();
+    Ok(settings)
+}
 
 /// Update the settings with a patch.
 ///

@@ -10,7 +10,7 @@ const Settings = () => {
   return (
     <Flex direction="column" gap="4" px="1" height="100%">
       <ScrollArea asChild>
-        <Box height="380px">
+        <Box height="100%">
           <Flex direction="column" gap="4">
             <SectionTable title="Basics">
               <Table.Row align="center">

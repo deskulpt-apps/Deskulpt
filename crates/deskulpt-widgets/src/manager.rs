@@ -6,7 +6,7 @@ use anyhow::{Context, Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
 use deskulpt_settings::{SettingsExt, SettingsPatch};
-use parking_lot::RwLock;
+use parking_lot::{RwLock, RwLockReadGuard};
 use tauri::{AppHandle, Manager, Runtime};
 use tracing::{debug, error, info};
 
@@ -57,6 +57,11 @@ impl<R: Runtime> WidgetsManager<R> {
     /// Get the widgets directory.
     pub fn dir(&self) -> &Path {
         &self.dir
+    }
+
+    /// Get an immutable reference to the current widget catalog.
+    pub fn read(&self) -> RwLockReadGuard<'_, WidgetCatalog> {
+        self.catalog.read()
     }
 
     /// Reload a specific widget by its ID.

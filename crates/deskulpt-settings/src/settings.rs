@@ -60,7 +60,7 @@ pub enum ShortcutAction {
 
 /// Per-widget settings.
 #[serde_as]
-#[derive(Debug, Deserialize, Serialize, JsonSchema, specta::Type)]
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
 pub struct WidgetSettings {
     /// The leftmost x-coordinate in pixels.
@@ -180,7 +180,7 @@ impl WidgetSettings {
 
 /// Full settings of the Deskulpt application.
 #[serde_as]
-#[derive(Debug, Default, Deserialize, Serialize, JsonSchema, specta::Type)]
+#[derive(Clone, Debug, Default, Deserialize, Serialize, JsonSchema, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
 pub struct Settings {
     /// The application theme.

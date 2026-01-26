@@ -320,6 +320,11 @@ export const commands = {
   }),
 
   /**
+   * Get the current widget catalog.
+   */
+  read: () => invoke<WidgetCatalog>("plugin:deskulpt-widgets|read"),
+
+  /**
    * Refresh a specific widget by its ID.
    * 
    * This command is a wrapper of [`crate::WidgetsManager::refresh`].
