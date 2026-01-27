@@ -228,7 +228,7 @@ export namespace Commands {
   /**
    * Get the current settings.
    */
-  read: () => invoke<Settings>("plugin:deskulpt-settings|read"),
+  export const read = () => invoke<Settings>("plugin:deskulpt-settings|read");
 
   /**
    * Update the settings with a patch.

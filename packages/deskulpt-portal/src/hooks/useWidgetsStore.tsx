@@ -1,4 +1,4 @@
-import { deskulptWidgets } from "@deskulpt/bindings";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 import {
   PropsWithChildren,
   ReactNode,
@@ -10,8 +10,8 @@ import {
 import { StoreApi, createStore, useStore } from "zustand";
 import { logger } from "@deskulpt/utils";
 
-type WidgetsStore = StoreApi<deskulptWidgets.WidgetCatalog>;
-type WidgetsStoreSelector<T> = (s: deskulptWidgets.WidgetCatalog) => T;
+type WidgetsStore = StoreApi<DeskulptWidgets.WidgetCatalog>;
+type WidgetsStoreSelector<T> = (s: DeskulptWidgets.WidgetCatalog) => T;
 
 const WidgetsStoreContext = createContext<WidgetsStore | null>(null);
 
@@ -25,7 +25,7 @@ export function WidgetsStoreProvider({
     let cancelled = false;
 
     const create = async () => {
-      const widgets = await deskulptWidgets.commands.read();
+      const widgets = await DeskulptWidgets.Commands.read();
       const newStore = createStore(() => widgets);
       if (!cancelled) {
         setStore(newStore);
@@ -44,7 +44,7 @@ export function WidgetsStoreProvider({
       return;
     }
 
-    const unlisten = deskulptWidgets.events.update.listen((event) => {
+    const unlisten = DeskulptWidgets.Events.update.listen((event) => {
       store.setState(() => event.payload, true);
     });
 
@@ -64,7 +64,7 @@ export function WidgetsStoreProvider({
   );
 }
 
-export function useWidgetsStore(): deskulptWidgets.WidgetCatalog;
+export function useWidgetsStore(): DeskulptWidgets.WidgetCatalog;
 export function useWidgetsStore<T>(selector: WidgetsStoreSelector<T>): T;
 export function useWidgetsStore<T>(selector?: WidgetsStoreSelector<T>) {
   const store = useContext(WidgetsStoreContext);

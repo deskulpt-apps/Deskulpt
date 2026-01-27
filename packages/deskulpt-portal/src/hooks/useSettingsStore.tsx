@@ -1,4 +1,4 @@
-import { deskulptSettings } from "@deskulpt/bindings";
+import { DeskulptSettings } from "@deskulpt/bindings";
 import {
   PropsWithChildren,
   ReactNode,
@@ -10,8 +10,8 @@ import {
 import { StoreApi, createStore, useStore } from "zustand";
 import { logger } from "@deskulpt/utils";
 
-type SettingsStore = StoreApi<deskulptSettings.Settings>;
-type SettingsStoreSelector<T> = (s: deskulptSettings.Settings) => T;
+type SettingsStore = StoreApi<DeskulptSettings.Settings>;
+type SettingsStoreSelector<T> = (s: DeskulptSettings.Settings) => T;
 
 const SettingsStoreContext = createContext<SettingsStore | null>(null);
 
@@ -25,7 +25,7 @@ export function SettingsStoreProvider({
     let cancelled = false;
 
     const create = async () => {
-      const settings = await deskulptSettings.commands.read();
+      const settings = await DeskulptSettings.Commands.read();
       const newStore = createStore(() => settings);
       if (!cancelled) {
         setStore(newStore);
@@ -44,7 +44,7 @@ export function SettingsStoreProvider({
       return;
     }
 
-    const unlisten = deskulptSettings.events.update.listen((event) => {
+    const unlisten = DeskulptSettings.Events.update.listen((event) => {
       store.setState(() => event.payload, true);
     });
 
@@ -64,7 +64,7 @@ export function SettingsStoreProvider({
   );
 }
 
-export function useSettingsStore(): deskulptSettings.Settings;
+export function useSettingsStore(): DeskulptSettings.Settings;
 export function useSettingsStore<T>(selector: SettingsStoreSelector<T>): T;
 export function useSettingsStore<T>(selector?: SettingsStoreSelector<T>) {
   const store = useContext(SettingsStoreContext);

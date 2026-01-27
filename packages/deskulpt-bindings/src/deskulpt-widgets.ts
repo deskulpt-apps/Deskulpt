@@ -322,7 +322,7 @@ export namespace Commands {
   /**
    * Get the current widget catalog.
    */
-  read: () => invoke<WidgetCatalog>("plugin:deskulpt-widgets|read"),
+  export const read = () => invoke<WidgetCatalog>("plugin:deskulpt-widgets|read");
 
   /**
    * Refresh a specific widget by its ID.
