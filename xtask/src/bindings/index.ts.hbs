@@ -1,0 +1,5 @@
+/*! Auto-generated via `cargo xtask bindings`. DO NOT EDIT! */
+
+{{#each modules}}
+export * as {{this.namespace}} from "./{{this.module}}.ts";
+{{/each}}

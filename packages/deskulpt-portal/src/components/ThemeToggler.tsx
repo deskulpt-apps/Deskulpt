@@ -1,10 +1,10 @@
 import { Box, IconButton } from "@radix-ui/themes";
-import { deskulptSettings } from "@deskulpt/bindings";
+import { DeskulptSettings } from "@deskulpt/bindings";
 import { LuMoon, LuSun } from "react-icons/lu";
 import { logger } from "@deskulpt/utils";
 
 interface ThemeTogglerProps {
-  theme: deskulptSettings.Theme;
+  theme: DeskulptSettings.Theme;
 }
 
 const ThemeToggler = ({ theme }: ThemeTogglerProps) => {
@@ -15,9 +15,9 @@ const ThemeToggler = ({ theme }: ThemeTogglerProps) => {
         variant="soft"
         size="1"
         onClick={() => {
-          deskulptSettings.commands
-            .update({ theme: theme === "light" ? "dark" : "light" })
-            .catch(logger.error);
+          DeskulptSettings.Commands.update({
+            theme: theme === "light" ? "dark" : "light",
+          }).catch(logger.error);
         }}
       >
         {theme === "light" ? <LuSun /> : <LuMoon />}

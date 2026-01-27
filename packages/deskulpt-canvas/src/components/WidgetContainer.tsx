@@ -15,7 +15,7 @@ import { LuGripVertical } from "react-icons/lu";
 import { Box } from "@radix-ui/themes";
 import { useSettingsStore, useWidgetsStore } from "../hooks";
 import { css } from "@emotion/react";
-import { deskulptSettings } from "@deskulpt/bindings";
+import { DeskulptSettings } from "@deskulpt/bindings";
 
 const styles = {
   wrapper: css({
@@ -115,7 +115,7 @@ const WidgetContainer = ({ id }: WidgetContainerProps) => {
 
   const onDragStop = (_: DraggableEvent, data: DraggableData) => {
     setGeometry((prev) => prev && { ...prev, x: data.x, y: data.y });
-    deskulptSettings.commands.update({
+    DeskulptSettings.Commands.update({
       widgets: { [id]: { x: data.x, y: data.y } },
     });
   };
@@ -158,7 +158,7 @@ const WidgetContainer = ({ id }: WidgetContainerProps) => {
       direction,
       delta,
     );
-    deskulptSettings.commands.update({ widgets: { [id]: newGeometry } });
+    DeskulptSettings.Commands.update({ widgets: { [id]: newGeometry } });
   };
 
   // Do not render anything if the widget is not fully configured; there could

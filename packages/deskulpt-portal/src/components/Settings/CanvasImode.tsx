@@ -1,9 +1,9 @@
 import { Select } from "@radix-ui/themes";
-import { deskulptSettings } from "@deskulpt/bindings";
+import { DeskulptSettings } from "@deskulpt/bindings";
 import { useSettingsStore } from "../../hooks";
 import { logger } from "@deskulpt/utils";
 
-const options: { value: deskulptSettings.CanvasImode; label: string }[] = [
+const options: { value: DeskulptSettings.CanvasImode; label: string }[] = [
   { value: "auto", label: "Auto" },
   { value: "float", label: "Float" },
   { value: "sink", label: "Sink" },
@@ -16,10 +16,10 @@ const CanvasImode = () => {
     <Select.Root
       size="1"
       value={canvasImode}
-      onValueChange={(value: deskulptSettings.CanvasImode) => {
-        deskulptSettings.commands
-          .update({ canvasImode: value })
-          .catch(logger.error);
+      onValueChange={(value: DeskulptSettings.CanvasImode) => {
+        DeskulptSettings.Commands.update({ canvasImode: value }).catch(
+          logger.error,
+        );
       }}
     >
       <Select.Trigger />

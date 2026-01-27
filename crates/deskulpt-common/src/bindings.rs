@@ -12,8 +12,8 @@ use crate::event::Event;
 /// This should never be constructed manually in bindings providers; instead,
 /// configure the build script and use [`build_bindings`].
 pub struct Bindings {
-    /// The namespace these bindings belong to, which should be the plugin name.
-    pub namespace: &'static str,
+    /// The module these bindings belong to, which should be the plugin name.
+    pub module: &'static str,
     /// The specta type collection.
     pub types: TypeCollection,
     /// The mapping from event names to their data types.
@@ -24,7 +24,7 @@ pub struct Bindings {
 
 /// Builder for a [`Bindings`] instance.
 pub struct BindingsBuilder {
-    namespace: &'static str,
+    module: &'static str,
     types: TypeCollection,
     events: BTreeMap<&'static str, DataType>,
     commands: Option<fn(&mut TypeCollection) -> Vec<Function>>,
@@ -32,9 +32,9 @@ pub struct BindingsBuilder {
 
 impl BindingsBuilder {
     /// Create a new [`BindingsBuilder`] instance.
-    pub fn new(namespace: &'static str) -> Self {
+    pub fn new(module: &'static str) -> Self {
         Self {
-            namespace,
+            module,
             types: Default::default(),
             events: Default::default(),
             commands: Default::default(),
@@ -70,7 +70,7 @@ impl BindingsBuilder {
         };
 
         Bindings {
-            namespace: self.namespace,
+            module: self.module,
             types: self.types.clone(),
             events: self.events.clone(),
             commands,

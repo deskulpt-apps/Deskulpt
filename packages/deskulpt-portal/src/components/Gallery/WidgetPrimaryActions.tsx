@@ -1,10 +1,10 @@
 import { Box, Button, DropdownMenu } from "@radix-ui/themes";
 import { LuDownload } from "react-icons/lu";
-import { deskulptWidgets } from "@deskulpt/bindings";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 import { useInstallWidget } from "../../hooks";
 
 interface WidgetPrimaryActionsProps {
-  reference: deskulptWidgets.RegistryWidgetReference;
+  reference: DeskulptWidgets.RegistryWidgetReference;
   version: string;
 }
 

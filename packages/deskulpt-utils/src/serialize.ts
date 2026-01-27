@@ -1,11 +1,11 @@
-import { deskulptCore } from "@deskulpt/bindings";
+import { DeskulptCore } from "@deskulpt/bindings";
 import * as superjson from "superjson";
 
 superjson.allowErrorProps("message", "cause");
 
-export function serialize(instance: unknown): deskulptCore.JsonValue {
+export function serialize(instance: unknown): DeskulptCore.JsonValue {
   try {
-    return superjson.serialize(instance).json as deskulptCore.JsonValue;
+    return superjson.serialize(instance).json as DeskulptCore.JsonValue;
   } catch {
     return { __unserializable: true, preview: String(instance) };
   }

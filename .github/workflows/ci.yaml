@@ -77,8 +77,8 @@ jobs:
         run: |
           # Re-generate auto-generated files
           pnpm build:packages
-          cargo gen bindings
-          cargo gen schema
+          cargo xtask bindings
+          cargo xtask schema
 
           # Check that there are no uncommitted changes
           set -euo pipefail
@@ -91,8 +91,8 @@ jobs:
             echo "::endgroup::"
             echo "To fix this issue, run the following commands and commit the changes:"
             echo "  pnpm build:packages"
-            echo "  cargo gen bindings"
-            echo "  cargo gen schema"
+            echo "  cargo xtask bindings"
+            echo "  cargo xtask schema"
             exit 1
           fi
 

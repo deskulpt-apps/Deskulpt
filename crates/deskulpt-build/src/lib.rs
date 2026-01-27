@@ -6,7 +6,7 @@
 
 use std::path::PathBuf;
 
-use anyhow::{Context, Result, anyhow, bail};
+use anyhow::{Result, anyhow, bail};
 use quote::{format_ident, quote};
 
 /// Builder for build-time configuration of Deskulpt.
@@ -14,15 +14,14 @@ use quote::{format_ident, quote};
 pub struct Builder {
     commands: &'static [&'static str],
     events: &'static [&'static str],
-    commands_mod: Option<&'static str>,
-    events_mod: Option<&'static str>,
 }
 
 impl Builder {
     /// Set the commands for the builder.
     ///
     /// These will be used for configuring the bindings builder and the Tauri
-    /// plugin builder, and for generating plugin initialization code.
+    /// plugin builder, and for generating plugin initialization code. The
+    /// commands must be made public under `crate::commands`.
     pub fn commands(&mut self, commands: &'static [&'static str]) -> &mut Self {
         self.commands = commands;
         self
@@ -30,25 +29,10 @@ impl Builder {
 
     /// Set the events for the builder.
     ///
-    /// These will be used for configuring the bindings builder.
+    /// These will be used for configuring the bindings builder. The events must
+    /// be made public under `crate::events`.
     pub fn events(&mut self, events: &'static [&'static str]) -> &mut Self {
         self.events = events;
-        self
-    }
-
-    /// Set the module of the commands.
-    ///
-    /// If not set, defaults to `crate::commands`.
-    pub fn commands_mod(&mut self, module: &'static str) -> &mut Self {
-        self.commands_mod = Some(module);
-        self
-    }
-
-    /// Set the module of the events.
-    ///
-    /// If not set, defaults to `crate::events`.
-    pub fn events_mod(&mut self, module: &'static str) -> &mut Self {
-        self.events_mod = Some(module);
         self
     }
 
@@ -58,12 +42,6 @@ impl Builder {
         if !name.starts_with("deskulpt-") {
             bail!("Plugin crate names must start with 'deskulpt-'; got '{name}'");
         }
-
-        let commands_mod: syn::Path =
-            syn::parse_str(self.commands_mod.unwrap_or("crate::commands"))
-                .with_context(|| "Invalid commands_mod".to_string())?;
-        let events_mod: syn::Path = syn::parse_str(self.events_mod.unwrap_or("crate::events"))
-            .with_context(|| "Invalid events_mod".to_string())?;
 
         let commands = self
             .commands
@@ -81,9 +59,9 @@ impl Builder {
             pub fn build_bindings() -> ::deskulpt_common::bindings::Bindings {
                 ::deskulpt_common::bindings::BindingsBuilder::new(env!("CARGO_PKG_NAME"))
                     .commands(::deskulpt_common::bindings::collect_commands![
-                        #( #commands_mod::#commands::<::tauri::Wry> ),*
+                        #( crate::commands::#commands::<::tauri::Wry> ),*
                     ])
-                    #( .event::<#events_mod::#events>() )*
+                    #( .event::<crate::events::#events>() )*
                     .typ::<::deskulpt_common::window::DeskulptWindow>()
                     .build()
             }
@@ -92,7 +70,7 @@ impl Builder {
         let init_builder = quote! {
             ::tauri::plugin::Builder::new(env!("CARGO_PKG_NAME"))
                 .invoke_handler(::tauri::generate_handler![
-                    #( #commands_mod::#commands ),*
+                    #( crate::commands::#commands ),*
                 ])
         };
 

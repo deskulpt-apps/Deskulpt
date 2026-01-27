@@ -3,9 +3,9 @@ import { useSettingsStore, useWidgetsStore } from "../../hooks";
 import WidgetManifest from "../WidgetManifest";
 import { LuFolderOpen, LuRepeat } from "react-icons/lu";
 import {
-  deskulptCore,
-  deskulptSettings,
-  deskulptWidgets,
+  DeskulptCore,
+  DeskulptSettings,
+  DeskulptWidgets,
 } from "@deskulpt/bindings";
 import { logger } from "@deskulpt/utils";
 
@@ -20,7 +20,7 @@ const Manifest = ({ id }: ManifestProps) => {
   );
 
   const toggleIsLoaded = () => {
-    deskulptSettings.commands.update({
+    DeskulptSettings.Commands.update({
       widgets: { [id]: { isLoaded: !isLoaded } },
     });
   };
@@ -43,7 +43,7 @@ const Manifest = ({ id }: ManifestProps) => {
             size="1"
             variant="surface"
             onClick={() =>
-              deskulptWidgets.commands.refresh(id).catch(logger.error)
+              DeskulptWidgets.Commands.refresh(id).catch(logger.error)
             }
             disabled={!isLoaded}
           >
@@ -54,7 +54,7 @@ const Manifest = ({ id }: ManifestProps) => {
             size="1"
             variant="surface"
             onClick={() =>
-              deskulptCore.commands.open({ widget: id }).catch(logger.error)
+              DeskulptCore.Commands.open({ widget: id }).catch(logger.error)
             }
           >
             <LuFolderOpen /> Edit
