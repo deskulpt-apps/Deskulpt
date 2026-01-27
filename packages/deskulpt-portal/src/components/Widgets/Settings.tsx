@@ -3,7 +3,7 @@ import { LuX } from "react-icons/lu";
 import { useSettingsStore } from "../../hooks";
 import IntegerInput from "../IntegerInput";
 import { css } from "@emotion/react";
-import { deskulptSettings } from "@deskulpt/bindings";
+import { DeskulptSettings } from "@deskulpt/bindings";
 
 const styles = {
   table: css({
@@ -22,7 +22,7 @@ const X = ({ id }: SettingsProps) => {
       value={x}
       min={0}
       onValueChange={(value: number) =>
-        deskulptSettings.commands.update({ widgets: { [id]: { x: value } } })
+        DeskulptSettings.Commands.update({ widgets: { [id]: { x: value } } })
       }
       width="60px"
     />
@@ -37,7 +37,7 @@ const Y = ({ id }: SettingsProps) => {
       value={y}
       min={0}
       onValueChange={(value: number) =>
-        deskulptSettings.commands.update({ widgets: { [id]: { y: value } } })
+        DeskulptSettings.Commands.update({ widgets: { [id]: { y: value } } })
       }
       width="60px"
     />
@@ -52,7 +52,7 @@ const Width = ({ id }: SettingsProps) => {
       value={width}
       min={0}
       onValueChange={(value: number) =>
-        deskulptSettings.commands.update({
+        DeskulptSettings.Commands.update({
           widgets: { [id]: { width: value } },
         })
       }
@@ -69,7 +69,7 @@ const Height = ({ id }: SettingsProps) => {
       value={height}
       min={0}
       onValueChange={(value: number) =>
-        deskulptSettings.commands.update({
+        DeskulptSettings.Commands.update({
           widgets: { [id]: { height: value } },
         })
       }
@@ -87,7 +87,7 @@ const ZIndex = ({ id }: SettingsProps) => {
       min={-999}
       max={999}
       onValueChange={(value: number) =>
-        deskulptSettings.commands.update({
+        DeskulptSettings.Commands.update({
           widgets: { [id]: { zIndex: value } },
         })
       }
@@ -105,7 +105,7 @@ const Opacity = ({ id }: SettingsProps) => {
       min={1}
       max={100}
       onValueChange={(value: number) =>
-        deskulptSettings.commands.update({
+        DeskulptSettings.Commands.update({
           widgets: { [id]: { opacity: value } },
         })
       }

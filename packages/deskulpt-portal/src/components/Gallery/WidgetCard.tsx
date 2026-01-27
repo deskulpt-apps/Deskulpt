@@ -1,4 +1,4 @@
-import { deskulptWidgets } from "@deskulpt/bindings";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 import { Card, Code, Flex, Heading, Text } from "@radix-ui/themes";
 import { useWidgetsGalleryStore } from "../../hooks";
 import WidgetPrimaryActions from "./WidgetPrimaryActions";
@@ -16,7 +16,7 @@ const WidgetCard = ({ index }: WidgetCardProps) => {
     .join(", ");
 
   const latestRelease = widget.releases.at(0);
-  let reference: deskulptWidgets.RegistryWidgetReference | undefined;
+  let reference: DeskulptWidgets.RegistryWidgetReference | undefined;
   if (latestRelease !== undefined) {
     reference = {
       handle: widget.handle,

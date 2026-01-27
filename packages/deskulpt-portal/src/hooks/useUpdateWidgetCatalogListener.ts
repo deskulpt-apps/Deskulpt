@@ -1,11 +1,11 @@
-import { deskulptWidgets } from "@deskulpt/bindings";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 import { useWidgetsStore } from "./useWidgetsStore";
 import { logger } from "@deskulpt/utils";
 import { useEffect } from "react";
 
 export const useUpdateWidgetCatalogListener = () => {
   useEffect(() => {
-    const unlisten = deskulptWidgets.events.update.listen((event) => {
+    const unlisten = DeskulptWidgets.Events.update.listen((event) => {
       useWidgetsStore.setState(() => event.payload, true);
     });
 

@@ -1,4 +1,4 @@
-import { deskulptCore, deskulptLogs } from "@deskulpt/bindings";
+import { DeskulptCore, DeskulptLogs } from "@deskulpt/bindings";
 import { LOGGING_LEVELS, formatBytes, logger } from "@deskulpt/utils";
 import { css } from "@emotion/react";
 import { Button, Flex, Popover, Select, Text } from "@radix-ui/themes";
@@ -17,15 +17,14 @@ const styles = {
 };
 
 interface HeaderProps {
-  minLevel: deskulptLogs.Level;
-  setMinLevel: Dispatch<SetStateAction<deskulptLogs.Level>>;
+  minLevel: DeskulptLogs.Level;
+  setMinLevel: Dispatch<SetStateAction<DeskulptLogs.Level>>;
   refreshLogs: () => void;
 }
 
 const Header = ({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
   const clearLogs = () => {
-    deskulptLogs.commands
-      .clear()
+    DeskulptLogs.Commands.clear()
       .then((bytes) => {
         toast.success(`Cleaned up ${formatBytes(bytes)} of logs.`);
         refreshLogs();
@@ -38,7 +37,7 @@ const Header = ({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
       <Select.Root
         size="1"
         value={minLevel}
-        onValueChange={(value) => setMinLevel(value as deskulptLogs.Level)}
+        onValueChange={(value) => setMinLevel(value as DeskulptLogs.Level)}
       >
         <Select.Trigger css={styles.minLevelSelect} />
         <Select.Content position="popper">
@@ -54,7 +53,7 @@ const Header = ({ minLevel, setMinLevel, refreshLogs }: HeaderProps) => {
         <Button
           size="1"
           variant="surface"
-          onClick={() => deskulptCore.commands.open("logs").catch(logger.error)}
+          onClick={() => DeskulptCore.Commands.open("logs").catch(logger.error)}
         >
           <LuFolderOpen /> Open
         </Button>

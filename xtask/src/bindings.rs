@@ -14,7 +14,7 @@ pub fn run() -> Result<()> {
     let mut index = index::Template::default();
     for bindings in all_bindings {
         let template = module::Template::from(bindings)?;
-        index.add_namespace(template.namespace);
+        index.add_module(template.module);
         template.render()?;
     }
     index.render()?;

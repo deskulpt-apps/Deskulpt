@@ -1,7 +1,7 @@
 import { createElement, useEffect } from "react";
 import { useWidgetsStore } from "./useWidgetsStore";
 import { logger, stringify } from "@deskulpt/utils";
-import { deskulptWidgets } from "@deskulpt/bindings";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 import ErrorDisplay from "../components/ErrorDisplay";
 
 const BASE_URL = new URL(import.meta.url).origin;
@@ -9,7 +9,7 @@ const RAW_APIS_URL = new URL("/gen/raw-apis.js", BASE_URL).href;
 
 export const useRenderWidgetListener = () => {
   useEffect(() => {
-    const unlisten = deskulptWidgets.events.render.listen(async (event) => {
+    const unlisten = DeskulptWidgets.Events.render.listen(async (event) => {
       const { id, report } = event.payload;
       const widgets = useWidgetsStore.getState();
 

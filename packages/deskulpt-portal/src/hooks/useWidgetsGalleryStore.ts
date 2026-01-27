@@ -1,22 +1,22 @@
 import { create } from "zustand";
-import { deskulptWidgets } from "@deskulpt/bindings";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 import { logger } from "@deskulpt/utils";
 import { toast } from "sonner";
 
 interface WidgetPreviewData {
-  reference: deskulptWidgets.RegistryWidgetReference;
+  reference: DeskulptWidgets.RegistryWidgetReference;
   version: string;
-  preview: deskulptWidgets.RegistryWidgetPreview;
+  preview: DeskulptWidgets.RegistryWidgetPreview;
 }
 
 interface WidgetVersionPickerData {
   handle: string;
   id: string;
-  releases: deskulptWidgets.RegistryEntryRelease[];
+  releases: DeskulptWidgets.RegistryEntryRelease[];
 }
 
 interface WidgetsGalleryState {
-  widgets: deskulptWidgets.RegistryEntry[];
+  widgets: DeskulptWidgets.RegistryEntry[];
   isFetching: boolean;
   inFlightOps: Set<string>;
 
@@ -51,7 +51,7 @@ export const useWidgetsGalleryStore = create<
   refresh: async () => {
     set({ widgets: [], isFetching: true });
     try {
-      const index = await deskulptWidgets.commands.fetchRegistryIndex();
+      const index = await DeskulptWidgets.Commands.fetchRegistryIndex();
       set({ widgets: index.widgets });
     } catch (error) {
       logger.error(error);

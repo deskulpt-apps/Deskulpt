@@ -3,7 +3,7 @@ import { LuSquarePen } from "react-icons/lu";
 import CanvasImode from "./CanvasImode";
 import Shortcut from "./Shortcut";
 import SectionTable from "./SectionTable";
-import { deskulptCore } from "@deskulpt/bindings";
+import { DeskulptCore } from "@deskulpt/bindings";
 import { logger } from "@deskulpt/utils";
 
 const Settings = () => {
@@ -47,7 +47,7 @@ const Settings = () => {
         variant="soft"
         color="gray"
         onClick={() => {
-          deskulptCore.commands.open("settings").catch(logger.error);
+          DeskulptCore.Commands.open("settings").catch(logger.error);
         }}
       >
         <LuSquarePen /> Edit in settings.json

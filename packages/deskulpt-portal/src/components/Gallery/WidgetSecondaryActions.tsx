@@ -1,4 +1,4 @@
-import { deskulptWidgets } from "@deskulpt/bindings";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 import { logger } from "@deskulpt/utils";
 import { DropdownMenu, Flex, IconButton } from "@radix-ui/themes";
 import { writeText } from "@tauri-apps/plugin-clipboard-manager";
@@ -8,9 +8,9 @@ import { toast } from "sonner";
 import { useWidgetsGalleryStore } from "../../hooks";
 
 interface WidgetSecondaryActionsProps {
-  reference: deskulptWidgets.RegistryWidgetReference;
+  reference: DeskulptWidgets.RegistryWidgetReference;
   version: string;
-  releases: deskulptWidgets.RegistryEntryRelease[];
+  releases: DeskulptWidgets.RegistryEntryRelease[];
 }
 
 const WidgetSecondaryActions = ({
@@ -29,7 +29,7 @@ const WidgetSecondaryActions = ({
   const preview = async () => {
     setIsLoadingPreview(true);
     try {
-      const previewData = await deskulptWidgets.commands.preview(reference);
+      const previewData = await DeskulptWidgets.Commands.preview(reference);
       openPreview({ reference, version, preview: previewData });
     } catch (error) {
       logger.error(error);

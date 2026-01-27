@@ -9,7 +9,7 @@ import {
 } from "@radix-ui/themes";
 import { KeyboardEvent as ReactKeyboardEvent, useRef, useState } from "react";
 import { LuSquarePen, LuTrash } from "react-icons/lu";
-import { deskulptSettings } from "@deskulpt/bindings";
+import { DeskulptSettings } from "@deskulpt/bindings";
 import { useSettingsStore } from "../../hooks";
 import { toast } from "sonner";
 import { INVALID_KEYCODES, KEYCODES, MODIFIERS } from "./keyboard";
@@ -29,7 +29,7 @@ const styles = {
 };
 
 interface Props {
-  action: deskulptSettings.ShortcutAction;
+  action: DeskulptSettings.ShortcutAction;
 }
 
 const ShortcutAction = ({ action }: Props) => {
@@ -97,8 +97,9 @@ const ShortcutAction = ({ action }: Props) => {
   };
 
   const confirmAction = () => {
-    deskulptSettings.commands
-      .update({ shortcuts: { [action]: value === "" ? null : value } })
+    DeskulptSettings.Commands.update({
+      shortcuts: { [action]: value === "" ? null : value },
+    })
       .then(() => {
         setPlaceholder(INITIAL_PLACEHOLDER);
         setIsValid(true);

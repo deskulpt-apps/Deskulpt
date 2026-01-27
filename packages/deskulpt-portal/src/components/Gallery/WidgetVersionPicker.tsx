@@ -9,7 +9,7 @@ import {
 } from "@radix-ui/themes";
 import { css } from "@emotion/react";
 import { useWidgetsGalleryStore } from "../../hooks";
-import { deskulptWidgets } from "@deskulpt/bindings";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 import { logger } from "@deskulpt/utils";
 import { toast } from "sonner";
 
@@ -36,7 +36,7 @@ const WidgetVersionPicker = () => {
     }
   };
 
-  const onSelect = async (release: deskulptWidgets.RegistryEntryRelease) => {
+  const onSelect = async (release: DeskulptWidgets.RegistryEntryRelease) => {
     if (data === undefined) {
       return;
     }
@@ -48,7 +48,7 @@ const WidgetVersionPicker = () => {
     };
 
     try {
-      const previewData = await deskulptWidgets.commands.preview(reference);
+      const previewData = await DeskulptWidgets.Commands.preview(reference);
       openPreview({
         reference,
         version: release.version,

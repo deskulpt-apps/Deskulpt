@@ -1,24 +1,24 @@
 use anyhow::Result;
 use handlebars::Handlebars;
-use heck::ToLowerCamelCase;
+use heck::ToPascalCase;
 use serde::Serialize;
 
 #[derive(Debug, Serialize)]
-struct NamespaceTemplate {
-    key: String,
-    namespace: &'static str,
+struct ModuleTemplate {
+    module: &'static str,
+    namespace: String,
 }
 
 #[derive(Default, Debug, Serialize)]
 pub struct Template {
-    namespaces: Vec<NamespaceTemplate>,
+    modules: Vec<ModuleTemplate>,
 }
 
 impl Template {
-    pub fn add_namespace(&mut self, namespace: &'static str) {
-        self.namespaces.push(NamespaceTemplate {
-            key: namespace.to_lower_camel_case(),
-            namespace,
+    pub fn add_module(&mut self, module: &'static str) {
+        self.modules.push(ModuleTemplate {
+            module,
+            namespace: module.to_pascal_case(),
         });
     }
 
