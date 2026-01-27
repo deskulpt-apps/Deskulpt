@@ -1292,7 +1292,6 @@ version = "0.3.0"
 dependencies = [
  "anyhow",
  "quote",
- "syn 2.0.114",
  "tauri-plugin",
 ]
 
