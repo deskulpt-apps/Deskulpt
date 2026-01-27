@@ -12,7 +12,6 @@ version    = { workspace = true }
 [dependencies]
 anyhow       = { workspace = true }
 quote        = { workspace = true }
-syn          = { workspace = true }
 tauri-plugin = { workspace = true, features = ["build"] }
 
 [package.metadata.docs.rs]

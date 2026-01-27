@@ -17,8 +17,3 @@ serde_json             = { workspace = true }
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--document-private-items"]
-
-[package.metadata.cargo-shear]
-ignored = [
-  "serde", # Used in doctest
-]
