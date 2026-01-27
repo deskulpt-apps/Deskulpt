@@ -48,7 +48,7 @@ jobs:
       - name: Sync rustdoc
         shell: bash
         run: |
-          rsync -av --delete --exclude ".git" --exclude "index.html" target/doc/ rustdoc-repo/
+          rsync -av --delete --exclude ".git" --exclude "/index.html" target/doc/ rustdoc-repo/
           touch rustdoc-repo/.nojekyll
 
       - name: Commit and push
