@@ -1,5 +1,5 @@
 [package]
-name    = "xtask-gen"
+name    = "xtask"
 publish = false
 
 authors    = { workspace = true }

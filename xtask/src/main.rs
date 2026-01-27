@@ -14,7 +14,7 @@ enum Commands {
 
 /// [XTASK] Code generation for Deskulpt.
 #[derive(Debug, Parser)]
-#[command(version, about, author, bin_name = "cargo gen")]
+#[command(version, about, author, bin_name = "cargo xtask")]
 struct Args {
     #[command(subcommand)]
     command: Commands,

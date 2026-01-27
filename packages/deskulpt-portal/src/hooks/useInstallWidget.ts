@@ -1,4 +1,4 @@
-import { deskulptWidgets } from "@deskulpt/bindings";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 import { useCallback } from "react";
 import { useWidgetsStore } from "./useWidgetsStore";
 import { useWidgetsGalleryStore } from "./useWidgetsGalleryStore";
@@ -8,7 +8,7 @@ import { toast } from "sonner";
 type InstallationStatus = "installed" | "not-installed" | "upgrade-available";
 
 export function useInstallWidget(
-  reference: deskulptWidgets.RegistryWidgetReference,
+  reference: DeskulptWidgets.RegistryWidgetReference,
   version: string,
 ) {
   const localId = `@${reference.handle}.${reference.id}`;
@@ -32,7 +32,7 @@ export function useInstallWidget(
   const install = useCallback(async () => {
     useWidgetsGalleryStore.getState().addInFlightOp(localId);
     try {
-      await deskulptWidgets.commands.install(reference);
+      await DeskulptWidgets.Commands.install(reference);
       toast.success(`Installed: ${localId}`);
     } catch (error) {
       logger.error(error);
@@ -45,7 +45,7 @@ export function useInstallWidget(
   const uninstall = useCallback(async () => {
     useWidgetsGalleryStore.getState().addInFlightOp(localId);
     try {
-      await deskulptWidgets.commands.uninstall(reference);
+      await DeskulptWidgets.Commands.uninstall(reference);
       toast.success(`Uninstalled: ${localId}`);
     } catch (error) {
       logger.error(error);
@@ -58,7 +58,7 @@ export function useInstallWidget(
   const upgrade = useCallback(async () => {
     useWidgetsGalleryStore.getState().addInFlightOp(localId);
     try {
-      await deskulptWidgets.commands.upgrade(reference);
+      await DeskulptWidgets.Commands.upgrade(reference);
       toast.success(`Upgraded: ${localId}`);
     } catch (error) {
       logger.error(error);

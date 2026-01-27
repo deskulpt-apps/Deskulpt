@@ -1,4 +1,4 @@
-import { deskulptLogs } from "@deskulpt/bindings";
+import { DeskulptLogs } from "@deskulpt/bindings";
 import { css } from "@emotion/react";
 import { Code, Flex, Spinner, Text } from "@radix-ui/themes";
 
@@ -52,7 +52,7 @@ function getLevelColor(level: string) {
 }
 
 interface EntryProps {
-  entry?: deskulptLogs.Entry;
+  entry?: DeskulptLogs.Entry;
 }
 
 const Entry = ({ entry }: EntryProps) => {

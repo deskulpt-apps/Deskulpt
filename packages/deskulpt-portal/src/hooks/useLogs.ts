@@ -1,4 +1,4 @@
-import { deskulptLogs } from "@deskulpt/bindings";
+import { DeskulptLogs } from "@deskulpt/bindings";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 interface UseLogsProps {
@@ -9,12 +9,12 @@ interface UseLogsProps {
 export function useLogs({ minLevel, pageSize }: UseLogsProps) {
   const fetchIdRef = useRef(0); // Used for preventing race conditions
 
-  const [entries, setEntries] = useState<deskulptLogs.Entry[]>([]);
-  const [cursor, setCursor] = useState<deskulptLogs.Cursor | null>(null);
+  const [entries, setEntries] = useState<DeskulptLogs.Entry[]>([]);
+  const [cursor, setCursor] = useState<DeskulptLogs.Cursor | null>(null);
   const [isFetching, setIsFetching] = useState<boolean>(false);
 
   const fetchLogs = useCallback(
-    async (cursor: deskulptLogs.Cursor | null, replace: boolean) => {
+    async (cursor: DeskulptLogs.Cursor | null, replace: boolean) => {
       // Increment ID to invalidate previous fetches; before any state updates,
       // we check if the ID is still current, and if not, we abort because there
       // must have been a newer fetch
@@ -27,9 +27,9 @@ export function useLogs({ minLevel, pageSize }: UseLogsProps) {
       }
 
       try {
-        const page = await deskulptLogs.commands.read(
+        const page = await DeskulptLogs.Commands.read(
           pageSize,
-          minLevel as deskulptLogs.Level,
+          minLevel as DeskulptLogs.Level,
           cursor,
         );
         if (fetchId === fetchIdRef.current) {

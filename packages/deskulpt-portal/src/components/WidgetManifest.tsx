@@ -1,6 +1,6 @@
 import { DataList, Flex, IconButton, Link, Text } from "@radix-ui/themes";
 import { css } from "@emotion/react";
-import { deskulptWidgets } from "@deskulpt/bindings";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 import { LuMail } from "react-icons/lu";
 import { Fragment } from "react";
 
@@ -16,7 +16,7 @@ const styles = {
   }),
 };
 
-function displayAuthors(authors: deskulptWidgets.WidgetManifestAuthor[]) {
+function displayAuthors(authors: DeskulptWidgets.WidgetManifestAuthor[]) {
   return authors.flatMap((author, index) => {
     const nodes = [];
     if (index > 0) {
@@ -72,7 +72,7 @@ function displayUrl(url: string) {
 }
 
 interface WidgetManifestProps {
-  manifest: deskulptWidgets.WidgetManifest;
+  manifest: DeskulptWidgets.WidgetManifest;
 }
 
 const WidgetManifest = ({ manifest }: WidgetManifestProps) => {

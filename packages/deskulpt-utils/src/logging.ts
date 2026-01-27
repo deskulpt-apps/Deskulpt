@@ -1,4 +1,4 @@
-import { deskulptLogs } from "@deskulpt/bindings";
+import { DeskulptLogs } from "@deskulpt/bindings";
 import { serialize } from "./serialize";
 
 export const LOGGING_LEVELS = [
@@ -15,16 +15,18 @@ export const logger = LOGGING_LEVELS.reduce(
       const payload =
         typeof message === "string" ? meta : { __message: message, ...meta };
 
-      deskulptLogs.commands
-        .log(level, String(message), serialize(payload))
-        .catch((error) => {
-          console.error("Logger error:", error);
-        });
+      DeskulptLogs.Commands.log(
+        level,
+        String(message),
+        serialize(payload),
+      ).catch((error) => {
+        console.error("Logger error:", error);
+      });
     };
     return acc;
   },
   {} as {
-    [L in deskulptLogs.Level]: (
+    [L in DeskulptLogs.Level]: (
       message: unknown,
       meta?: Record<string, unknown>,
     ) => void;

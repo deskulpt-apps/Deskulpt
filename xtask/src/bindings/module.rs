@@ -130,7 +130,7 @@ impl CommandTemplate {
 
 #[derive(Debug, Serialize)]
 pub struct Template {
-    pub namespace: &'static str,
+    pub module: &'static str,
     types: Vec<String>,
     events: Vec<EventTemplate>,
     commands: Vec<CommandTemplate>,
@@ -141,7 +141,7 @@ impl Template {
         let ts = Typescript::new().bigint(BigIntExportBehavior::Number);
 
         Ok(Self {
-            namespace: bindings.namespace,
+            module: bindings.module,
             types: bindings
                 .types
                 .into_iter()
@@ -175,7 +175,7 @@ impl Template {
 
         let path = deskulpt_workspace::package_dir("deskulpt-bindings")
             .join("src")
-            .join(self.namespace)
+            .join(self.module)
             .with_extension("ts");
         std::fs::write(&path, output)?;
         println!("✅ Generated: {}", path.display());
