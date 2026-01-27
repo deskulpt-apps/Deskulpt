@@ -1,7 +1,7 @@
 /*! Auto-generated via `cargo xtask bindings`. DO NOT EDIT! */
 
 import { invoke } from "@tauri-apps/api/core";
-import * as tauriEvent from "@tauri-apps/api/event";
+import * as TauriEvent from "@tauri-apps/api/event";
 
 // =============================================================================
 // Types
@@ -68,16 +68,16 @@ function makeEvent<T>(name: string) {
     /** The name of the event. */
     name,
     /** Listen for the event. */
-    listen: (cb: tauriEvent.EventCallback<T>, options?: tauriEvent.Options) =>
-      tauriEvent.listen(name, cb, options),
+    listen: (cb: TauriEvent.EventCallback<T>, options?: TauriEvent.Options) =>
+      TauriEvent.listen(name, cb, options),
     /** Listen once for the event. */
-    once: (cb: tauriEvent.EventCallback<T>, options?: tauriEvent.Options) =>
-      tauriEvent.once(name, cb, options),
+    once: (cb: TauriEvent.EventCallback<T>, options?: TauriEvent.Options) =>
+      TauriEvent.once(name, cb, options),
     /** Emit the event to all targets. */
-    emit: (payload: T) => tauriEvent.emit(name, payload),
+    emit: (payload: T) => TauriEvent.emit(name, payload),
     /** Emit the event to a specific Deskulpt window. */
     emitTo: (window: DeskulptWindow, payload: T) =>
-      tauriEvent.emitTo(window, name, payload),
+      TauriEvent.emitTo(window, name, payload),
   };
 }
 
