@@ -8,9 +8,8 @@ use parking_lot::{RwLock, RwLockReadGuard};
 use tauri::{AppHandle, Manager, Runtime};
 use tracing::error;
 
-use crate::CanvasImode;
 use crate::events::UpdateEvent;
-use crate::settings::{Settings, SettingsPatch, ShortcutAction, Theme};
+use crate::types::{CanvasImode, Settings, SettingsPatch, ShortcutAction, Theme};
 use crate::worker::{WorkerHandle, WorkerTask};
 
 #[doc(hidden)]

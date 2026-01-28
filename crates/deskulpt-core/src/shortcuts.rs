@@ -1,7 +1,8 @@
 //! Keyboard shortcut management.
 
 use anyhow::Result;
-use deskulpt_settings::{SettingsExt, ShortcutAction};
+use deskulpt_settings::SettingsExt;
+use deskulpt_settings::types::ShortcutAction;
 use tauri::{App, AppHandle, Manager, Runtime};
 use tauri_plugin_global_shortcut::{GlobalShortcut, GlobalShortcutExt, ShortcutState};
 use tracing::error;

@@ -7,15 +7,10 @@
 mod commands;
 mod events;
 mod manager;
-mod settings;
+pub mod types;
 mod worker;
 
 pub use manager::SettingsManager;
-#[doc(no_inline)] // Avoid duplicate docs
-pub use settings::{
-    CanvasImode, Settings, SettingsPatch, ShortcutAction, Theme, WidgetSettings,
-    WidgetSettingsPatch,
-};
 use tauri::plugin::TauriPlugin;
 use tauri::{Manager, Runtime};
 
