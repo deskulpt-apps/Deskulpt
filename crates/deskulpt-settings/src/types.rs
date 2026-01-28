@@ -1,4 +1,4 @@
-//! Definitions, patching, and persistence of Deskulpt settings.
+//! Type definitions for Deskulpt settings.
 
 use std::collections::BTreeMap;
 use std::fs::File;

@@ -12,31 +12,25 @@ use crate::events::UpdateEvent;
 use crate::types::{CanvasImode, Settings, SettingsPatch, ShortcutAction, Theme};
 use crate::worker::{WorkerHandle, WorkerTask};
 
-#[doc(hidden)]
-type OnThemeChange = Box<dyn Fn(&Theme, &Theme) + Send + Sync>;
-
-#[doc(hidden)]
-type OnCanvasImodeChange = Box<dyn Fn(&CanvasImode, &CanvasImode) + Send + Sync>;
-
-#[doc(hidden)]
-type OnShortcutChange =
-    Box<dyn Fn(&ShortcutAction, Option<&String>, Option<&String>) + Send + Sync>;
-
 /// The collection of hooks on settings change.
 #[derive(Default)]
 struct SettingsHooks {
     /// Hooks triggered on theme change.
     ///
     /// See [`SettingsManager::on_theme_change`] for registration.
-    on_theme_change: Vec<OnThemeChange>,
+    #[allow(clippy::type_complexity)]
+    on_theme_change: Vec<Box<dyn Fn(&Theme, &Theme) + Send + Sync>>,
     /// Hooks triggered on canvas interaction mode change.
     ///
     /// See [`SettingsManager::on_canvas_imode_change`] for registration.
-    on_canvas_imode_change: Vec<OnCanvasImodeChange>,
+    #[allow(clippy::type_complexity)]
+    on_canvas_imode_change: Vec<Box<dyn Fn(&CanvasImode, &CanvasImode) + Send + Sync>>,
     /// Hooks triggered on shortcut change.
     ///
     /// See [`SettingsManager::on_shortcut_change`] for registration.
-    on_shortcut_change: Vec<OnShortcutChange>,
+    #[allow(clippy::type_complexity)]
+    on_shortcut_change:
+        Vec<Box<dyn Fn(&ShortcutAction, Option<&String>, Option<&String>) + Send + Sync>>,
 }
 
 /// Manager for Deskulpt settings.
