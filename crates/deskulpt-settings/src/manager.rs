@@ -10,17 +10,12 @@ use tracing::error;
 use url::Url;
 
 use crate::events::UpdateEvent;
-use crate::types::{CanvasImode, Settings, SettingsPatch, ShortcutAction, Theme};
+use crate::types::{CanvasImode, Settings, SettingsPatch, ShortcutAction};
 use crate::worker::{WorkerHandle, WorkerTask};
 
 /// The collection of hooks on settings change.
 #[derive(Default)]
 struct SettingsHooks {
-    /// Hooks triggered on theme change.
-    ///
-    /// See [`SettingsManager::on_theme_change`] for registration.
-    #[allow(clippy::type_complexity)]
-    on_theme_change: Vec<Box<dyn Fn(&Theme, &Theme) + Send + Sync>>,
     /// Hooks triggered on canvas interaction mode change.
     ///
     /// See [`SettingsManager::on_canvas_imode_change`] for registration.
@@ -56,7 +51,7 @@ impl<R: Runtime> SettingsManager<R> {
     /// The settings are loaded from disk. If loading fails (which means
     /// corrupted settings), default settings are used. A worker is started
     /// immediately.
-    pub fn new(app_handle: AppHandle<R>) -> Result<Self> {
+    pub(crate) fn new(app_handle: AppHandle<R>) -> Result<Self> {
         let persist_path = app_handle
             .path()
             .app_local_data_dir()?
@@ -99,44 +94,16 @@ impl<R: Runtime> SettingsManager<R> {
         self.settings.read()
     }
 
-    /// Try to get an immutable reference to the current settings.
-    ///
-    /// Same as [`Self::read`], but returns `None` if the read lock cannot be
-    /// acquired immediately. This is useful in scenarios where blocking is not
-    /// acceptable.
-    pub fn try_read(&self) -> Option<RwLockReadGuard<'_, Settings>> {
-        self.settings.try_read()
-    }
-
     /// Get the path where settings are persisted.
     pub fn persist_path(&self) -> &Path {
         &self.persist_path
     }
 
     /// Persist the current settings to disk.
-    pub fn persist(&self) -> Result<()> {
+    pub(crate) fn persist(&self) -> Result<()> {
         let settings = self.settings.read();
         settings.dump(&self.persist_path, &self.schema_url)?;
         Ok(())
-    }
-
-    /// Register a hook that will be triggered on theme change.
-    ///
-    /// The two arguments are respectively the old and new themes.
-    pub fn on_theme_change<F>(&self, hook: F)
-    where
-        F: Fn(&Theme, &Theme) + Send + Sync + 'static,
-    {
-        let mut hooks = self.hooks.write();
-        hooks.on_theme_change.push(Box::new(hook));
-    }
-
-    /// Trigger all registered theme change hooks.
-    pub(crate) fn trigger_theme_hooks(&self, old: &Theme, new: &Theme) {
-        let hooks = self.hooks.read();
-        for hook in &hooks.on_theme_change {
-            hook(old, new);
-        }
     }
 
     /// Register a hook that will be triggered on canvas interaction mode
@@ -214,11 +181,7 @@ impl<R: Runtime> SettingsManager<R> {
         if let Some(theme) = patch.theme
             && settings.theme != theme
         {
-            let old_theme = std::mem::replace(&mut settings.theme, theme.clone());
-            tasks.push(WorkerTask::ThemeChanged {
-                old: old_theme,
-                new: theme,
-            });
+            settings.theme = theme;
             should_emit = true;
         }
 
@@ -246,21 +209,6 @@ impl<R: Runtime> SettingsManager<R> {
                         new: shortcut,
                     });
                     should_emit = true;
-                }
-            }
-        }
-
-        if let Some(widgets) = patch.widgets {
-            for (id, patch) in widgets {
-                match patch {
-                    Some(patch) => {
-                        let widget = settings.widgets.entry(id).or_insert_with(|| {
-                            should_emit = true;
-                            Default::default()
-                        });
-                        should_emit |= widget.apply_patch(patch);
-                    },
-                    None => should_emit |= settings.widgets.remove(&id).is_some(),
                 }
             }
         }

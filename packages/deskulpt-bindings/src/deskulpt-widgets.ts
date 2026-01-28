@@ -8,6 +8,14 @@ import * as TauriEvent from "@tauri-apps/api/event";
 // =============================================================================
 
 /**
+ * The catalog of Deskulpt widgets.
+ * 
+ * This keeps a mapping from widget IDs to their manifests (if valid) or error
+ * messages (if invalid).
+ */
+export type Catalog = { [key in string]: Outcome<Manifest> }
+
+/**
  * Deskulpt window enum.
  */
 export type DeskulptWindow = 
@@ -19,6 +27,64 @@ export type DeskulptWindow =
  * Deskulpt canvas.
  */
 "canvas"
+
+/**
+ * Deskulpt widget manifest.
+ */
+export type Manifest = { 
+/**
+ * The display name of the widget.
+ */
+name: string; 
+/**
+ * The version of the widget.
+ */
+version?: string; 
+/**
+ * The authors of the widget.
+ */
+authors?: ManifestAuthor[]; 
+/**
+ * The license of the widget.
+ */
+license?: string; 
+/**
+ * A short description of the widget.
+ */
+description?: string; 
+/**
+ * URL to the homepage of the widget.
+ */
+homepage?: string }
+
+/**
+ * An author of a Deskulpt widget.
+ */
+export type ManifestAuthor = 
+/**
+ * An extended author with name, email, and homepage.
+ * 
+ * If an object is given, it will be deserialized into this variant.
+ */
+{ 
+/**
+ * The name of the author.
+ */
+name: string; 
+/**
+ * An optional email of the author.
+ */
+email?: string; 
+/**
+ * An optional URL to the homepage of the author.
+ */
+homepage?: string } | 
+/**
+ * The name of the author.
+ * 
+ * If a string is given, it will be deserialized into this variant.
+ */
+string
 
 /**
  * A result-like binary outcome.
@@ -49,7 +115,7 @@ name: string;
 /**
  * The authors of the widget.
  */
-authors: WidgetManifestAuthor[]; 
+authors: ManifestAuthor[]; 
 /**
  * A short description of the widget.
  */
@@ -115,7 +181,7 @@ version?: string;
 /**
  * The authors of the widget.
  */
-authors?: WidgetManifestAuthor[]; 
+authors?: ManifestAuthor[]; 
 /**
  * The license of the widget.
  */
@@ -189,73 +255,7 @@ report: Outcome<string> }
 /**
  * Event for notifying frontend windows of a widget catalog update.
  */
-export type UpdateEvent = WidgetCatalog
-
-/**
- * The catalog of Deskulpt widgets.
- * 
- * This keeps a mapping from widget IDs to their manifests (if valid) or error
- * messages (if invalid).
- */
-export type WidgetCatalog = { [key in string]: Outcome<WidgetManifest> }
-
-/**
- * Deskulpt widget manifest.
- */
-export type WidgetManifest = { 
-/**
- * The display name of the widget.
- */
-name: string; 
-/**
- * The version of the widget.
- */
-version?: string; 
-/**
- * The authors of the widget.
- */
-authors?: WidgetManifestAuthor[]; 
-/**
- * The license of the widget.
- */
-license?: string; 
-/**
- * A short description of the widget.
- */
-description?: string; 
-/**
- * URL to the homepage of the widget.
- */
-homepage?: string }
-
-/**
- * An author of a Deskulpt widget.
- */
-export type WidgetManifestAuthor = 
-/**
- * An extended author with name, email, and homepage.
- * 
- * If an object is given, it will be deserialized into this variant.
- */
-{ 
-/**
- * The name of the author.
- */
-name: string; 
-/**
- * An optional email of the author.
- */
-email?: string; 
-/**
- * An optional URL to the homepage of the author.
- */
-homepage?: string } | 
-/**
- * The name of the author.
- * 
- * If a string is given, it will be deserialized into this variant.
- */
-string
+export type UpdateEvent = Catalog
 
 // =============================================================================
 // Events
@@ -322,7 +322,7 @@ export namespace Commands {
   /**
    * Get the current widget catalog.
    */
-  export const read = () => invoke<WidgetCatalog>("plugin:deskulpt-widgets|read");
+  export const read = () => invoke<Catalog>("plugin:deskulpt-widgets|read");
 
   /**
    * Refresh a specific widget by its ID.

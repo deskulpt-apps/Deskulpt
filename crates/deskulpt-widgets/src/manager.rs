@@ -11,7 +11,7 @@ use parking_lot::{RwLock, RwLockReadGuard};
 use tauri::{AppHandle, Manager, Runtime};
 use tracing::{debug, error, info};
 
-use crate::catalog::{WidgetCatalog, WidgetManifest};
+use crate::catalog::{Catalog, Manifest};
 use crate::events::UpdateEvent;
 use crate::registry::{
     RegistryIndex, RegistryIndexFetcher, RegistryWidgetFetcher, RegistryWidgetPreview,
@@ -26,7 +26,7 @@ pub struct WidgetsManager<R: Runtime> {
     /// The widgets directory.
     dir: PathBuf,
     /// The widget catalog.
-    catalog: RwLock<WidgetCatalog>,
+    catalog: RwLock<Catalog>,
     /// The handle for the render worker.
     render_worker: RenderWorkerHandle,
 }
@@ -61,7 +61,7 @@ impl<R: Runtime> WidgetsManager<R> {
     }
 
     /// Get an immutable reference to the current widget catalog.
-    pub fn read(&self) -> RwLockReadGuard<'_, WidgetCatalog> {
+    pub fn read(&self) -> RwLockReadGuard<'_, Catalog> {
         self.catalog.read()
     }
 
@@ -73,7 +73,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// the updated catalog. If any step fails, an error is returned.
     pub fn reload(&self, id: &str) -> Result<()> {
         let widget_dir = self.dir.join(id);
-        let manifest = WidgetManifest::load(&widget_dir);
+        let manifest = Manifest::load(&widget_dir);
 
         let mut catalog = self.catalog.write();
         if let Some(manifest) = manifest.transpose() {
@@ -83,9 +83,9 @@ impl<R: Runtime> WidgetsManager<R> {
         }
         UpdateEvent(&catalog).emit(&self.app_handle)?;
 
-        self.app_handle
-            .settings()
-            .update_with(|settings| catalog.compute_settings_patch(settings))?;
+        // self.app_handle
+        //     .settings()
+        //     .update_with(|settings| catalog.compute_settings_patch(settings))?;
         Ok(())
     }
 
@@ -95,15 +95,15 @@ impl<R: Runtime> WidgetsManager<R> {
     /// replaces the existing catalog. It then syncs the settings with the
     /// updated catalog. If any step fails, an error is returned.
     pub fn reload_all(&self) -> Result<()> {
-        let new_catalog = WidgetCatalog::load(&self.dir)?;
+        let new_catalog = Catalog::load(&self.dir)?;
 
         let mut catalog = self.catalog.write();
         *catalog = new_catalog;
         UpdateEvent(&catalog).emit(&self.app_handle)?;
 
-        self.app_handle
-            .settings()
-            .update_with(|settings| catalog.compute_settings_patch(settings))?;
+        // self.app_handle
+        //     .settings()
+        //     .update_with(|settings| catalog.compute_settings_patch(settings))?;
         Ok(())
     }
 

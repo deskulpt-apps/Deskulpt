@@ -10,10 +10,12 @@ mod events;
 mod manager;
 mod registry;
 mod render;
+pub mod settings;
 
-pub use manager::WidgetsManager;
 use tauri::plugin::TauriPlugin;
 use tauri::{Manager, Runtime};
+
+pub use crate::manager::WidgetsManager;
 
 deskulpt_common::bindings::build_bindings!();
 

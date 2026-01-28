@@ -8,7 +8,7 @@ use reqwest::{Client, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, instrument, warn};
 
-use crate::catalog::WidgetManifestAuthor;
+use crate::catalog::ManifestAuthor;
 
 /// An entry for a specific release of a widget in the registry.
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
@@ -38,7 +38,7 @@ struct RegistryEntry {
     /// The name of the widget.
     name: String,
     /// The authors of the widget.
-    authors: Vec<WidgetManifestAuthor>,
+    authors: Vec<ManifestAuthor>,
     /// A short description of the widget.
     description: String,
     /// The releases of the widget, ordered from newest to oldest.

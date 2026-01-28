@@ -5,13 +5,13 @@ use deskulpt_common::SerResult;
 use tauri::{AppHandle, Runtime};
 
 use crate::WidgetsExt;
-use crate::catalog::WidgetCatalog;
+use crate::catalog::Catalog;
 use crate::registry::{RegistryIndex, RegistryWidgetPreview, RegistryWidgetReference};
 
 /// Get the current widget catalog.
 #[tauri::command]
 #[specta::specta]
-pub async fn read<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<WidgetCatalog> {
+pub async fn read<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Catalog> {
     let catalog = app_handle.widgets().read().clone();
     Ok(catalog)
 }

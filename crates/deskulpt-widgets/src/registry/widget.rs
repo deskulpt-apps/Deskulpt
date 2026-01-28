@@ -13,7 +13,7 @@ use tokio::io::BufReader;
 use tokio_tar::Archive;
 use tokio_util::io::StreamReader;
 
-use crate::catalog::WidgetManifest;
+use crate::catalog::Manifest;
 
 /// A reference to a widget in the registry.
 ///
@@ -79,7 +79,7 @@ pub struct RegistryWidgetPreview {
     git: Option<String>,
     /// More information as in the widget manifest.
     #[serde(flatten)]
-    manifest: WidgetManifest,
+    manifest: Manifest,
 }
 
 /// A fetcher for widgets from the registry.

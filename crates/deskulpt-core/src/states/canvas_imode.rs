@@ -191,36 +191,37 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
         #[cfg(not(target_os = "macos"))]
         let scaled_y = (y - canvas_layout.y) * canvas_layout.inv_scale;
 
-        let settings = match canvas.settings().try_read() {
-            Some(settings) => settings,
-            None => return, // Avoid blocking
-        };
-        let mouse_over_widget = settings.widgets.values().any(|widget| {
-            scaled_x >= widget.x as f64
-                && scaled_x < widget.x as f64 + widget.width as f64
-                && scaled_y >= widget.y as f64
-                && scaled_y < widget.y as f64 + widget.height as f64
-        });
+        // let settings = match canvas.settings().try_read() {
+        //     Some(settings) => settings,
+        //     None => return, // Avoid blocking
+        // };
+        // let mouse_over_widget = settings.widgets.values().any(|widget| {
+        //     scaled_x >= widget.x as f64
+        //         && scaled_x < widget.x as f64 + widget.width as f64
+        //         && scaled_y >= widget.y as f64
+        //         && scaled_y < widget.y as f64 + widget.height as f64
+        // });
 
-        // Avoid redundant calls by checking if the state has really changed
-        let should_ignore_cursor = !mouse_over_widget;
-        if should_ignore_cursor != is_cursor_ignored {
-            // Check the flag with read lock acquired to avoid racing with the
-            // writers on setting `ignore_cursor_events`
-            let state = canvas.state::<CanvasImodeState>();
-            let _guard = match state.lock.try_read() {
-                Some(guard) => guard,
-                None => return, // Avoid blocking
-            };
+        // // Avoid redundant calls by checking if the state has really changed
+        // let should_ignore_cursor = !mouse_over_widget;
+        // if should_ignore_cursor != is_cursor_ignored {
+        //     // Check the flag with read lock acquired to avoid racing with
+        // the     // writers on setting `ignore_cursor_events`
+        //     let state = canvas.state::<CanvasImodeState>();
+        //     let _guard = match state.lock.try_read() {
+        //         Some(guard) => guard,
+        //         None => return, // Avoid blocking
+        //     };
 
-            if !LISTENING_MOUSEMOVE.load(Ordering::Acquire) {
-                return;
-            }
-            is_cursor_ignored = should_ignore_cursor;
-            if let Err(e) = canvas.set_ignore_cursor_events(should_ignore_cursor) {
-                eprintln!("Failed to set cursor events state: {e}");
-            }
-        }
+        //     if !LISTENING_MOUSEMOVE.load(Ordering::Acquire) {
+        //         return;
+        //     }
+        //     is_cursor_ignored = should_ignore_cursor;
+        //     if let Err(e) =
+        // canvas.set_ignore_cursor_events(should_ignore_cursor) {
+        //         eprintln!("Failed to set cursor events state: {e}");
+        //     }
+        // }
     })?;
 
     Ok(())

@@ -7,18 +7,12 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use deskulpt_common::outcome::Outcome;
-use deskulpt_settings::types::{Settings, SettingsPatch};
 use serde::{Deserialize, Serialize};
-
-/// The name of the Deskulpt widget manifest file.
-///
-/// A directory containing this file is considered a Deskulpt widget.
-const WIDGET_MANIFEST_FILE: &str = "deskulpt.widget.json";
 
 /// An author of a Deskulpt widget.
 #[derive(Clone, Debug, Deserialize, Serialize, specta::Type)]
 #[serde(untagged)]
-pub enum WidgetManifestAuthor {
+pub enum ManifestAuthor {
     /// An extended author with name, email, and homepage.
     ///
     /// If an object is given, it will be deserialized into this variant.
@@ -44,7 +38,7 @@ pub enum WidgetManifestAuthor {
 /// Deskulpt widget manifest.
 #[derive(Clone, Debug, Default, Deserialize, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct WidgetManifest {
+pub struct Manifest {
     /// The display name of the widget.
     pub name: String,
     /// The version of the widget.
@@ -53,8 +47,8 @@ pub struct WidgetManifest {
     pub version: Option<String>,
     /// The authors of the widget.
     #[serde(default, skip_serializing_if = "Option::is_none")]
-    #[specta(type = Vec<WidgetManifestAuthor>)]
-    pub authors: Option<Vec<WidgetManifestAuthor>>,
+    #[specta(type = Vec<ManifestAuthor>)]
+    pub authors: Option<Vec<ManifestAuthor>>,
     /// The license of the widget.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[specta(type = String)]
@@ -80,7 +74,12 @@ pub struct WidgetManifest {
     pub ignore: bool,
 }
 
-impl WidgetManifest {
+impl Manifest {
+    /// The name of the widget manifest file.
+    ///
+    /// A directory containing this file is considered a Deskulpt widget.
+    const FILE_NAME: &str = "deskulpt.widget.json";
+
     /// Load the widget manifest from a directory.
     ///
     /// This method returns `Ok(None)` if the directory is **NOT A WIDGET**,
@@ -93,7 +92,7 @@ impl WidgetManifest {
     /// the result of this method, so that non-widget directories can be
     /// filtered out without nested pattern matching.
     pub fn load(dir: &Path) -> Result<Option<Self>> {
-        let path = dir.join(WIDGET_MANIFEST_FILE);
+        let path = dir.join(Self::FILE_NAME);
         if !path.exists() {
             return Ok(None);
         }
@@ -114,9 +113,9 @@ impl WidgetManifest {
 /// This keeps a mapping from widget IDs to their manifests (if valid) or error
 /// messages (if invalid).
 #[derive(Clone, Debug, Default, Serialize, specta::Type)]
-pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetManifest>>);
+pub struct Catalog(pub BTreeMap<String, Outcome<Manifest>>);
 
-impl WidgetCatalog {
+impl Catalog {
     /// Load the widget catalog from a directory.
     ///
     /// This scans all top-level subdirectories and attempts to load them as
@@ -136,7 +135,7 @@ impl WidgetCatalog {
                 continue; // Non-directory entries are not widgets, skip
             }
 
-            if let Some(manifest) = WidgetManifest::load(&path).transpose() {
+            if let Some(manifest) = Manifest::load(&path).transpose() {
                 // Since each widget must be at the top level of the widgets
                 // directory, the directory names must be unique and we can use
                 // them as widget IDs
@@ -146,41 +145,5 @@ impl WidgetCatalog {
         }
 
         Ok(catalog)
-    }
-
-    /// Compute a settings patch to synchronize with the catalog.
-    ///
-    /// This method compares the given widget settings with catalog and
-    /// generates a patch such that:
-    ///
-    /// - If a widget exists in the settings but not in the catalog, it will be
-    ///   removed from the settings.
-    /// - If a widget exists in the catalog but not in the settings, it will be
-    ///   added to the settings with an empty patch, which results in default
-    ///   settings.
-    /// - If a widget exists in both, no changes are made.
-    pub fn compute_settings_patch(&self, settings: &Settings) -> SettingsPatch {
-        let mut patches = BTreeMap::new();
-
-        for e in itertools::merge_join_by(
-            settings.widgets.iter(), // settings (to be synced)
-            self.0.iter(),           // catalog (truth)
-            |(a, _), (b, _)| a.cmp(b),
-        ) {
-            match e {
-                itertools::EitherOrBoth::Left((id, _)) => {
-                    patches.insert(id.clone(), None);
-                },
-                itertools::EitherOrBoth::Right((id, _)) => {
-                    patches.insert(id.clone(), Some(Default::default()));
-                },
-                itertools::EitherOrBoth::Both(_, _) => {},
-            }
-        }
-
-        SettingsPatch {
-            widgets: Some(patches),
-            ..Default::default()
-        }
     }
 }

@@ -1,7 +1,6 @@
 //! Deskulpt system tray.
 
 use anyhow::Result;
-use deskulpt_settings::SettingsExt;
 use tauri::menu::{MenuBuilder, MenuEvent, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use tauri::{App, AppHandle, Manager, Runtime};
@@ -56,14 +55,7 @@ fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
                 error!("Failed to open Deskulpt portal: {e}");
             }
         },
-        "tray-exit" => {
-            if let Err(e) = app_handle.settings().persist() {
-                error!("Failed to persist settings before exit: {e}");
-                app_handle.exit(1);
-                return;
-            }
-            app_handle.exit(0);
-        },
+        "tray-exit" => app_handle.exit(0),
         _ => {},
     }
 }

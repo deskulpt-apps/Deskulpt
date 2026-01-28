@@ -10,9 +10,10 @@ mod manager;
 pub mod types;
 mod worker;
 
-pub use manager::SettingsManager;
 use tauri::plugin::TauriPlugin;
 use tauri::{Manager, Runtime};
+
+pub use crate::manager::SettingsManager;
 
 deskulpt_common::bindings::build_bindings!();
 
@@ -22,6 +23,12 @@ pub fn init<R: Runtime>() -> TauriPlugin<R> {
         .setup(|app_handle, _| {
             app_handle.manage(SettingsManager::new(app_handle.clone())?);
             Ok(())
+        })
+        .on_event(|app_handle, event| match event {
+            tauri::RunEvent::ExitRequested { .. } => {
+                let _ = app_handle.settings().persist();
+            },
+            _ => {},
         })
         .build()
 }

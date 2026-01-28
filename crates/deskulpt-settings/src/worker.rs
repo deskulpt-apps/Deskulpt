@@ -10,14 +10,14 @@ use tokio::time::{Instant, Sleep};
 use tracing::error;
 
 use crate::SettingsExt;
-use crate::types::{CanvasImode, ShortcutAction, Theme};
+use crate::types::{CanvasImode, ShortcutAction};
 
 /// Debounce duration for [`WorkerTask::Persist`].
 const PERSIST_DEBOUNCE: Duration = Duration::from_millis(500);
 
 /// Tasks that the worker can process.
 #[derive(Debug)]
-pub enum WorkerTask {
+pub(crate) enum WorkerTask {
     /// Persist settings to disk.
     ///
     /// The worker will debounce frequent persist requests within the duration
@@ -25,10 +25,6 @@ pub enum WorkerTask {
     /// Note that if the channel is closed unexpectedly, pending persists may be
     /// lost.
     Persist,
-    /// Theme has changed.
-    ///
-    /// The worker will trigger all hooks on theme change.
-    ThemeChanged { old: Theme, new: Theme },
     /// Canvas interaction mode has changed.
     ///
     /// The worker will trigger all hooks on canvas interaction mode change.
@@ -100,9 +96,6 @@ impl<R: Runtime> Worker<R> {
                     .as_mut()
                     .reset(Instant::now() + PERSIST_DEBOUNCE);
             },
-            WorkerTask::ThemeChanged { old, new } => {
-                self.app_handle.settings().trigger_theme_hooks(&old, &new);
-            },
             WorkerTask::CanvasImodeChanged { old, new } => {
                 self.app_handle
                     .settings()
@@ -120,7 +113,7 @@ impl<R: Runtime> Worker<R> {
 }
 
 /// Handle for communicating with the worker.
-pub struct WorkerHandle(mpsc::UnboundedSender<WorkerTask>);
+pub(crate) struct WorkerHandle(mpsc::UnboundedSender<WorkerTask>);
 
 impl WorkerHandle {
     /// Create a new [`WorkerHandle`] instance.
@@ -128,7 +121,7 @@ impl WorkerHandle {
     /// This immediately spawns a dedicated worker on Tauri's singleton async
     /// runtime that listens for incoming [`WorkerTask`]s and processes them
     /// asynchronously in order.
-    pub fn new<R: Runtime>(app_handle: AppHandle<R>) -> Self {
+    pub(crate) fn new<R: Runtime>(app_handle: AppHandle<R>) -> Self {
         let (tx, rx) = mpsc::unbounded_channel();
         tauri::async_runtime::spawn(async move {
             Worker::new(app_handle, rx).run().await;
@@ -141,7 +134,7 @@ impl WorkerHandle {
     /// This does not block. The task is sent to the worker for asynchronous
     /// processing and does not wait for completion. An error is returned only
     /// if task submission fails, but not if task processing fails.
-    pub fn process(&self, task: WorkerTask) -> Result<()> {
+    pub(crate) fn process(&self, task: WorkerTask) -> Result<()> {
         Ok(self.0.send(task)?)
     }
 }
