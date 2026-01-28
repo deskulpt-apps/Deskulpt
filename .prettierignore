@@ -5,3 +5,4 @@ Cargo.lock
 # Auto-generated files
 gen/
 packages/deskulpt-bindings/src/
+resources/schema/
