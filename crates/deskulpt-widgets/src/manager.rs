@@ -203,7 +203,11 @@ impl<R: Runtime> WidgetsManager<R> {
         let mut has_error = false;
         for widget in ["welcome"] {
             let widget_id = format!("@deskulpt-starter.{widget}");
-            let src = resource_dir.join(format!("resources/widgets/starter/{widget}"));
+            let src = resource_dir
+                .join("resources")
+                .join("widgets")
+                .join("starter")
+                .join(widget);
             let dst = self.dir.join(&widget_id);
             if dst.exists() {
                 debug!(%widget_id, "Starter widget already exists, skipping");

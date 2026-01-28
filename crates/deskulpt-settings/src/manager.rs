@@ -2,11 +2,12 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{Result, bail};
+use anyhow::{Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use parking_lot::{RwLock, RwLockReadGuard};
 use tauri::{AppHandle, Manager, Runtime};
 use tracing::error;
+use url::Url;
 
 use crate::CanvasImode;
 use crate::events::UpdateEvent;
@@ -46,6 +47,8 @@ pub struct SettingsManager<R: Runtime> {
     app_handle: AppHandle<R>,
     /// The path where settings are persisted.
     persist_path: PathBuf,
+    /// The URL to the settings schema file.
+    schema_url: String,
     /// The Deskulpt settings.
     settings: RwLock<Settings>,
     /// The handle for the worker.
@@ -71,11 +74,22 @@ impl<R: Runtime> SettingsManager<R> {
             Default::default()
         });
 
+        let schema_path = app_handle
+            .path()
+            .resource_dir()?
+            .join("resources")
+            .join("schema")
+            .join("settings.json");
+        let schema_url = Url::from_file_path(&schema_path)
+            .map_err(|_| anyhow!("Failed to convert to URL: {}", schema_path.display()))?
+            .to_string();
+
         let worker = WorkerHandle::new(app_handle.clone());
 
         Ok(Self {
             app_handle,
             persist_path,
+            schema_url,
             settings: RwLock::new(settings),
             worker,
             hooks: RwLock::new(Default::default()),
@@ -109,7 +123,7 @@ impl<R: Runtime> SettingsManager<R> {
     /// Persist the current settings to disk.
     pub fn persist(&self) -> Result<()> {
         let settings = self.settings.read();
-        settings.dump(&self.persist_path)?;
+        settings.dump(&self.persist_path, &self.schema_url)?;
         Ok(())
     }
 

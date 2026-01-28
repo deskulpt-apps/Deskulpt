@@ -22,6 +22,7 @@ specta          = { workspace = true, features = ["derive", "function", "serde_j
 tauri           = { workspace = true, features = ["specta"] }
 tokio           = { workspace = true }
 tracing         = { workspace = true }
+url             = { workspace = true }
 
 [build-dependencies]
 deskulpt-build = { workspace = true }

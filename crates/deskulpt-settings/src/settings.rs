@@ -256,17 +256,14 @@ impl Settings {
     /// The provided path will be created if it does not exist. The settings
     /// will be serialized in pretty JSON format with `$schema` metadata for
     /// human readability and editor support.
-    pub fn dump(&self, path: &Path) -> Result<()> {
+    pub fn dump(&self, path: &Path, schema_url: &str) -> Result<()> {
         #[derive(Serialize)]
         struct SettingsWithMeta<'a> {
             #[serde(rename = "$schema")]
-            schema: &'static str,
+            schema: &'a str,
             #[serde(flatten)]
             settings: &'a Settings,
         }
-
-        const SETTINGS_SCHEMA_URL: &str =
-            "https://deskulpt-apps.github.io/gen/settings-schema.json";
 
         if let Some(parent) = path.parent()
             && !parent.as_os_str().is_empty()
@@ -277,7 +274,7 @@ impl Settings {
         let file = File::create(path)?;
         let writer = BufWriter::new(file);
         let settings = SettingsWithMeta {
-            schema: SETTINGS_SCHEMA_URL,
+            schema: schema_url,
             settings: self,
         };
         serde_json::to_writer_pretty(writer, &settings)?;
