@@ -8,7 +8,7 @@ import { toast } from "sonner";
 type InstallationStatus = "installed" | "not-installed" | "upgrade-available";
 
 export function useInstallWidget(
-  reference: DeskulptWidgets.RegistryWidgetReference,
+  reference: DeskulptWidgets.WidgetReference,
   version: string,
 ) {
   const localId = `@${reference.handle}.${reference.id}`;
@@ -21,8 +21,8 @@ export function useInstallWidget(
   if (localWidget === undefined) {
     status = "not-installed";
   } else if (
-    localWidget.type === "ok" &&
-    localWidget.content.version === version
+    localWidget.manifest.type === "ok" &&
+    localWidget.manifest.content.version === version
   ) {
     status = "installed";
   } else {

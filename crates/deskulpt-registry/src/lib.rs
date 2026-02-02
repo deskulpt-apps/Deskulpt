@@ -5,39 +5,35 @@
 )]
 
 mod commands;
-mod events;
+mod index;
 mod manager;
-mod model;
-mod refresh;
-mod registry;
-mod render;
-mod settings;
+mod widget;
 
 use tauri::plugin::TauriPlugin;
 use tauri::{Manager, Runtime};
 
-pub use crate::manager::WidgetsManager;
+pub use crate::manager::RegistryManager;
 
 deskulpt_common::bindings::build_bindings!();
 
-/// Initialize the internal Deskulpt widgets plugin.
+/// Initialize the internal Deskulpt registry plugin.
 pub fn init<R: Runtime>() -> TauriPlugin<R> {
     deskulpt_common::init::init_builder!()
         .setup(|app_handle, _| {
-            app_handle.manage(WidgetsManager::new(app_handle.clone())?);
+            app_handle.manage(RegistryManager::new(app_handle.clone())?);
             Ok(())
         })
         .build()
 }
 
-/// Extension to [`Manager`] for accessing Deskulpt widgets APIs.
-pub trait WidgetsExt<R: Runtime> {
+/// Extension to [`Manager`] for accessing Deskulpt registry APIs.
+pub trait RegistryExt<R: Runtime> {
     /// Get a reference to the [`WidgetsManager`] to access the APIs.
-    fn widgets(&self) -> &WidgetsManager<R>;
+    fn registry(&self) -> &RegistryManager<R>;
 }
 
-impl<R: Runtime, M: Manager<R>> WidgetsExt<R> for M {
-    fn widgets(&self) -> &WidgetsManager<R> {
-        self.state::<WidgetsManager<R>>().inner()
+impl<R: Runtime, M: Manager<R>> RegistryExt<R> for M {
+    fn registry(&self) -> &RegistryManager<R> {
+        self.state::<RegistryManager<R>>().inner()
     }
 }

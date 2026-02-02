@@ -16,7 +16,7 @@ const WidgetCard = ({ index }: WidgetCardProps) => {
     .join(", ");
 
   const latestRelease = widget.releases.at(0);
-  let reference: DeskulptWidgets.RegistryWidgetReference | undefined;
+  let reference: DeskulptWidgets.WidgetReference | undefined;
   if (latestRelease !== undefined) {
     reference = {
       handle: widget.handle,

@@ -1,7 +1,7 @@
 [package]
-description = "Deskulpt widgets management."
-links       = "deskulpt-widgets"
-name        = "deskulpt-widgets"
+description = "Deskulpt widgets and plugins registry utilities."
+links       = "deskulpt-registry"
+name        = "deskulpt-registry"
 
 authors    = { workspace = true }
 edition    = { workspace = true }
@@ -12,23 +12,18 @@ version    = { workspace = true }
 
 [dependencies]
 anyhow            = { workspace = true }
-copy_dir          = { workspace = true }
+astral-tokio-tar  = { workspace = true }
+async-compression = { workspace = true, features = ["tokio", "gzip"] }
 deskulpt-common   = { workspace = true }
 deskulpt-manifest = { workspace = true }
-deskulpt-registry = { workspace = true }
-deskulpt-settings = { workspace = true }
-dunce             = { workspace = true }
-either            = { workspace = true }
-parking_lot       = { workspace = true }
-rolldown          = { workspace = true }
-rolldown_common   = { workspace = true }
-schemars          = { workspace = true }
+oci-client        = { workspace = true }
+reqwest           = { workspace = true, features = ["json", "gzip"] }
 serde             = { workspace = true, features = ["derive"] }
 serde_json        = { workspace = true }
-serde_with        = { workspace = true }
-specta            = { workspace = true, features = ["derive", "function", "serde_json"] }
+specta            = { workspace = true, features = ["function"] }
 tauri             = { workspace = true, features = ["specta"] }
 tokio             = { workspace = true }
+tokio-util        = { workspace = true }
 tracing           = { workspace = true }
 
 [build-dependencies]

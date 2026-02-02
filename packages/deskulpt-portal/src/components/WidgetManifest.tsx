@@ -16,7 +16,7 @@ const styles = {
   }),
 };
 
-function displayAuthors(authors: DeskulptWidgets.WidgetManifestAuthor[]) {
+function displayAuthors(authors: DeskulptWidgets.ManifestAuthor[]) {
   return authors.flatMap((author, index) => {
     const nodes = [];
     if (index > 0) {
@@ -47,14 +47,14 @@ function displayAuthors(authors: DeskulptWidgets.WidgetManifestAuthor[]) {
       });
     }
 
-    if (author.homepage === undefined) {
+    if (author.url === undefined) {
       nodes.push({
         node: <Text>{author.name}</Text>,
         key: `author-${index}`,
       });
     } else {
       nodes.push({
-        node: <Link href={author.homepage}>{author.name}</Link>,
+        node: <Link href={author.url}>{author.name}</Link>,
         key: `author-${index}`,
       });
     }
@@ -72,7 +72,7 @@ function displayUrl(url: string) {
 }
 
 interface WidgetManifestProps {
-  manifest: DeskulptWidgets.WidgetManifest;
+  manifest: DeskulptWidgets.Manifest;
 }
 
 const WidgetManifest = ({ manifest }: WidgetManifestProps) => {

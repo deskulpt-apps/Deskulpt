@@ -5,21 +5,18 @@ import { useShallow } from "zustand/shallow";
 import {
   useInitialRefresh,
   useRenderWidgetListener,
-  useSettingsStore,
   useShowToastListener,
-  useUpdateSettingsListener,
-  useUpdateWidgetCatalogListener,
+  useUpdateWidgetsListener,
   useWidgetsStore,
 } from "./hooks";
 
 const App = () => {
-  const theme = useSettingsStore((state) => state.theme);
+  const theme = window.__DESKULPT_INTERNALS__.initialSettings.theme;
   const ids = useWidgetsStore(useShallow((state) => Object.keys(state)));
 
   useRenderWidgetListener();
   useShowToastListener();
-  useUpdateSettingsListener();
-  useUpdateWidgetCatalogListener();
+  useUpdateWidgetsListener();
 
   useInitialRefresh();
 

@@ -8,9 +8,9 @@ import { toast } from "sonner";
 import { useWidgetsGalleryStore } from "../../hooks";
 
 interface WidgetSecondaryActionsProps {
-  reference: DeskulptWidgets.RegistryWidgetReference;
+  reference: DeskulptWidgets.WidgetReference;
   version: string;
-  releases: DeskulptWidgets.RegistryEntryRelease[];
+  releases: DeskulptWidgets.IndexEntryRelease[];
 }
 
 const WidgetSecondaryActions = ({

@@ -8,14 +8,6 @@ import * as TauriEvent from "@tauri-apps/api/event";
 // =============================================================================
 
 /**
- * The catalog of Deskulpt widgets.
- * 
- * This keeps a mapping from widget IDs to their manifests (if valid) or error
- * messages (if invalid).
- */
-export type Catalog = { [key in string]: Outcome<Manifest> }
-
-/**
  * Deskulpt window enum.
  */
 export type DeskulptWindow = 
@@ -29,75 +21,26 @@ export type DeskulptWindow =
 "canvas"
 
 /**
- * Deskulpt widget manifest.
+ * The widgets registry index.
  */
-export type Manifest = { 
+export type Index = { 
 /**
- * The display name of the widget.
+ * The API version.
  */
-name: string; 
+api: number; 
 /**
- * The version of the widget.
+ * The datetime when the index was generated, in ISO 8601 format.
  */
-version?: string; 
+generatedAt: string; 
 /**
- * The authors of the widget.
+ * The list of widgets in the registry.
  */
-authors?: ManifestAuthor[]; 
-/**
- * The license of the widget.
- */
-license?: string; 
-/**
- * A short description of the widget.
- */
-description?: string; 
-/**
- * URL to the homepage of the widget.
- */
-homepage?: string }
-
-/**
- * An author of a Deskulpt widget.
- */
-export type ManifestAuthor = 
-/**
- * An extended author with name, email, and homepage.
- * 
- * If an object is given, it will be deserialized into this variant.
- */
-{ 
-/**
- * The name of the author.
- */
-name: string; 
-/**
- * An optional email of the author.
- */
-email?: string; 
-/**
- * An optional URL to the homepage of the author.
- */
-homepage?: string } | 
-/**
- * The name of the author.
- * 
- * If a string is given, it will be deserialized into this variant.
- */
-string
-
-/**
- * A result-like binary outcome.
- * 
- * This represents the outcome of an operation that can either succeed with a
- * value of type `T` or fail with an error message.
- */
-export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
+widgets: IndexEntry[] }
 
 /**
  * An entry for a widget in the registry.
  */
-export type RegistryEntry = { 
+export type IndexEntry = { 
 /**
  * The publisher handle.
  */
@@ -123,12 +66,12 @@ description: string;
 /**
  * The releases of the widget, ordered from newest to oldest.
  */
-releases: RegistryEntryRelease[] }
+releases: IndexEntryRelease[] }
 
 /**
  * An entry for a specific release of a widget in the registry.
  */
-export type RegistryEntryRelease = { 
+export type IndexEntryRelease = { 
 /**
  * The version string of the release.
  */
@@ -146,52 +89,131 @@ publishedAt: string;
 digest: string }
 
 /**
- * The widgets registry index.
+ * Author information in a manifest.
  */
-export type RegistryIndex = { 
+export type ManifestAuthor = 
 /**
- * The API version.
+ * The name of the author.
+ * 
+ * If a string is given, it will be deserialized into this variant.
  */
-api: number; 
+string | 
 /**
- * The datetime when the index was generated, in ISO 8601 format.
+ * An extended author with name, email, and homepage.
+ * 
+ * If an object is given, it will be deserialized into this variant.
  */
-generatedAt: string; 
+{ 
 /**
- * The list of widgets in the registry.
+ * The name of the author.
  */
-widgets: RegistryEntry[] }
+name: string; 
+/**
+ * An optional email of the author.
+ */
+email?: string; 
+/**
+ * An optional URL to the homepage of the author.
+ */
+url?: string }
+
+/**
+ * A result-like binary outcome.
+ * 
+ * This represents the outcome of an operation that can either succeed with a
+ * value of type `T` or fail with an error message.
+ */
+export type Outcome<T> = { type: "ok"; content: T } | { type: "err"; content: string }
+
+/**
+ * Event for reporting the rendering result of a widget to the canvas.
+ */
+export type RenderEvent = { 
+/**
+ * The ID of the widget.
+ */
+id: string; 
+/**
+ * Either the code string to render or a bundling error message.
+ */
+report: Outcome<string> }
+
+/**
+ * Event for notifying frontend windows of a widget catalog update.
+ */
+export type UpdateEvent = Widgets
+
+export type Widget = { manifest: Outcome<WidgetManifest>; settings: WidgetSettings }
+
+/**
+ * Deskulpt widget manifest.
+ */
+export type WidgetManifest = 
+/**
+ * The metadata of the widget.
+ */
+({ 
+/**
+ * The display name of the item.
+ */
+name: string; 
+/**
+ * The version of the item.
+ */
+version?: string; 
+/**
+ * The authors of the item.
+ */
+authors?: ManifestAuthor[]; 
+/**
+ * The license of the item.
+ */
+license?: string; 
+/**
+ * A short description of the item.
+ */
+description?: string; 
+/**
+ * URL to the homepage of the item.
+ */
+homepage?: string }) & { 
+/**
+ * The entry module of the widget that exports the widget component.
+ * 
+ * This is a path relative to the root of the widget.
+ */
+entry: string }
 
 /**
  * Preview information about a widget in the registry.
  */
-export type RegistryWidgetPreview = 
+export type WidgetPreview = 
 /**
- * More information as in the widget manifest.
+ * More metadata in the widget manifest.
  */
 ({ 
 /**
- * The display name of the widget.
+ * The display name of the item.
  */
 name: string; 
 /**
- * The version of the widget.
+ * The version of the item.
  */
 version?: string; 
 /**
- * The authors of the widget.
+ * The authors of the item.
  */
 authors?: ManifestAuthor[]; 
 /**
- * The license of the widget.
+ * The license of the item.
  */
 license?: string; 
 /**
- * A short description of the widget.
+ * A short description of the item.
  */
 description?: string; 
 /**
- * URL to the homepage of the widget.
+ * URL to the homepage of the item.
  */
 homepage?: string }) & { 
 /**
@@ -223,7 +245,7 @@ git?: string }
  * These information uniquely and immutably identify a widget package in the
  * widgets registry.
  */
-export type RegistryWidgetReference = { 
+export type WidgetReference = { 
 /**
  * The publisher handle.
  */
@@ -240,22 +262,76 @@ id: string;
 digest: string }
 
 /**
- * Event for reporting the rendering result of a widget to the canvas.
+ * Per-widget settings.
  */
-export type RenderEvent = { 
+export type WidgetSettings = { 
 /**
- * The ID of the widget.
+ * The leftmost x-coordinate in pixels.
  */
-id: string; 
+x: number; 
 /**
- * Either the code string to render or a bundling error message.
+ * The topmost y-coordinate in pixels.
  */
-report: Outcome<string> }
+y: number; 
+/**
+ * The width in pixels.
+ */
+width: number; 
+/**
+ * The height in pixels.
+ */
+height: number; 
+/**
+ * The opacity in percentage.
+ */
+opacity: number; 
+/**
+ * The z-index.
+ * 
+ * Higher z-index means the widget will be rendered above those with lower
+ * z-index. Widgets with the same z-index can have arbitrary rendering
+ * order. The allowed range is from -999 to 999.
+ */
+zIndex: number; 
+/**
+ * Whether the widget should be loaded on the canvas or not.
+ */
+isLoaded: boolean }
 
 /**
- * Event for notifying frontend windows of a widget catalog update.
+ * A patch for partial updates to [`Settings`].
  */
-export type UpdateEvent = Catalog
+export type WidgetSettingsPatch = { 
+/**
+ * If not `None`, update [`Settings::x`].
+ */
+x?: number; 
+/**
+ * If not `None`, update [`Settings::y`].
+ */
+y?: number; 
+/**
+ * If not `None`, update [`Settings::width`].
+ */
+width?: number; 
+/**
+ * If not `None`, update [`Settings::height`].
+ */
+height?: number; 
+/**
+ * If not `None`, update [`Settings::opacity`].
+ */
+opacity?: number; 
+/**
+ * If not `None`, update [`Settings::z_index`].
+ */
+zIndex?: number; 
+/**
+ * If not `None`, update [`Settings::is_loaded`].
+ */
+isLoaded?: boolean }
+
+export type Widgets = { [key in string]: Widget }
 
 // =============================================================================
 // Events
@@ -289,77 +365,55 @@ export namespace Events {
 // =============================================================================
 
 export namespace Commands {
-  /**
-   * Fetch the widgets registry index.
-   * 
-   * This command is a wrapper of
-   * [`crate::WidgetsManager::fetch_registry_index`].
-   */
-  export const fetchRegistryIndex = () => invoke<RegistryIndex>("plugin:deskulpt-widgets|fetch_registry_index");
 
-  /**
-   * Install a widget from the registry.
-   * 
-   * This command is a wrapper of [`crate::WidgetsManager::install`].
-   */
+  export const fetchRegistryIndex = () => invoke<Index>("plugin:deskulpt-widgets|fetch_registry_index");
+
+
   export const install = (
-    widget: RegistryWidgetReference,
+    widget: WidgetReference,
   ) => invoke<null>("plugin:deskulpt-widgets|install", {
     widget,
   });
 
-  /**
-   * Preview a widget from the registry.
-   * 
-   * This command is a wrapper of [`crate::WidgetsManager::preview`].
-   */
+
   export const preview = (
-    widget: RegistryWidgetReference,
-  ) => invoke<RegistryWidgetPreview>("plugin:deskulpt-widgets|preview", {
+    widget: WidgetReference,
+  ) => invoke<WidgetPreview>("plugin:deskulpt-widgets|preview", {
     widget,
   });
 
-  /**
-   * Get the current widget catalog.
-   */
-  export const read = () => invoke<Catalog>("plugin:deskulpt-widgets|read");
 
-  /**
-   * Refresh a specific widget by its ID.
-   * 
-   * This command is a wrapper of [`crate::WidgetsManager::refresh`].
-   */
+  export const read = () => invoke<Widgets>("plugin:deskulpt-widgets|read");
+
+
   export const refresh = (
     id: string,
   ) => invoke<null>("plugin:deskulpt-widgets|refresh", {
     id,
   });
 
-  /**
-   * Refresh all widgets.
-   * 
-   * This command is a wrapper of [`crate::WidgetsManager::refresh_all`].
-   */
+
   export const refreshAll = () => invoke<null>("plugin:deskulpt-widgets|refresh_all");
 
-  /**
-   * Uninstall a widget from the registry.
-   * 
-   * This command is a wrapper of [`crate::WidgetsManager::uninstall`].
-   */
+
   export const uninstall = (
-    widget: RegistryWidgetReference,
+    widget: WidgetReference,
   ) => invoke<null>("plugin:deskulpt-widgets|uninstall", {
     widget,
   });
 
-  /**
-   * Upgrade a widget from the registry.
-   * 
-   * This command is a wrapper of [`crate::WidgetsManager::upgrade`].
-   */
+
+  export const updateSettings = (
+    id: string,
+    patch: WidgetSettingsPatch,
+  ) => invoke<null>("plugin:deskulpt-widgets|update_settings", {
+    id,
+    patch,
+  });
+
+
   export const upgrade = (
-    widget: RegistryWidgetReference,
+    widget: WidgetReference,
   ) => invoke<null>("plugin:deskulpt-widgets|upgrade", {
     widget,
   });

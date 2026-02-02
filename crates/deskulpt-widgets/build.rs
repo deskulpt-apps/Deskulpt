@@ -8,6 +8,7 @@ fn main() {
             "refresh",
             "refresh_all",
             "uninstall",
+            "update_settings",
             "upgrade",
         ])
         .events(&["RenderEvent", "UpdateEvent"])

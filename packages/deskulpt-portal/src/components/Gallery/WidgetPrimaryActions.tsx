@@ -4,7 +4,7 @@ import { DeskulptWidgets } from "@deskulpt/bindings";
 import { useInstallWidget } from "../../hooks";
 
 interface WidgetPrimaryActionsProps {
-  reference: DeskulptWidgets.RegistryWidgetReference;
+  reference: DeskulptWidgets.WidgetReference;
   version: string;
 }
 

@@ -2,10 +2,7 @@ use anyhow::Result;
 use schemars::schema_for;
 
 pub fn run() -> Result<()> {
-    let schemas = vec![
-        ("settings", schema_for!(deskulpt_settings::types::Settings)),
-        ("widgets", schema_for!(deskulpt_widgets::settings::Settings)),
-    ];
+    let schemas = vec![("settings", schema_for!(deskulpt_settings::model::Settings))];
 
     let schema_dir = deskulpt_workspace::root_dir().join("resources/schema");
     for schema in schemas {

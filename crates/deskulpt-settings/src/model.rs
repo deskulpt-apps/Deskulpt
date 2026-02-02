@@ -1,4 +1,4 @@
-//! Type definitions for Deskulpt settings.
+//! Definitions of the Deskulpt settings model.
 
 use std::collections::BTreeMap;
 use std::fs::File;
@@ -115,7 +115,7 @@ impl Settings {
         }
         let file = File::open(path)?;
         let reader = BufReader::new(file);
-        let settings: Settings = serde_json::from_reader(reader)?;
+        let settings: Self = serde_json::from_reader(reader)?;
         Ok(settings)
     }
 

@@ -26,7 +26,7 @@ pub fn run() {
 
             app.manage_canvas_imode()?;
 
-            app.widgets().maybe_add_starter()?;
+            app.widgets().ensure_starter()?;
 
             Ok(())
         })

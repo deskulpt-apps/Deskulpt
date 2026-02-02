@@ -1,5 +1,6 @@
 import { create } from "zustand";
 import { FC } from "react";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 
 interface WidgetProps {
   id: string;
@@ -11,6 +12,7 @@ interface WidgetProps {
 
 interface WidgetState {
   component: FC<WidgetProps>;
+  settings: DeskulptWidgets.Settings;
   apisBlobUrl: string;
   moduleBlobUrl?: string;
 }

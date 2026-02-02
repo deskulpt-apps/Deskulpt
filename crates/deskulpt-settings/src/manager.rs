@@ -10,7 +10,7 @@ use tracing::error;
 use url::Url;
 
 use crate::events::UpdateEvent;
-use crate::types::{CanvasImode, Settings, SettingsPatch, ShortcutAction};
+use crate::model::{CanvasImode, Settings, SettingsPatch, ShortcutAction};
 use crate::worker::{WorkerHandle, WorkerTask};
 
 /// The collection of hooks on settings change.

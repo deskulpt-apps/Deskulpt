@@ -1,28 +1,30 @@
+use anyhow::Result;
+use deskulpt_manifest::WidgetManifest;
 use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::{DefaultOnError, serde_as};
 
 /// Per-widget settings.
 #[serde_as]
-#[derive(Debug, Deserialize, Serialize, JsonSchema, specta::Type)]
+#[derive(Clone, Debug, Deserialize, Serialize, JsonSchema, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
-pub struct Settings {
+pub(crate) struct WidgetSettings {
     /// The leftmost x-coordinate in pixels.
     #[serde_as(deserialize_as = "DefaultOnError")]
-    pub x: i32,
+    pub(crate) x: i32,
     /// The topmost y-coordinate in pixels.
     #[serde_as(deserialize_as = "DefaultOnError")]
-    pub y: i32,
+    pub(crate) y: i32,
     /// The width in pixels.
     #[serde_as(deserialize_as = "DefaultOnError")]
-    pub width: u32,
+    pub(crate) width: u32,
     /// The height in pixels.
     #[serde_as(deserialize_as = "DefaultOnError")]
-    pub height: u32,
+    pub(crate) height: u32,
     /// The opacity in percentage.
-    #[serde(deserialize_with = "Settings::deserialize_opacity")]
+    #[serde(deserialize_with = "WidgetSettings::deserialize_opacity")]
     #[schemars(range(min = 1, max = 100))]
-    pub opacity: u8,
+    pub(crate) opacity: u8,
     /// The z-index.
     ///
     /// Higher z-index means the widget will be rendered above those with lower
@@ -30,13 +32,40 @@ pub struct Settings {
     /// order. The allowed range is from -999 to 999.
     #[serde_as(deserialize_as = "DefaultOnError")]
     #[schemars(range(min = -999, max = 999))]
-    pub z_index: i16,
+    pub(crate) z_index: i16,
     /// Whether the widget should be loaded on the canvas or not.
     #[serde_as(deserialize_as = "DefaultOnError")]
-    pub is_loaded: bool,
+    pub(crate) is_loaded: bool,
 }
 
-impl Default for Settings {
+/// A patch for partial updates to [`Settings`].
+#[derive(Debug, Default, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase", default)]
+pub struct WidgetSettingsPatch {
+    /// If not `None`, update [`Settings::x`].
+    #[specta(optional, type = i32)]
+    pub(crate) x: Option<i32>,
+    /// If not `None`, update [`Settings::y`].
+    #[specta(optional, type = i32)]
+    pub(crate) y: Option<i32>,
+    /// If not `None`, update [`Settings::width`].
+    #[specta(optional, type = u32)]
+    pub(crate) width: Option<u32>,
+    /// If not `None`, update [`Settings::height`].
+    #[specta(optional, type = u32)]
+    pub(crate) height: Option<u32>,
+    /// If not `None`, update [`Settings::opacity`].
+    #[specta(optional, type = u8)]
+    pub(crate) opacity: Option<u8>,
+    /// If not `None`, update [`Settings::z_index`].
+    #[specta(optional, type = i16)]
+    pub(crate) z_index: Option<i16>,
+    /// If not `None`, update [`Settings::is_loaded`].
+    #[specta(optional, type = bool)]
+    pub(crate) is_loaded: Option<bool>,
+}
+
+impl Default for WidgetSettings {
     fn default() -> Self {
         Self {
             x: 0,
@@ -50,7 +79,7 @@ impl Default for Settings {
     }
 }
 
-impl Settings {
+impl WidgetSettings {
     /// Deserialization helper for opacity.
     ///
     /// On error deserializing this field, it will be set to default (100). The
@@ -64,41 +93,18 @@ impl Settings {
             Err(_) => Ok(100),
         }
     }
-}
 
-/// A patch for partial updates to [`Settings`].
-#[derive(Debug, Default, Deserialize, specta::Type)]
-#[serde(rename_all = "camelCase", default)]
-pub struct SettingsPatch {
-    /// If not `None`, update [`Settings::x`].
-    #[specta(optional, type = i32)]
-    pub x: Option<i32>,
-    /// If not `None`, update [`Settings::y`].
-    #[specta(optional, type = i32)]
-    pub y: Option<i32>,
-    /// If not `None`, update [`Settings::width`].
-    #[specta(optional, type = u32)]
-    pub width: Option<u32>,
-    /// If not `None`, update [`Settings::height`].
-    #[specta(optional, type = u32)]
-    pub height: Option<u32>,
-    /// If not `None`, update [`Settings::opacity`].
-    #[specta(optional, type = u8)]
-    pub opacity: Option<u8>,
-    /// If not `None`, update [`Settings::z_index`].
-    #[specta(optional, type = i16)]
-    pub z_index: Option<i16>,
-    /// If not `None`, update [`Settings::is_loaded`].
-    #[specta(optional, type = bool)]
-    pub is_loaded: Option<bool>,
-}
+    pub(crate) fn from_manifest(_manifest: &WidgetManifest) -> Self {
+        Self {
+            ..Default::default()
+        }
+    }
 
-impl Settings {
-    /// Apply a [`SettingsPatch`].
+    /// Apply a [`WidgetSettingsPatch`].
     ///
     /// This method also returns whether the widget settings is actually changed
     /// by the patch.
-    pub fn apply_patch(&mut self, patch: SettingsPatch) -> bool {
+    pub(crate) fn apply_patch(&mut self, patch: WidgetSettingsPatch) -> bool {
         #[inline]
         fn set_if_changed<T: PartialEq>(dst: &mut T, src: Option<T>) -> bool {
             match src {

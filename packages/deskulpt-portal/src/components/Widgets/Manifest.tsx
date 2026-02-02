@@ -1,12 +1,8 @@
 import { Badge, Box, Button, Code, Flex, ScrollArea } from "@radix-ui/themes";
-import { useSettingsStore, useWidgetsStore } from "../../hooks";
+import { useWidgetsStore } from "../../hooks";
 import WidgetManifest from "../WidgetManifest";
 import { LuFolderOpen, LuRepeat } from "react-icons/lu";
-import {
-  DeskulptCore,
-  DeskulptSettings,
-  DeskulptWidgets,
-} from "@deskulpt/bindings";
+import { DeskulptCore, DeskulptWidgets } from "@deskulpt/bindings";
 import { logger } from "@deskulpt/utils";
 
 interface ManifestProps {
@@ -14,21 +10,19 @@ interface ManifestProps {
 }
 
 const Manifest = ({ id }: ManifestProps) => {
-  const manifest = useWidgetsStore((state) => state[id]);
-  const isLoaded = useSettingsStore(
-    (state) => state.widgets[id]?.isLoaded ?? false,
-  );
+  const widget = useWidgetsStore((state) => state[id]);
+  const isLoaded = widget?.settings.isLoaded ?? false;
 
   const toggleIsLoaded = () => {
-    DeskulptSettings.Commands.update({
-      widgets: { [id]: { isLoaded: !isLoaded } },
-    });
+    DeskulptWidgets.Commands.updateSettings(id, { isLoaded: !isLoaded });
   };
 
   return (
     <Flex direction="column" gap="2" pl="2">
       <Flex align="center" justify="between">
-        <Badge color={manifest?.type === "ok" ? "gray" : "ruby"}>{id}</Badge>
+        <Badge color={widget?.manifest.type === "ok" ? "gray" : "ruby"}>
+          {id}
+        </Badge>
         <Flex align="center" gap="2">
           <Button
             size="1"
@@ -64,13 +58,13 @@ const Manifest = ({ id }: ManifestProps) => {
 
       <ScrollArea asChild>
         <Box height="200px" pr="3" pb="3">
-          {manifest?.type === "ok" ? (
-            <WidgetManifest manifest={manifest.content} />
+          {widget?.manifest.type === "ok" ? (
+            <WidgetManifest manifest={widget.manifest.content} />
           ) : (
             <Box pl="2" m="0" asChild>
               <pre>
                 <Code size="2" variant="ghost">
-                  {manifest?.content ?? "Widget not found."}
+                  {widget?.manifest.content ?? "Widget not found."}
                 </Code>
               </pre>
             </Box>

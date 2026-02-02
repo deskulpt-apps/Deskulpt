@@ -4,19 +4,19 @@ import { logger } from "@deskulpt/utils";
 import { toast } from "sonner";
 
 interface WidgetPreviewData {
-  reference: DeskulptWidgets.RegistryWidgetReference;
+  reference: DeskulptWidgets.WidgetReference;
   version: string;
-  preview: DeskulptWidgets.RegistryWidgetPreview;
+  preview: DeskulptWidgets.WidgetPreview;
 }
 
 interface WidgetVersionPickerData {
   handle: string;
   id: string;
-  releases: DeskulptWidgets.RegistryEntryRelease[];
+  releases: DeskulptWidgets.IndexEntryRelease[];
 }
 
 interface WidgetsGalleryState {
-  widgets: DeskulptWidgets.RegistryEntry[];
+  widgets: DeskulptWidgets.IndexEntry[];
   isFetching: boolean;
   inFlightOps: Set<string>;
 

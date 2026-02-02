@@ -5,7 +5,7 @@ use deskulpt_common::SerResult;
 use tauri::{AppHandle, Runtime};
 
 use crate::SettingsExt;
-use crate::types::{Settings, SettingsPatch};
+use crate::model::{Settings, SettingsPatch};
 
 /// Get the current settings.
 #[tauri::command]

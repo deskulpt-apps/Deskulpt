@@ -1,9 +1,9 @@
 import { Flex, Table } from "@radix-ui/themes";
 import { LuX } from "react-icons/lu";
-import { useSettingsStore } from "../../hooks";
+import { useWidgetsStore } from "../../hooks";
 import IntegerInput from "../IntegerInput";
 import { css } from "@emotion/react";
-import { DeskulptSettings } from "@deskulpt/bindings";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 
 const styles = {
   table: css({
@@ -15,14 +15,14 @@ const styles = {
 };
 
 const X = ({ id }: SettingsProps) => {
-  const x = useSettingsStore((state) => state.widgets[id]?.x);
+  const x = useWidgetsStore((state) => state[id]?.settings.x);
 
   return (
     <IntegerInput
       value={x}
       min={0}
       onValueChange={(value: number) =>
-        DeskulptSettings.Commands.update({ widgets: { [id]: { x: value } } })
+        DeskulptWidgets.Commands.updateSettings(id, { x: value })
       }
       width="60px"
     />
@@ -30,14 +30,14 @@ const X = ({ id }: SettingsProps) => {
 };
 
 const Y = ({ id }: SettingsProps) => {
-  const y = useSettingsStore((state) => state.widgets[id]?.y);
+  const y = useWidgetsStore((state) => state[id]?.settings.y);
 
   return (
     <IntegerInput
       value={y}
       min={0}
       onValueChange={(value: number) =>
-        DeskulptSettings.Commands.update({ widgets: { [id]: { y: value } } })
+        DeskulptWidgets.Commands.updateSettings(id, { y: value })
       }
       width="60px"
     />
@@ -45,16 +45,14 @@ const Y = ({ id }: SettingsProps) => {
 };
 
 const Width = ({ id }: SettingsProps) => {
-  const width = useSettingsStore((state) => state.widgets[id]?.width);
+  const width = useWidgetsStore((state) => state[id]?.settings.width);
 
   return (
     <IntegerInput
       value={width}
       min={0}
       onValueChange={(value: number) =>
-        DeskulptSettings.Commands.update({
-          widgets: { [id]: { width: value } },
-        })
+        DeskulptWidgets.Commands.updateSettings(id, { width: value })
       }
       width="60px"
     />
@@ -62,16 +60,14 @@ const Width = ({ id }: SettingsProps) => {
 };
 
 const Height = ({ id }: SettingsProps) => {
-  const height = useSettingsStore((state) => state.widgets[id]?.height);
+  const height = useWidgetsStore((state) => state[id]?.settings.height);
 
   return (
     <IntegerInput
       value={height}
       min={0}
       onValueChange={(value: number) =>
-        DeskulptSettings.Commands.update({
-          widgets: { [id]: { height: value } },
-        })
+        DeskulptWidgets.Commands.updateSettings(id, { height: value })
       }
       width="60px"
     />
@@ -79,7 +75,7 @@ const Height = ({ id }: SettingsProps) => {
 };
 
 const ZIndex = ({ id }: SettingsProps) => {
-  const zIndex = useSettingsStore((state) => state.widgets[id]?.zIndex);
+  const zIndex = useWidgetsStore((state) => state[id]?.settings.zIndex);
 
   return (
     <IntegerInput
@@ -87,9 +83,7 @@ const ZIndex = ({ id }: SettingsProps) => {
       min={-999}
       max={999}
       onValueChange={(value: number) =>
-        DeskulptSettings.Commands.update({
-          widgets: { [id]: { zIndex: value } },
-        })
+        DeskulptWidgets.Commands.updateSettings(id, { zIndex: value })
       }
       width="60px"
     />
@@ -97,7 +91,7 @@ const ZIndex = ({ id }: SettingsProps) => {
 };
 
 const Opacity = ({ id }: SettingsProps) => {
-  const opacity = useSettingsStore((state) => state.widgets[id]?.opacity);
+  const opacity = useWidgetsStore((state) => state[id]?.settings.opacity);
 
   return (
     <IntegerInput
@@ -105,9 +99,7 @@ const Opacity = ({ id }: SettingsProps) => {
       min={1}
       max={100}
       onValueChange={(value: number) =>
-        DeskulptSettings.Commands.update({
-          widgets: { [id]: { opacity: value } },
-        })
+        DeskulptWidgets.Commands.updateSettings(id, { opacity: value })
       }
       width="60px"
     />

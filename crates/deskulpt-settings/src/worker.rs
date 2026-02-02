@@ -10,7 +10,7 @@ use tokio::time::{Instant, Sleep};
 use tracing::error;
 
 use crate::SettingsExt;
-use crate::types::{CanvasImode, ShortcutAction};
+use crate::model::{CanvasImode, ShortcutAction};
 
 /// Debounce duration for [`WorkerTask::Persist`].
 const PERSIST_DEBOUNCE: Duration = Duration::from_millis(500);

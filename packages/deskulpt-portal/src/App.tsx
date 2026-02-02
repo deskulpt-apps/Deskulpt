@@ -15,9 +15,7 @@ const tabs = [
     label: "Widgets",
     render: () => (
       <WidgetsStoreProvider fallback={<LoadingScreen />}>
-        <SettingsStoreProvider>
-          <Widgets />
-        </SettingsStoreProvider>
+        <Widgets />
       </WidgetsStoreProvider>
     ),
   },

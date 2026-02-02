@@ -1,10 +1,11 @@
-//! Utilities for fetching widgets from the GHCR wigdets registry.
+//! Utilities for fetching widgets from the GHCR widgets registry.
 
 use std::collections::BTreeMap;
 use std::path::Path;
 
 use anyhow::{Result, bail};
 use async_compression::tokio::bufread::GzipDecoder;
+use deskulpt_manifest::ManifestMetadata;
 use oci_client::manifest::OciDescriptor;
 use oci_client::secrets::RegistryAuth;
 use oci_client::{Client, Reference};
@@ -13,15 +14,13 @@ use tokio::io::BufReader;
 use tokio_tar::Archive;
 use tokio_util::io::StreamReader;
 
-use crate::catalog::Manifest;
-
 /// A reference to a widget in the registry.
 ///
 /// These information uniquely and immutably identify a widget package in the
 /// widgets registry.
 #[derive(Debug, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct RegistryWidgetReference {
+pub struct WidgetReference {
     /// The publisher handle.
     handle: String,
     /// The widget ID.
@@ -32,7 +31,7 @@ pub struct RegistryWidgetReference {
     digest: String,
 }
 
-impl RegistryWidgetReference {
+impl WidgetReference {
     /// Get the local ID of the widget.
     ///
     /// It is in the format `@handle.id` in order to be globally unique, valid
@@ -45,7 +44,7 @@ impl RegistryWidgetReference {
 
 /// A descriptor for a widget in the registry.
 #[derive(Debug)]
-struct RegistryWidgetDescriptor {
+struct WidgetDescriptor {
     /// The full OCI reference of the widget package.
     reference: Reference,
     /// The layer descriptor of the widget package.
@@ -60,7 +59,7 @@ struct RegistryWidgetDescriptor {
 /// Preview information about a widget in the registry.
 #[derive(Debug, Default, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct RegistryWidgetPreview {
+pub struct WidgetPreview {
     /// The local ID of the widget.
     ///
     /// See [`RegistryWidgetReference::local_id`] for details.
@@ -77,9 +76,9 @@ pub struct RegistryWidgetPreview {
     #[serde(default, skip_serializing_if = "Option::is_none")]
     #[specta(type = String)]
     git: Option<String>,
-    /// More information as in the widget manifest.
+    /// More metadata in the widget manifest.
     #[serde(flatten)]
-    manifest: Manifest,
+    metadata: ManifestMetadata,
 }
 
 /// A fetcher for widgets from the registry.
@@ -87,9 +86,9 @@ pub struct RegistryWidgetPreview {
 /// Use [`RegistryWidgetFetcher::default`] to create a new instance, which will
 /// create a new OCI client internally.
 #[derive(Default)]
-pub struct RegistryWidgetFetcher(Client);
+pub struct WidgetFetcher(Client);
 
-impl RegistryWidgetFetcher {
+impl WidgetFetcher {
     /// The base URL of the widgets registry in GHCR.
     const REGISTRY_BASE: &str = "ghcr.io/deskulpt-apps/widgets";
 
@@ -101,7 +100,7 @@ impl RegistryWidgetFetcher {
     /// This does not download the actual widget files, only the metadata. It
     /// verifies that the artifact type, number of layers, and media type of the
     /// layer are as expected.
-    async fn fetch(&self, widget: &RegistryWidgetReference) -> Result<RegistryWidgetDescriptor> {
+    async fn fetch(&self, widget: &WidgetReference) -> Result<WidgetDescriptor> {
         let reference: Reference = format!(
             "{}/{}/{}@{}",
             Self::REGISTRY_BASE,
@@ -135,7 +134,7 @@ impl RegistryWidgetFetcher {
             bail!("Expected gzip-compressed tar; got {}", layer.media_type);
         }
 
-        Ok(RegistryWidgetDescriptor {
+        Ok(WidgetDescriptor {
             reference,
             layer,
             annotations: manifest.annotations,
@@ -143,8 +142,8 @@ impl RegistryWidgetFetcher {
     }
 
     /// Install a widget from the registry into the given directory.
-    pub async fn install(&self, dir: &Path, widget: &RegistryWidgetReference) -> Result<()> {
-        let RegistryWidgetDescriptor {
+    pub async fn install(&self, dir: &Path, widget: &WidgetReference) -> Result<()> {
+        let WidgetDescriptor {
             reference, layer, ..
         } = self.fetch(widget).await?;
 
@@ -163,14 +162,14 @@ impl RegistryWidgetFetcher {
     ///
     /// This does not download the actual widget files, but only fetches the
     /// widget package metadata.
-    pub async fn preview(&self, widget: &RegistryWidgetReference) -> Result<RegistryWidgetPreview> {
-        let RegistryWidgetDescriptor {
+    pub async fn preview(&self, widget: &WidgetReference) -> Result<WidgetPreview> {
+        let WidgetDescriptor {
             reference,
             layer,
             annotations,
         } = self.fetch(widget).await?;
 
-        let mut preview = RegistryWidgetPreview {
+        let mut preview = WidgetPreview {
             id: widget.local_id(),
             size: layer.size as u64,
             registry_url: format!("https://{reference}"),
@@ -184,17 +183,17 @@ impl RegistryWidgetFetcher {
                 .and_then(|source| source.split('@').next().map(|s| s.to_string()));
 
             // Manifest fields
-            preview.manifest.name = annotations
+            preview.metadata.name = annotations
                 .remove("org.opencontainers.image.title")
                 .unwrap_or_default();
-            preview.manifest.version = annotations.remove("org.opencontainers.image.version");
-            preview.manifest.authors = annotations
+            preview.metadata.version = annotations.remove("org.opencontainers.image.version");
+            preview.metadata.authors = annotations
                 .remove("org.opencontainers.image.authors")
                 .and_then(|authors| serde_json::from_str(&authors).ok());
-            preview.manifest.license = annotations.remove("org.opencontainers.image.licenses");
-            preview.manifest.description =
+            preview.metadata.license = annotations.remove("org.opencontainers.image.licenses");
+            preview.metadata.description =
                 annotations.remove("org.opencontainers.image.description");
-            preview.manifest.homepage = annotations.remove("org.opencontainers.image.url");
+            preview.metadata.homepage = annotations.remove("org.opencontainers.image.url");
         }
 
         Ok(preview)

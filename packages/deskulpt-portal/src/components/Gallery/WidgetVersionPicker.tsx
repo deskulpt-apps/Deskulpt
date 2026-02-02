@@ -36,7 +36,7 @@ const WidgetVersionPicker = () => {
     }
   };
 
-  const onSelect = async (release: DeskulptWidgets.RegistryEntryRelease) => {
+  const onSelect = async (release: DeskulptWidgets.IndexEntryRelease) => {
     if (data === undefined) {
       return;
     }

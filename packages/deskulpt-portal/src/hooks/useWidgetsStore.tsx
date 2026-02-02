@@ -10,8 +10,8 @@ import {
 import { StoreApi, createStore, useStore } from "zustand";
 import { logger } from "@deskulpt/utils";
 
-type WidgetsStore = StoreApi<DeskulptWidgets.WidgetCatalog>;
-type WidgetsStoreSelector<T> = (s: DeskulptWidgets.WidgetCatalog) => T;
+type WidgetsStore = StoreApi<DeskulptWidgets.Widgets>;
+type WidgetsStoreSelector<T> = (s: DeskulptWidgets.Widgets) => T;
 
 const WidgetsStoreContext = createContext<WidgetsStore | null>(null);
 
@@ -64,7 +64,7 @@ export function WidgetsStoreProvider({
   );
 }
 
-export function useWidgetsStore(): DeskulptWidgets.WidgetCatalog;
+export function useWidgetsStore(): DeskulptWidgets.Widgets;
 export function useWidgetsStore<T>(selector: WidgetsStoreSelector<T>): T;
 export function useWidgetsStore<T>(selector?: WidgetsStoreSelector<T>) {
   const store = useContext(WidgetsStoreContext);

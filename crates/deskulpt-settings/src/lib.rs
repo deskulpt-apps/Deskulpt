@@ -7,7 +7,7 @@
 mod commands;
 mod events;
 mod manager;
-pub mod types;
+pub mod model;
 mod worker;
 
 use tauri::plugin::TauriPlugin;

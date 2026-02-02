@@ -3,7 +3,7 @@ import { useWidgetsStore } from "./useWidgetsStore";
 import { logger } from "@deskulpt/utils";
 import { useEffect } from "react";
 
-export const useUpdateWidgetCatalogListener = () => {
+export const useUpdateWidgetsListener = () => {
   useEffect(() => {
     const unlisten = DeskulptWidgets.Events.update.listen((event) => {
       const widgets = Object.entries(useWidgetsStore.getState());
@@ -21,6 +21,14 @@ export const useUpdateWidgetCatalogListener = () => {
           return false;
         },
       );
+
+      // Update the settings of existing widgets
+      for (const [id, widget] of remainingWidgets) {
+        const updatedWidget = event.payload[id];
+        if (updatedWidget !== undefined) {
+          widget.settings = updatedWidget.settings;
+        }
+      }
 
       // Update the store only if there are changes (length match means no
       // removals thus no changes in this case)

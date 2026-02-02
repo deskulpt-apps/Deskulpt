@@ -1,80 +1,13 @@
-//! Deskulpt widgets manager and its APIs.
-
-use std::path::{Path, PathBuf};
-
 use anyhow::{Context, Result};
-use deskulpt_common::event::Event;
 use deskulpt_settings::SettingsExt;
 use deskulpt_settings::model::SettingsPatch;
-use parking_lot::{RwLock, RwLockReadGuard};
-use tauri::{AppHandle, Manager, Runtime};
+use tauri::{Manager, Runtime};
 use tracing::{debug, error, info};
 
-use crate::events::UpdateEvent;
-use crate::model::Widgets;
-use crate::render::RenderWorkerHandle;
-use crate::settings::WidgetSettingsPatch;
-
-/// Manager for Deskulpt widgets.
-pub struct WidgetsManager<R: Runtime> {
-    /// The Tauri app handle.
-    pub(crate) app_handle: AppHandle<R>,
-    /// The widgets directory.
-    pub(crate) dir: PathBuf,
-    /// The widget catalog.
-    pub(crate) widgets: RwLock<Widgets>,
-    /// The handle for the render worker.
-    pub(crate) render_worker: RenderWorkerHandle,
-}
+use crate::WidgetsManager;
 
 impl<R: Runtime> WidgetsManager<R> {
-    /// Initialize the [`WidgetsManager`].
-    ///
-    /// The catalog is initialized as empty. A render worker is started
-    /// immediately.
-    pub(crate) fn new(app_handle: AppHandle<R>) -> Result<Self> {
-        let dir = if cfg!(debug_assertions) {
-            app_handle.path().resource_dir()?
-        } else {
-            app_handle.path().document_dir()?.join("Deskulpt")
-        };
-        let dir = dunce::simplified(&dir).join("widgets");
-        std::fs::create_dir_all(&dir)?;
-
-        let render_worker = RenderWorkerHandle::new(app_handle.clone());
-
-        Ok(Self {
-            app_handle,
-            dir,
-            widgets: Default::default(),
-            render_worker,
-        })
-    }
-
-    /// Get the widgets directory.
-    pub fn dir(&self) -> &Path {
-        &self.dir
-    }
-
-    /// Get an immutable reference to the current widget catalog.
-    pub(crate) fn read(&self) -> RwLockReadGuard<'_, Widgets> {
-        self.widgets.read()
-    }
-
-    pub(crate) fn update_settings(&self, id: &str, patch: WidgetSettingsPatch) -> Result<()> {
-        let mut widgets = self.widgets.write();
-        widgets.get_mut(id)?.settings.apply_patch(patch);
-        UpdateEvent(&widgets).emit(&self.app_handle)?;
-        Ok(())
-    }
-
-    pub fn covers_point(&self, x: f64, y: f64) -> Option<bool> {
-        let widgets = self.widgets.try_read()?;
-        let result = widgets.values().any(|widget| widget.covers_point(x, y));
-        Some(result)
-    }
-
-    /// Ensure that the starter widgets are added.
+    /// Add starter widgets if not already added.
     ///
     /// If the starter widgets have not been marked as added, this method will
     /// copy the starter widgets from the bundled resources to the widgets base
@@ -87,7 +20,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// added once, subsequent calls are no-ops. If some starter widgets have
     /// been added but not all, subsequent calls will silently skip already
     /// existing starter widgets and attempt to add the remaining ones.
-    pub fn ensure_starter(&self) -> Result<()> {
+    pub fn maybe_add_starter(&self) -> Result<()> {
         if self.app_handle.settings().read().starter_widgets_added {
             return Ok(());
         }

@@ -3,17 +3,16 @@
 use std::path::{Path, PathBuf};
 
 use anyhow::{Context, Result, bail};
+use deskulpt_manifest::ManifestAuthor;
 use reqwest::header::{ETAG, IF_NONE_MATCH};
 use reqwest::{Client, Response, StatusCode};
 use serde::{Deserialize, Serialize};
 use tracing::{debug, instrument, warn};
 
-use crate::catalog::ManifestAuthor;
-
 /// An entry for a specific release of a widget in the registry.
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-struct RegistryEntryRelease {
+struct IndexEntryRelease {
     /// The version string of the release.
     version: String,
     /// The publication datetime of the release, in ISO 8601 format.
@@ -28,7 +27,7 @@ struct RegistryEntryRelease {
 /// An entry for a widget in the registry.
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-struct RegistryEntry {
+struct IndexEntry {
     /// The publisher handle.
     handle: String,
     /// The widget ID.
@@ -42,23 +41,23 @@ struct RegistryEntry {
     /// A short description of the widget.
     description: String,
     /// The releases of the widget, ordered from newest to oldest.
-    releases: Vec<RegistryEntryRelease>,
+    releases: Vec<IndexEntryRelease>,
 }
 
 /// The widgets registry index.
 #[derive(Debug, Serialize, Deserialize, specta::Type)]
 #[serde(rename_all = "camelCase")]
-pub struct RegistryIndex {
+pub struct Index {
     /// The API version.
     api: i32,
     /// The datetime when the index was generated, in ISO 8601 format.
     generated_at: String,
     /// The list of widgets in the registry.
-    widgets: Vec<RegistryEntry>,
+    widgets: Vec<IndexEntry>,
 }
 
 /// A fetcher for the widgets registry index.
-pub struct RegistryIndexFetcher {
+pub struct IndexFetcher {
     /// The HTTP client.
     client: Client,
     /// The cache directory.
@@ -69,7 +68,7 @@ pub struct RegistryIndexFetcher {
     etag_path: PathBuf,
 }
 
-impl RegistryIndexFetcher {
+impl IndexFetcher {
     /// The static URL of the widgets registry index.
     const URL: &str = "https://cdn.jsdelivr.net/gh/deskulpt-apps/widgets@registry/index.json";
 
@@ -93,7 +92,7 @@ impl RegistryIndexFetcher {
     /// will be used if available and valid. Otherwise, a fresh copy will be
     /// fetched and cached.
     #[instrument(skip_all, level = "debug")]
-    pub async fn fetch(&self) -> Result<RegistryIndex> {
+    pub async fn fetch(&self) -> Result<Index> {
         tokio::fs::create_dir_all(&self.cache_dir)
             .await
             .context("Failed to create cache directory")?;
@@ -128,7 +127,7 @@ impl RegistryIndexFetcher {
     }
 
     /// Read the cached registry index from disk.
-    async fn read_cache(&self) -> Result<RegistryIndex> {
+    async fn read_cache(&self) -> Result<Index> {
         let cache = tokio::fs::read(&self.cache_path)
             .await
             .context("Failed to read cache")?;
@@ -153,7 +152,7 @@ impl RegistryIndexFetcher {
     /// This will read the response body, deserialize it, and cache both the
     /// body and the etag (if present) to disk. Failure to cache will not be
     /// treated as an error.
-    async fn handle_ok(&self, response: Response) -> Result<RegistryIndex> {
+    async fn handle_ok(&self, response: Response) -> Result<Index> {
         let etag = response
             .headers()
             .get(ETAG)
@@ -193,7 +192,7 @@ impl RegistryIndexFetcher {
     ///
     /// This will attempt to read the cached index from disk. If that fails, it
     /// will fall back to performing a fresh fetch.
-    async fn handle_not_modified(&self) -> Result<RegistryIndex> {
+    async fn handle_not_modified(&self) -> Result<Index> {
         match self.read_cache().await {
             Ok(index) => {
                 debug!("Widgets registry index not modified; using cache");

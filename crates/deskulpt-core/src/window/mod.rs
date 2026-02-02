@@ -5,7 +5,7 @@ mod script;
 use anyhow::Result;
 use deskulpt_common::window::DeskulptWindow;
 use deskulpt_settings::SettingsExt;
-use deskulpt_settings::types::{CanvasImode, Theme};
+use deskulpt_settings::model::{CanvasImode, Theme};
 use script::{CanvasInitJS, PortalInitJS};
 use tauri::{App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, WindowEvent};
 

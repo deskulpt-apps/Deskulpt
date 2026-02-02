@@ -92,7 +92,7 @@ const WidgetPreview = () => {
           >
             <Box minHeight="0">
               <Flex direction="column" gap="3">
-                <WidgetManifest manifest={preview} />
+                <WidgetManifest manifest={{ ...preview, entry: "" }} />
                 <Separator size="4" />
 
                 <DataList.Root size="2" css={styles.dataListRoot}>
