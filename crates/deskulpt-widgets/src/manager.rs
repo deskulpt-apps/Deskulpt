@@ -2,8 +2,10 @@
 
 use std::path::{Path, PathBuf};
 
-use anyhow::{Context, Result};
+use anyhow::{Context, Result, bail};
 use deskulpt_common::event::Event;
+use deskulpt_common::outcome::Outcome;
+use deskulpt_registry::{Index, IndexFetcher, WidgetFetcher, WidgetPreview, WidgetReference};
 use deskulpt_settings::SettingsExt;
 use deskulpt_settings::model::SettingsPatch;
 use parking_lot::{RwLock, RwLockReadGuard};
@@ -11,20 +13,20 @@ use tauri::{AppHandle, Manager, Runtime};
 use tracing::{debug, error, info};
 
 use crate::events::UpdateEvent;
-use crate::model::Widgets;
-use crate::render::RenderWorkerHandle;
+use crate::model::{Widget, Widgets};
+use crate::render::{RenderWorkerHandle, RenderWorkerTask};
 use crate::settings::WidgetSettingsPatch;
 
 /// Manager for Deskulpt widgets.
 pub struct WidgetsManager<R: Runtime> {
     /// The Tauri app handle.
-    pub(crate) app_handle: AppHandle<R>,
+    app_handle: AppHandle<R>,
     /// The widgets directory.
-    pub(crate) dir: PathBuf,
+    dir: PathBuf,
     /// The widget catalog.
-    pub(crate) widgets: RwLock<Widgets>,
+    widgets: RwLock<Widgets>,
     /// The handle for the render worker.
-    pub(crate) render_worker: RenderWorkerHandle,
+    render_worker: RenderWorkerHandle,
 }
 
 impl<R: Runtime> WidgetsManager<R> {
@@ -68,10 +70,201 @@ impl<R: Runtime> WidgetsManager<R> {
         Ok(())
     }
 
-    pub fn covers_point(&self, x: f64, y: f64) -> Option<bool> {
+    pub fn try_covers_point(&self, x: f64, y: f64) -> Option<bool> {
         let widgets = self.widgets.try_read()?;
         let result = widgets.values().any(|widget| widget.covers_point(x, y));
         Some(result)
+    }
+
+    /// Reload a specific widget by its ID.
+    ///
+    /// This method loads the widget manifest from the corresponding widget
+    /// directory and updates the catalog entry for that widget. This could be
+    /// an addition, removal, or modification. It then syncs the settings with
+    /// the updated catalog. If any step fails, an error is returned.
+    pub fn reload(&self, id: &str) -> Result<bool> {
+        let widget_dir = self.dir.join(id);
+        let widget = Widget::load(&widget_dir);
+
+        let mut widgets = self.widgets.write();
+        let exists = widgets.insert_or_remove(id.to_string(), widget);
+
+        UpdateEvent(&widgets).emit(&self.app_handle)?;
+        Ok(exists)
+    }
+
+    /// Reload all widgets.
+    ///
+    /// This method loads a new widget catalog from the widgets directory and
+    /// replaces the existing catalog. It then syncs the settings with the
+    /// updated catalog. If any step fails, an error is returned.
+    pub fn reload_all(&self) -> Result<()> {
+        let new_widgets = Widgets::load(&self.dir)?;
+
+        let mut widgets = self.widgets.write();
+        *widgets = new_widgets;
+
+        UpdateEvent(&widgets).emit(&self.app_handle)?;
+        Ok(())
+    }
+
+    /// Render a specific widget by its ID.
+    ///
+    /// This method submits a render task for the specified widget to the render
+    /// worker. If the widget does not exist in the catalog or if task
+    /// submission fails, an error is returned. This method is non-blocking and
+    /// does not wait for the task to complete.
+    pub(crate) fn render(&self, id: &str) -> Result<()> {
+        let widgets = self.widgets.read();
+        let widget = widgets.get(id)?;
+
+        if let Outcome::Ok(manifest) = &widget.manifest {
+            self.render_worker.process(RenderWorkerTask::Render {
+                id: id.to_string(),
+                entry: manifest.entry.clone(),
+            })?;
+        }
+        Ok(())
+    }
+
+    /// Render all widgets in the catalog.
+    ///
+    /// This method submits render tasks for all widgets in the catalog to the
+    /// render worker. If any task submission fails, an error containing all
+    /// accumulated errors is returned. This method is non-blocking and does not
+    /// wait for the tasks to complete.
+    pub(crate) fn render_all(&self) -> Result<()> {
+        let widgets = self.widgets.read();
+
+        let mut errors = vec![];
+        for (id, widget) in widgets.iter() {
+            if let Outcome::Ok(manifest) = &widget.manifest
+                && let Err(e) = self.render_worker.process(RenderWorkerTask::Render {
+                    id: id.clone(),
+                    entry: manifest.entry.clone(),
+                })
+            {
+                errors.push(e.context(format!("Failed to send render task for widget {id}")));
+            }
+        }
+
+        if !errors.is_empty() {
+            let message = errors
+                .into_iter()
+                .map(|e| format!("{e:?}"))
+                .collect::<Vec<_>>()
+                .join("\n");
+            bail!(message);
+        }
+
+        Ok(())
+    }
+
+    /// Refresh a specific widget by its ID.
+    ///
+    /// This is equivalent to reloading that widget with [`Self::reload`] then
+    /// rendering it with [`Self::render`].
+    ///
+    /// Tauri command: [`crate::commands::refresh`].
+    pub fn refresh(&self, id: &str) -> Result<()> {
+        self.reload(id)?;
+        self.render(id)?;
+        Ok(())
+    }
+
+    /// Refresh all widgets.
+    ///
+    /// This is equivalent to reloading all widgets with [`Self::reload_all`]
+    /// then rendering all widgets with [`Self::render_all`].
+    ///
+    /// Tauri command: [`crate::commands::refresh_all`].
+    pub(crate) fn refresh_all(&self) -> Result<()> {
+        self.reload_all()?;
+        self.render_all()?;
+        Ok(())
+    }
+
+    /// Fetch the widgets registry index.
+    ///
+    /// Before fetching, this method ensures that the catalog is up-to-date by
+    /// reloading all widgets. This is necessary for the frontend to know which
+    /// widgets are already installed.
+    pub(crate) async fn fetch_registry_index(&self) -> Result<Index> {
+        self.reload_all()?;
+
+        let cache_dir = self.app_handle.path().app_cache_dir()?;
+        let fetcher = IndexFetcher::new(&cache_dir);
+        fetcher.fetch().await
+    }
+
+    /// Preview a widget from the registry.
+    pub(crate) async fn preview(&self, widget: &WidgetReference) -> Result<WidgetPreview> {
+        WidgetFetcher::default().preview(widget).await
+    }
+
+    /// Install a widget from the registry.
+    ///
+    /// If the widget already exists locally, an error is returned. After
+    /// installation, the widget is automatically refreshed to update the
+    /// catalog and render it.
+    pub(crate) async fn install(&self, widget: &WidgetReference) -> Result<()> {
+        let id = widget.local_id();
+        let widget_dir = self.dir.join(&id);
+        if widget_dir.exists() {
+            bail!("Widget {id} already installed");
+        }
+
+        WidgetFetcher::default()
+            .install(&widget_dir, widget)
+            .await?;
+
+        self.refresh(&id)?;
+        Ok(())
+    }
+
+    /// Uninstall a widget from the registry.
+    ///
+    /// If the widget does not exist locally, an error is returned. After
+    /// uninstallation, the widget is automatically reloaded to remove it from
+    /// the catalog.
+    pub(crate) async fn uninstall(&self, widget: &WidgetReference) -> Result<()> {
+        let id = widget.local_id();
+        let widget_dir = self.dir.join(&id);
+        if !widget_dir.exists() {
+            bail!("Widget {id} is not installed");
+        }
+        tokio::fs::remove_dir_all(&widget_dir)
+            .await
+            .with_context(|| format!("Failed to remove directory {}", widget_dir.display()))?;
+
+        self.reload(&id)?;
+        Ok(())
+    }
+
+    /// Upgrade a widget from the registry.
+    ///
+    /// If the widget does not exist locally, an error is returned. After
+    /// upgrading, the widget is automatically refreshed to update the catalog
+    /// and render it.
+    pub(crate) async fn upgrade(&self, widget: &WidgetReference) -> Result<()> {
+        let id = widget.local_id();
+        let widget_dir = self.dir.join(&id);
+        if !widget_dir.exists() {
+            bail!("Widget {id} is not installed");
+        }
+
+        // TODO: We should ideally perform some form of backup to allow rollback
+        // on failure, to avoid leaving the widget in a broken state
+        tokio::fs::remove_dir_all(&widget_dir)
+            .await
+            .with_context(|| format!("Failed to remove directory {}", widget_dir.display()))?;
+
+        WidgetFetcher::default()
+            .install(&widget_dir, widget)
+            .await?;
+
+        self.refresh(&id)?;
+        Ok(())
     }
 
     /// Ensure that the starter widgets are added.

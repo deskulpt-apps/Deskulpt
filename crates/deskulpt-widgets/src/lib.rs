@@ -8,8 +8,6 @@ mod commands;
 mod events;
 mod manager;
 mod model;
-mod refresh;
-mod registry;
 mod render;
 mod settings;
 

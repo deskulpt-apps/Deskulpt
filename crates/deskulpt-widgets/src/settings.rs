@@ -95,6 +95,7 @@ impl WidgetSettings {
     }
 
     pub(crate) fn from_manifest(_manifest: &WidgetManifest) -> Self {
+        // TODO: Implement when we support default settings in the manifest
         Self {
             ..Default::default()
         }

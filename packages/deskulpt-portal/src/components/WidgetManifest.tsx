@@ -72,7 +72,7 @@ function displayUrl(url: string) {
 }
 
 interface WidgetManifestProps {
-  manifest: DeskulptWidgets.Manifest;
+  manifest: DeskulptWidgets.WidgetManifest;
 }
 
 const WidgetManifest = ({ manifest }: WidgetManifestProps) => {

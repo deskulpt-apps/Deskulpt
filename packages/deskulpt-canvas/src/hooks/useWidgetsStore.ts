@@ -12,7 +12,7 @@ interface WidgetProps {
 
 interface WidgetState {
   component: FC<WidgetProps>;
-  settings: DeskulptWidgets.Settings;
+  settings: DeskulptWidgets.WidgetSettings;
   apisBlobUrl: string;
   moduleBlobUrl?: string;
 }

@@ -192,7 +192,7 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
         #[cfg(not(target_os = "macos"))]
         let scaled_y = (y - canvas_layout.y) * canvas_layout.inv_scale;
 
-        let Some(mouse_over_widget) = canvas.widgets().covers_point(scaled_x, scaled_y) else {
+        let Some(mouse_over_widget) = canvas.widgets().try_covers_point(scaled_x, scaled_y) else {
             return;
         };
 

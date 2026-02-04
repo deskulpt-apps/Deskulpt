@@ -1,6 +1,5 @@
 [package]
 description = "Deskulpt widgets and plugins registry utilities."
-links       = "deskulpt-registry"
 name        = "deskulpt-registry"
 
 authors    = { workspace = true }
