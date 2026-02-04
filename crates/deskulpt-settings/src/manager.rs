@@ -9,9 +9,8 @@ use tauri::{AppHandle, Manager, Runtime};
 use tracing::error;
 use url::Url;
 
-use crate::CanvasImode;
 use crate::events::UpdateEvent;
-use crate::settings::{Settings, SettingsPatch, ShortcutAction, Theme};
+use crate::model::{CanvasImode, Settings, SettingsPatch, ShortcutAction, Theme};
 use crate::worker::{WorkerHandle, WorkerTask};
 
 #[doc(hidden)]
