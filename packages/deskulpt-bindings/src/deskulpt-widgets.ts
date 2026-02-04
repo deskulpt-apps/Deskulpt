@@ -192,12 +192,22 @@ report: Outcome<string> }
 export type UpdateEvent = WidgetCatalog
 
 /**
- * The catalog of Deskulpt widgets.
- * 
- * This keeps a mapping from widget IDs to their manifests (if valid) or error
- * messages (if invalid).
+ * A Deskulpt widget.
  */
-export type WidgetCatalog = { [key in string]: Outcome<WidgetManifest> }
+export type Widget = { 
+/**
+ * The manifest of the widget or an error message loading it.
+ */
+manifest: Outcome<WidgetManifest>; 
+/**
+ * The settings of the widget.
+ */
+settings: WidgetSettings }
+
+/**
+ * The catalog of Deskulpt widgets.
+ */
+export type WidgetCatalog = { [key in string]: Widget }
 
 /**
  * Deskulpt widget manifest.
@@ -256,6 +266,76 @@ homepage?: string } |
  * If a string is given, it will be deserialized into this variant.
  */
 string
+
+/**
+ * Per-widget settings.
+ */
+export type WidgetSettings = { 
+/**
+ * The leftmost x-coordinate in pixels.
+ */
+x: number; 
+/**
+ * The topmost y-coordinate in pixels.
+ */
+y: number; 
+/**
+ * The width in pixels.
+ */
+width: number; 
+/**
+ * The height in pixels.
+ */
+height: number; 
+/**
+ * The opacity in percentage.
+ */
+opacity: number; 
+/**
+ * The z-index.
+ * 
+ * Higher z-index means the widget will be rendered above those with lower
+ * z-index. Widgets with the same z-index can have arbitrary rendering
+ * order. The allowed range is from -999 to 999.
+ */
+zIndex: number; 
+/**
+ * Whether the widget should be loaded on the canvas or not.
+ */
+isLoaded: boolean }
+
+/**
+ * A patch for partial updates to [`WidgetSettings`].
+ */
+export type WidgetSettingsPatch = { 
+/**
+ * If not `None`, update [`WidgetSettings::x`].
+ */
+x?: number; 
+/**
+ * If not `None`, update [`WidgetSettings::y`].
+ */
+y?: number; 
+/**
+ * If not `None`, update [`WidgetSettings::width`].
+ */
+width?: number; 
+/**
+ * If not `None`, update [`WidgetSettings::height`].
+ */
+height?: number; 
+/**
+ * If not `None`, update [`WidgetSettings::opacity`].
+ */
+opacity?: number; 
+/**
+ * If not `None`, update [`WidgetSettings::z_index`].
+ */
+zIndex?: number; 
+/**
+ * If not `None`, update [`WidgetSettings::is_loaded`].
+ */
+isLoaded?: boolean }
 
 // =============================================================================
 // Events
@@ -346,6 +426,19 @@ export namespace Commands {
     widget: RegistryWidgetReference,
   ) => invoke<null>("plugin:deskulpt-widgets|uninstall", {
     widget,
+  });
+
+  /**
+   * Update the settings of a widget with a patch.
+   * 
+   * This command is a wrapper of [`crate::WidgetsManager::update_settings`].
+   */
+  export const updateSettings = (
+    id: string,
+    patch: WidgetSettingsPatch,
+  ) => invoke<null>("plugin:deskulpt-widgets|update_settings", {
+    id,
+    patch,
   });
 
   /**

@@ -6,8 +6,8 @@
   "permissions": [
     "deskulpt-core:allow-call-plugin",
     "deskulpt-logs:allow-log",
-    "deskulpt-settings:allow-update",
     "deskulpt-widgets:allow-refresh-all",
+    "deskulpt-widgets:allow-update-settings",
     "core:event:default",
     "opener:allow-open-url",
     "opener:allow-default-urls"

@@ -11,7 +11,7 @@ use parking_lot::RwLock;
 use tauri::{AppHandle, Manager, Runtime};
 use tracing::{debug, error, info};
 
-use crate::catalog::{WidgetCatalog, WidgetManifest};
+use crate::catalog::{WidgetCatalog, WidgetSettingsPatch};
 use crate::events::UpdateEvent;
 use crate::registry::{
     RegistryIndex, RegistryIndexFetcher, RegistryWidgetFetcher, RegistryWidgetPreview,
@@ -60,6 +60,34 @@ impl<R: Runtime> WidgetsManager<R> {
         &self.dir
     }
 
+    /// Update the settings of a widget with a patch.
+    ///
+    /// An error is returned if the widget does not exist.
+    pub fn update_settings(&self, id: &str, patch: WidgetSettingsPatch) -> Result<()> {
+        let mut catalog = self.catalog.write();
+        let widget = catalog
+            .0
+            .get_mut(id)
+            .ok_or_else(|| anyhow!("Widget not found: {id}"))?;
+        widget.settings.apply_patch(patch);
+
+        UpdateEvent(&catalog).emit(&self.app_handle)?;
+        Ok(())
+    }
+
+    /// Try to check if a point is covered by any widget geometrically.
+    ///
+    /// This method is non-blocking and might return `None` if the widget
+    /// catalaog is currently locked for writing.
+    pub fn try_covers_point(&self, x: f64, y: f64) -> Option<bool> {
+        let catalog = self.catalog.try_read()?;
+        let covers = catalog
+            .0
+            .values()
+            .any(|widget| widget.settings.covers_point(x, y));
+        Some(covers)
+    }
+
     /// Reload a specific widget by its ID.
     ///
     /// This method loads the widget manifest from the corresponding widget
@@ -68,19 +96,11 @@ impl<R: Runtime> WidgetsManager<R> {
     /// the updated catalog. If any step fails, an error is returned.
     pub fn reload(&self, id: &str) -> Result<()> {
         let widget_dir = self.dir.join(id);
-        let manifest = WidgetManifest::load(&widget_dir);
 
         let mut catalog = self.catalog.write();
-        if let Some(manifest) = manifest.transpose() {
-            catalog.0.insert(id.to_string(), manifest.into());
-        } else {
-            catalog.0.remove(id);
-        }
-        UpdateEvent(&catalog).emit(&self.app_handle)?;
+        catalog.reload(&widget_dir, id)?;
 
-        self.app_handle
-            .settings()
-            .update_with(|settings| catalog.compute_settings_patch(settings))?;
+        UpdateEvent(&catalog).emit(&self.app_handle)?;
         Ok(())
     }
 
@@ -90,15 +110,10 @@ impl<R: Runtime> WidgetsManager<R> {
     /// replaces the existing catalog. It then syncs the settings with the
     /// updated catalog. If any step fails, an error is returned.
     pub fn reload_all(&self) -> Result<()> {
-        let new_catalog = WidgetCatalog::load(&self.dir)?;
-
         let mut catalog = self.catalog.write();
-        *catalog = new_catalog;
-        UpdateEvent(&catalog).emit(&self.app_handle)?;
+        catalog.reload_all(&self.dir)?;
 
-        self.app_handle
-            .settings()
-            .update_with(|settings| catalog.compute_settings_patch(settings))?;
+        UpdateEvent(&catalog).emit(&self.app_handle)?;
         Ok(())
     }
 
@@ -110,15 +125,15 @@ impl<R: Runtime> WidgetsManager<R> {
     /// does not wait for the task to complete.
     pub fn render(&self, id: &str) -> Result<()> {
         let catalog = self.catalog.read();
-        let config = catalog
+        let widget = catalog
             .0
             .get(id)
             .ok_or_else(|| anyhow!("Widget {id} does not exist in the catalog"))?;
 
-        if let Outcome::Ok(config) = config {
+        if let Outcome::Ok(manifest) = &widget.manifest {
             self.render_worker.process(RenderWorkerTask::Render {
                 id: id.to_string(),
-                entry: config.entry.clone(),
+                entry: manifest.entry.clone(),
             })?;
         }
         Ok(())
@@ -134,11 +149,11 @@ impl<R: Runtime> WidgetsManager<R> {
         let catalog = self.catalog.read();
 
         let mut errors = vec![];
-        for (id, config) in catalog.0.iter() {
-            if let Outcome::Ok(config) = config
+        for (id, widget) in catalog.0.iter() {
+            if let Outcome::Ok(manifest) = &widget.manifest
                 && let Err(e) = self.render_worker.process(RenderWorkerTask::Render {
                     id: id.clone(),
-                    entry: config.entry.clone(),
+                    entry: manifest.entry.clone(),
                 })
             {
                 errors.push(e.context(format!("Failed to send render task for widget {id}")));

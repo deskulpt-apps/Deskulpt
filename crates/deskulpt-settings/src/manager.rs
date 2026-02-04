@@ -256,21 +256,6 @@ impl<R: Runtime> SettingsManager<R> {
             }
         }
 
-        if let Some(widgets) = patch.widgets {
-            for (id, patch) in widgets {
-                match patch {
-                    Some(patch) => {
-                        let widget = settings.widgets.entry(id).or_insert_with(|| {
-                            should_emit = true;
-                            Default::default()
-                        });
-                        should_emit |= widget.apply_patch(patch);
-                    },
-                    None => should_emit |= settings.widgets.remove(&id).is_some(),
-                }
-            }
-        }
-
         if let Some(starter_widgets_added) = patch.starter_widgets_added
             && settings.starter_widgets_added != starter_widgets_added
         {

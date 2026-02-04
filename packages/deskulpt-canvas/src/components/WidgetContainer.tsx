@@ -12,10 +12,10 @@ import { ErrorBoundary } from "react-error-boundary";
 import ErrorDisplay from "./ErrorDisplay";
 import { logger, stringify } from "@deskulpt/utils";
 import { LuGripVertical } from "react-icons/lu";
-import { Box } from "@radix-ui/themes";
-import { useSettingsStore, useWidgetsStore } from "../hooks";
+import { Box, Text } from "@radix-ui/themes";
+import { useWidgetsStore } from "../hooks";
 import { css } from "@emotion/react";
-import { DeskulptSettings } from "@deskulpt/bindings";
+import { DeskulptWidgets } from "@deskulpt/bindings";
 
 const styles = {
   wrapper: css({
@@ -85,26 +85,19 @@ const WidgetContainer = ({ id }: WidgetContainerProps) => {
 
   // This non-null assertion is safe because the IDs are obtained from the keys
   // of the widgets store
-  const { component: Widget } = useWidgetsStore((state) => state[id]!);
-
-  const settings = useSettingsStore((state) => state.widgets[id]);
-
-  // Local state to avoid jittery movement during dragging and resizing
-  const [geometry, setGeometry] = useState(
-    settings === undefined
-      ? undefined
-      : {
-          x: settings.x,
-          y: settings.y,
-          width: settings.width,
-          height: settings.height,
-        },
+  const { component: Widget, settings } = useWidgetsStore(
+    (state) => state[id]!,
   );
 
+  // Local state to avoid jittery movement during dragging and resizing
+  const [geometry, setGeometry] = useState({
+    x: settings.x,
+    y: settings.y,
+    width: settings.width,
+    height: settings.height,
+  });
+
   useEffect(() => {
-    if (settings === undefined) {
-      return;
-    }
     setGeometry({
       x: settings.x,
       y: settings.y,
@@ -115,15 +108,10 @@ const WidgetContainer = ({ id }: WidgetContainerProps) => {
 
   const onDragStop = (_: DraggableEvent, data: DraggableData) => {
     setGeometry((prev) => prev && { ...prev, x: data.x, y: data.y });
-    DeskulptSettings.Commands.update({
-      widgets: { [id]: { x: data.x, y: data.y } },
-    });
+    DeskulptWidgets.Commands.updateSettings(id, { x: data.x, y: data.y });
   };
 
   const onResizeStart: ResizeStartCallback = () => {
-    if (geometry === undefined) {
-      return;
-    }
     resizeStartRef.current = { ...geometry };
   };
 
@@ -158,13 +146,10 @@ const WidgetContainer = ({ id }: WidgetContainerProps) => {
       direction,
       delta,
     );
-    DeskulptSettings.Commands.update({ widgets: { [id]: newGeometry } });
+    DeskulptWidgets.Commands.updateSettings(id, newGeometry);
   };
 
-  // Do not render anything if the widget is not fully configured; there could
-  // be a gap between widget and settings updates, but they should eventually be
-  // in sync
-  if (settings === undefined || geometry === undefined || !settings.isLoaded) {
+  if (!settings.isLoaded) {
     return null;
   }
 
@@ -218,13 +203,17 @@ const WidgetContainer = ({ id }: WidgetContainerProps) => {
               />
             )}
           >
-            <Widget
-              id={id}
-              x={geometry.x}
-              y={geometry.y}
-              width={geometry.width}
-              height={geometry.height}
-            />
+            {Widget === undefined ? (
+              <Text>Loading...</Text>
+            ) : (
+              <Widget
+                id={id}
+                x={geometry.x}
+                y={geometry.y}
+                width={geometry.width}
+                height={geometry.height}
+              />
+            )}
           </ErrorBoundary>
         </Resizable>
       </Box>

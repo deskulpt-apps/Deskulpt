@@ -12,7 +12,7 @@ pub struct RenderEvent<'a> {
     /// The ID of the widget.
     pub id: &'a str,
     /// Either the code string to render or a bundling error message.
-    pub report: Outcome<String>,
+    pub report: &'a Outcome<String>,
 }
 
 /// Event for notifying frontend windows of a widget catalog update.

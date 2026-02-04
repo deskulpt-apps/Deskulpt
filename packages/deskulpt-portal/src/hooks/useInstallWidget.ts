@@ -21,8 +21,8 @@ export function useInstallWidget(
   if (localWidget === undefined) {
     status = "not-installed";
   } else if (
-    localWidget.type === "ok" &&
-    localWidget.content.version === version
+    localWidget.manifest.type === "ok" &&
+    localWidget.manifest.content.version === version
   ) {
     status = "installed";
   } else {

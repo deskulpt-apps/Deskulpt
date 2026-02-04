@@ -7,13 +7,8 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use deskulpt_common::outcome::Outcome;
-use deskulpt_settings::model::{Settings, SettingsPatch};
-use serde::{Deserialize, Serialize};
-
-/// The name of the Deskulpt widget manifest file.
-///
-/// A directory containing this file is considered a Deskulpt widget.
-const WIDGET_MANIFEST_FILE: &str = "deskulpt.widget.json";
+use serde::{Deserialize, Deserializer, Serialize};
+use serde_with::{DefaultOnError, serde_as};
 
 /// An author of a Deskulpt widget.
 #[derive(Debug, Deserialize, Serialize, specta::Type)]
@@ -81,6 +76,9 @@ pub struct WidgetManifest {
 }
 
 impl WidgetManifest {
+    /// The name of the widget manifest file.
+    const FILE_NAME: &str = "deskulpt.widget.json";
+
     /// Load the widget manifest from a directory.
     ///
     /// This method returns `Ok(None)` if the directory is **NOT A WIDGET**,
@@ -92,8 +90,8 @@ impl WidgetManifest {
     /// Note that [`Result::transpose`] can bring `Option` out of `Result` for
     /// the result of this method, so that non-widget directories can be
     /// filtered out without nested pattern matching.
-    pub fn load(dir: &Path) -> Result<Option<Self>> {
-        let path = dir.join(WIDGET_MANIFEST_FILE);
+    fn load(dir: &Path) -> Result<Option<Self>> {
+        let path = dir.join(Self::FILE_NAME);
         if !path.exists() {
             return Ok(None);
         }
@@ -109,23 +107,180 @@ impl WidgetManifest {
     }
 }
 
+/// Per-widget settings.
+#[serde_as]
+#[derive(Debug, Deserialize, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase", default)]
+pub struct WidgetSettings {
+    /// The leftmost x-coordinate in pixels.
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pub x: i32,
+    /// The topmost y-coordinate in pixels.
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pub y: i32,
+    /// The width in pixels.
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pub width: u32,
+    /// The height in pixels.
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pub height: u32,
+    /// The opacity in percentage.
+    #[serde(deserialize_with = "WidgetSettings::deserialize_opacity")]
+    pub opacity: u8,
+    /// The z-index.
+    ///
+    /// Higher z-index means the widget will be rendered above those with lower
+    /// z-index. Widgets with the same z-index can have arbitrary rendering
+    /// order. The allowed range is from -999 to 999.
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pub z_index: i16,
+    /// Whether the widget should be loaded on the canvas or not.
+    #[serde_as(deserialize_as = "DefaultOnError")]
+    pub is_loaded: bool,
+}
+
+impl Default for WidgetSettings {
+    fn default() -> Self {
+        Self {
+            x: 0,
+            y: 0,
+            width: 300,
+            height: 200,
+            opacity: 100,
+            z_index: 0,
+            is_loaded: true,
+        }
+    }
+}
+
+/// A patch for partial updates to [`WidgetSettings`].
+#[derive(Debug, Default, Deserialize, specta::Type)]
+#[serde(rename_all = "camelCase", default)]
+pub struct WidgetSettingsPatch {
+    /// If not `None`, update [`WidgetSettings::x`].
+    #[specta(optional, type = i32)]
+    pub x: Option<i32>,
+    /// If not `None`, update [`WidgetSettings::y`].
+    #[specta(optional, type = i32)]
+    pub y: Option<i32>,
+    /// If not `None`, update [`WidgetSettings::width`].
+    #[specta(optional, type = u32)]
+    pub width: Option<u32>,
+    /// If not `None`, update [`WidgetSettings::height`].
+    #[specta(optional, type = u32)]
+    pub height: Option<u32>,
+    /// If not `None`, update [`WidgetSettings::opacity`].
+    #[specta(optional, type = u8)]
+    pub opacity: Option<u8>,
+    /// If not `None`, update [`WidgetSettings::z_index`].
+    #[specta(optional, type = i16)]
+    pub z_index: Option<i16>,
+    /// If not `None`, update [`WidgetSettings::is_loaded`].
+    #[specta(optional, type = bool)]
+    pub is_loaded: Option<bool>,
+}
+
+impl WidgetSettings {
+    /// Deserialization helper for opacity.
+    ///
+    /// On error deserializing this field, it will be set to default (100). The
+    /// deserialized value will be clamped to [1, 100].
+    fn deserialize_opacity<'de, D>(deserializer: D) -> Result<u8, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        match u8::deserialize(deserializer) {
+            Ok(opacity) => Ok(opacity.clamp(1, 100)),
+            Err(_) => Ok(100),
+        }
+    }
+
+    fn from_manifest(_manifest: &WidgetManifest) -> Self {
+        // TODO: derive when manifest can imply default settings
+        Self::default()
+    }
+
+    /// Apply a [`WidgetSettingsPatch`].
+    ///
+    /// This method also returns whether the widget settings is actually changed
+    /// by the patch.
+    pub fn apply_patch(&mut self, patch: WidgetSettingsPatch) -> bool {
+        #[inline]
+        fn set_if_changed<T: PartialEq>(dst: &mut T, src: Option<T>) -> bool {
+            match src {
+                Some(v) if *dst != v => {
+                    *dst = v;
+                    true
+                },
+                _ => false,
+            }
+        }
+
+        let mut dirty = false;
+        dirty |= set_if_changed(&mut self.x, patch.x);
+        dirty |= set_if_changed(&mut self.y, patch.y);
+        dirty |= set_if_changed(&mut self.width, patch.width);
+        dirty |= set_if_changed(&mut self.height, patch.height);
+        dirty |= set_if_changed(&mut self.opacity, patch.opacity);
+        dirty |= set_if_changed(&mut self.z_index, patch.z_index);
+        dirty |= set_if_changed(&mut self.is_loaded, patch.is_loaded);
+        dirty
+    }
+
+    pub fn covers_point(&self, x: f64, y: f64) -> bool {
+        let sx = self.x as f64;
+        let sy = self.y as f64;
+        let ex = sx + self.width as f64;
+        let ey = sy + self.height as f64;
+
+        x >= sx && x <= ex && y >= sy && y <= ey
+    }
+}
+
+/// A Deskulpt widget.
+#[derive(Debug, Serialize, specta::Type)]
+pub struct Widget {
+    /// The manifest of the widget or an error message loading it.
+    pub manifest: Outcome<WidgetManifest>,
+    /// The settings of the widget.
+    pub settings: WidgetSettings,
+}
+
 /// The catalog of Deskulpt widgets.
-///
-/// This keeps a mapping from widget IDs to their manifests (if valid) or error
-/// messages (if invalid).
 #[derive(Debug, Default, Serialize, specta::Type)]
-pub struct WidgetCatalog(pub BTreeMap<String, Outcome<WidgetManifest>>);
+pub struct WidgetCatalog(pub BTreeMap<String, Widget>);
 
 impl WidgetCatalog {
-    /// Load the widget catalog from a directory.
-    ///
-    /// This scans all top-level subdirectories and attempts to load them as
-    /// widgets. Widget IDs are derived from the directory names. Widget
-    /// manifests or error messages are stored accordingly, depending on
-    /// whether the directory is successfully loaded as a widget. Non-widget
-    /// directories are not included in the catalog.
-    pub fn load(dir: &Path) -> Result<Self> {
-        let mut catalog = Self::default();
+    pub fn reload(&mut self, dir: &Path, id: &str) -> Result<()> {
+        let Some(manifest) = WidgetManifest::load(dir).transpose() else {
+            self.0.remove(id);
+            return Ok(());
+        };
+
+        match self.0.get_mut(id) {
+            Some(widget) => {
+                widget.manifest = manifest.into();
+            },
+            None => {
+                let settings = match &manifest {
+                    Ok(manifest) => WidgetSettings::from_manifest(manifest),
+                    Err(_) => WidgetSettings::default(),
+                };
+                self.0.insert(
+                    id.to_string(),
+                    Widget {
+                        manifest: manifest.into(),
+                        settings,
+                    },
+                );
+            },
+        }
+
+        Ok(())
+    }
+
+    pub fn reload_all(&mut self, dir: &Path) -> Result<()> {
+        let mut new_catalog = Self::default();
 
         let entries = std::fs::read_dir(dir)?;
         for entry in entries {
@@ -136,51 +291,33 @@ impl WidgetCatalog {
                 continue; // Non-directory entries are not widgets, skip
             }
 
-            if let Some(manifest) = WidgetManifest::load(&path).transpose() {
-                // Since each widget must be at the top level of the widgets
-                // directory, the directory names must be unique and we can use
-                // them as widget IDs
-                let id = entry.file_name().to_string_lossy().to_string();
-                catalog.0.insert(id, manifest.into());
-            }
-        }
+            let Some(manifest) = WidgetManifest::load(&path).transpose() else {
+                continue; // Not a widget, skip
+            };
 
-        Ok(catalog)
-    }
+            // Since each widget must be at the top level of the widgets
+            // directory, the directory names must be unique and we can use them
+            // as widget IDs
+            let id = entry.file_name().to_string_lossy().to_string();
 
-    /// Compute a settings patch to synchronize with the catalog.
-    ///
-    /// This method compares the given widget settings with catalog and
-    /// generates a patch such that:
-    ///
-    /// - If a widget exists in the settings but not in the catalog, it will be
-    ///   removed from the settings.
-    /// - If a widget exists in the catalog but not in the settings, it will be
-    ///   added to the settings with an empty patch, which results in default
-    ///   settings.
-    /// - If a widget exists in both, no changes are made.
-    pub fn compute_settings_patch(&self, settings: &Settings) -> SettingsPatch {
-        let mut patches = BTreeMap::new();
-
-        for e in itertools::merge_join_by(
-            settings.widgets.iter(), // settings (to be synced)
-            self.0.iter(),           // catalog (truth)
-            |(a, _), (b, _)| a.cmp(b),
-        ) {
-            match e {
-                itertools::EitherOrBoth::Left((id, _)) => {
-                    patches.insert(id.clone(), None);
+            let settings = match self.0.remove(&id) {
+                Some(old_widget) => old_widget.settings,
+                None => match &manifest {
+                    Ok(manifest) => WidgetSettings::from_manifest(manifest),
+                    Err(_) => WidgetSettings::default(),
                 },
-                itertools::EitherOrBoth::Right((id, _)) => {
-                    patches.insert(id.clone(), Some(Default::default()));
+            };
+
+            new_catalog.0.insert(
+                id,
+                Widget {
+                    manifest: manifest.into(),
+                    settings,
                 },
-                itertools::EitherOrBoth::Both(_, _) => {},
-            }
+            );
         }
 
-        SettingsPatch {
-            widgets: Some(patches),
-            ..Default::default()
-        }
+        *self = new_catalog;
+        Ok(())
     }
 }
