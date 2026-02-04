@@ -83,11 +83,9 @@ const WidgetContainer = ({ id }: WidgetContainerProps) => {
   const draggableRef = useRef<HTMLDivElement>(null);
   const resizeStartRef = useRef<WidgetGeometry>(null);
 
-  // This non-null assertion is safe because the IDs are obtained from the keys
-  // of the widgets store
-  const { component: Widget, settings } = useWidgetsStore(
-    (state) => state[id]!,
-  );
+  // These non-null assertions are safe based on how App.tsx filters the IDs
+  const Widget = useWidgetsStore((state) => state[id]!.component);
+  const settings = useWidgetsStore((state) => state[id]!.settings!);
 
   // Local state to avoid jittery movement during dragging and resizing
   const [geometry, setGeometry] = useState({

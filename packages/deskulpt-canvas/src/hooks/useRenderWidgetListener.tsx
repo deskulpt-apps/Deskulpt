@@ -12,18 +12,12 @@ export const useRenderWidgetListener = () => {
     const unlisten = DeskulptWidgets.Events.render.listen(async (event) => {
       const { id, report } = event.payload;
 
-      const widget = useWidgetsStore.getState()[id];
-      if (widget === undefined) {
-        logger.warn(`Received render event for unknown widget: ${id}`);
-        return;
-      }
-
       if (report.type === "err") {
         useWidgetsStore.setState(
           (state) => ({
             ...state,
             [id]: {
-              settings: widget.settings,
+              ...state[id],
               component: () =>
                 createElement(ErrorDisplay, {
                   id,
@@ -37,12 +31,12 @@ export const useRenderWidgetListener = () => {
         return;
       }
 
+      const widget = useWidgetsStore.getState()[id];
+
       // APIs blob URL can be reused if it already exists because the contents
       // are dependent only on widget ID
       let apisBlobUrl: string;
-      if (widget.apisBlobUrl !== undefined) {
-        apisBlobUrl = widget.apisBlobUrl;
-      } else {
+      if (widget?.apisBlobUrl === undefined) {
         const apisCode = window.__DESKULPT_INTERNALS__.apisWrapper
           .replaceAll("__DESKULPT_WIDGET_ID__", id)
           .replaceAll("__RAW_APIS_URL__", RAW_APIS_URL);
@@ -50,11 +44,13 @@ export const useRenderWidgetListener = () => {
           type: "application/javascript",
         });
         apisBlobUrl = URL.createObjectURL(apisBlob);
+      } else {
+        apisBlobUrl = widget.apisBlobUrl;
       }
 
       // Module blob URL must be recreated every time and old one must be
       // revoked if exists
-      if (widget.moduleBlobUrl !== undefined) {
+      if (widget?.moduleBlobUrl !== undefined) {
         URL.revokeObjectURL(widget.moduleBlobUrl);
       }
       let moduleCode = report.content
@@ -77,7 +73,7 @@ export const useRenderWidgetListener = () => {
           (state) => ({
             ...state,
             [id]: {
-              settings: widget.settings,
+              ...state[id],
               component: () =>
                 createElement(ErrorDisplay, {
                   id,
@@ -96,7 +92,7 @@ export const useRenderWidgetListener = () => {
         (state) => ({
           ...state,
           [id]: {
-            settings: widget.settings,
+            ...state[id],
             component: module.default,
             apisBlobUrl,
             moduleBlobUrl,

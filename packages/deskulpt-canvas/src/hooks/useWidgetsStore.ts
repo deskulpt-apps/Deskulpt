@@ -11,7 +11,7 @@ interface WidgetProps {
 }
 
 interface WidgetState {
-  settings: WidgetSettings;
+  settings?: WidgetSettings;
   component?: FC<WidgetProps>;
   apisBlobUrl?: string;
   moduleBlobUrl?: string;
