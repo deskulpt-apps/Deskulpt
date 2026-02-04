@@ -11,14 +11,14 @@ use crate::settings::WidgetSettingsPatch;
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn read<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Widgets> {
+pub async fn read<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<Widgets> {
     let widgets = app_handle.widgets().read().clone();
     Ok(widgets)
 }
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn update_settings<R: Runtime>(
+pub async fn update_settings<R: Runtime>(
     app_handle: AppHandle<R>,
     id: String,
     patch: WidgetSettingsPatch,
@@ -29,14 +29,14 @@ pub(crate) async fn update_settings<R: Runtime>(
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn refresh<R: Runtime>(app_handle: AppHandle<R>, id: String) -> SerResult<()> {
+pub async fn refresh<R: Runtime>(app_handle: AppHandle<R>, id: String) -> SerResult<()> {
     app_handle.widgets().refresh(&id)?;
     Ok(())
 }
 
 #[tauri::command]
 #[specta::specta]
-pub(crate) async fn refresh_all<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
+pub async fn refresh_all<R: Runtime>(app_handle: AppHandle<R>) -> SerResult<()> {
     app_handle.widgets().refresh_all()?;
     Ok(())
 }

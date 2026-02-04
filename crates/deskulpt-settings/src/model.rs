@@ -109,7 +109,7 @@ impl Settings {
     /// Corrupted settings file will attempt to recover as much data as
     /// possible, applying default values for the corrupted parts. However,
     /// if the file is completely corrupted, an error might still be returned.
-    pub(crate) fn load(path: &Path) -> Result<Self> {
+    pub fn load(path: &Path) -> Result<Self> {
         if !path.exists() {
             return Ok(Default::default());
         }
@@ -124,7 +124,7 @@ impl Settings {
     /// The provided path will be created if it does not exist. The settings
     /// will be serialized in pretty JSON format with `$schema` metadata for
     /// human readability and editor support.
-    pub(crate) fn dump(&self, path: &Path, schema_url: &str) -> Result<()> {
+    pub fn dump(&self, path: &Path, schema_url: &str) -> Result<()> {
         #[derive(Serialize)]
         struct SettingsWithMeta<'a> {
             #[serde(rename = "$schema")]

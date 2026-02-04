@@ -23,7 +23,7 @@ pub struct WidgetsManager<R: Runtime> {
     app_handle: AppHandle<R>,
     /// The widgets directory.
     dir: PathBuf,
-    /// The widget catalog.
+    /// The widgets.
     widgets: RwLock<Widgets>,
     /// The handle for the render worker.
     render_worker: RenderWorkerHandle,
@@ -32,9 +32,9 @@ pub struct WidgetsManager<R: Runtime> {
 impl<R: Runtime> WidgetsManager<R> {
     /// Initialize the [`WidgetsManager`].
     ///
-    /// The catalog is initialized as empty. A render worker is started
-    /// immediately.
-    pub(crate) fn new(app_handle: AppHandle<R>) -> Result<Self> {
+    /// The widgets are initialized as empty, meaning that they have to be
+    /// loaded afterwards. A render worker is started immediately.
+    pub fn new(app_handle: AppHandle<R>) -> Result<Self> {
         let dir = if cfg!(debug_assertions) {
             app_handle.path().resource_dir()?
         } else {
@@ -58,12 +58,12 @@ impl<R: Runtime> WidgetsManager<R> {
         &self.dir
     }
 
-    /// Get an immutable reference to the current widget catalog.
-    pub(crate) fn read(&self) -> RwLockReadGuard<'_, Widgets> {
+    /// Get an immutable reference to the current widgets.
+    pub fn read(&self) -> RwLockReadGuard<'_, Widgets> {
         self.widgets.read()
     }
 
-    pub(crate) fn update_settings(&self, id: &str, patch: WidgetSettingsPatch) -> Result<()> {
+    pub fn update_settings(&self, id: &str, patch: WidgetSettingsPatch) -> Result<()> {
         let mut widgets = self.widgets.write();
         widgets.get_mut(id)?.settings.apply_patch(patch);
         UpdateEvent(&widgets).emit(&self.app_handle)?;
@@ -79,9 +79,8 @@ impl<R: Runtime> WidgetsManager<R> {
     /// Reload a specific widget by its ID.
     ///
     /// This method loads the widget manifest from the corresponding widget
-    /// directory and updates the catalog entry for that widget. This could be
-    /// an addition, removal, or modification. It then syncs the settings with
-    /// the updated catalog. If any step fails, an error is returned.
+    /// directory and updates that widget. This could be an addition, removal,
+    /// or modification. If any step fails, an error is returned.
     pub fn reload(&self, id: &str) -> Result<bool> {
         let widget_dir = self.dir.join(id);
         let widget = Widget::load(&widget_dir);
@@ -95,9 +94,8 @@ impl<R: Runtime> WidgetsManager<R> {
 
     /// Reload all widgets.
     ///
-    /// This method loads a new widget catalog from the widgets directory and
-    /// replaces the existing catalog. It then syncs the settings with the
-    /// updated catalog. If any step fails, an error is returned.
+    /// This method reloads the widgets directory and replaces the current
+    /// widgets collection. If any step fails, an error is returned.
     pub fn reload_all(&self) -> Result<()> {
         let new_widgets = Widgets::load(&self.dir)?;
 
@@ -111,10 +109,10 @@ impl<R: Runtime> WidgetsManager<R> {
     /// Render a specific widget by its ID.
     ///
     /// This method submits a render task for the specified widget to the render
-    /// worker. If the widget does not exist in the catalog or if task
-    /// submission fails, an error is returned. This method is non-blocking and
-    /// does not wait for the task to complete.
-    pub(crate) fn render(&self, id: &str) -> Result<()> {
+    /// worker. If the widget does not exist or if task submission fails, an
+    /// error is returned. This method is non-blocking and does not wait for the
+    /// task to complete.
+    pub fn render(&self, id: &str) -> Result<()> {
         let widgets = self.widgets.read();
         let widget = widgets.get(id)?;
 
@@ -127,13 +125,13 @@ impl<R: Runtime> WidgetsManager<R> {
         Ok(())
     }
 
-    /// Render all widgets in the catalog.
+    /// Render all widgets.
     ///
-    /// This method submits render tasks for all widgets in the catalog to the
-    /// render worker. If any task submission fails, an error containing all
-    /// accumulated errors is returned. This method is non-blocking and does not
-    /// wait for the tasks to complete.
-    pub(crate) fn render_all(&self) -> Result<()> {
+    /// This method submits render tasks for all widgets to the render worker.
+    /// If any task submission fails, an error containing all accumulated errors
+    /// is returned. This method is non-blocking and does not wait for the tasks
+    /// to complete.
+    pub fn render_all(&self) -> Result<()> {
         let widgets = self.widgets.read();
 
         let mut errors = vec![];
@@ -178,7 +176,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// then rendering all widgets with [`Self::render_all`].
     ///
     /// Tauri command: [`crate::commands::refresh_all`].
-    pub(crate) fn refresh_all(&self) -> Result<()> {
+    pub fn refresh_all(&self) -> Result<()> {
         self.reload_all()?;
         self.render_all()?;
         Ok(())
@@ -186,10 +184,9 @@ impl<R: Runtime> WidgetsManager<R> {
 
     /// Fetch the widgets registry index.
     ///
-    /// Before fetching, this method ensures that the catalog is up-to-date by
-    /// reloading all widgets. This is necessary for the frontend to know which
-    /// widgets are already installed.
-    pub(crate) async fn fetch_registry_index(&self) -> Result<Index> {
+    /// Before fetching, this method reloads all widgets. This is necessary for
+    /// the frontend to know which widgets are already installed.
+    pub async fn fetch_registry_index(&self) -> Result<Index> {
         self.reload_all()?;
 
         let cache_dir = self.app_handle.path().app_cache_dir()?;
@@ -198,16 +195,15 @@ impl<R: Runtime> WidgetsManager<R> {
     }
 
     /// Preview a widget from the registry.
-    pub(crate) async fn preview(&self, widget: &WidgetReference) -> Result<WidgetPreview> {
+    pub async fn preview(&self, widget: &WidgetReference) -> Result<WidgetPreview> {
         WidgetFetcher::default().preview(widget).await
     }
 
     /// Install a widget from the registry.
     ///
     /// If the widget already exists locally, an error is returned. After
-    /// installation, the widget is automatically refreshed to update the
-    /// catalog and render it.
-    pub(crate) async fn install(&self, widget: &WidgetReference) -> Result<()> {
+    /// installation, the widget is automatically refreshed.
+    pub async fn install(&self, widget: &WidgetReference) -> Result<()> {
         let id = widget.local_id();
         let widget_dir = self.dir.join(&id);
         if widget_dir.exists() {
@@ -225,9 +221,8 @@ impl<R: Runtime> WidgetsManager<R> {
     /// Uninstall a widget from the registry.
     ///
     /// If the widget does not exist locally, an error is returned. After
-    /// uninstallation, the widget is automatically reloaded to remove it from
-    /// the catalog.
-    pub(crate) async fn uninstall(&self, widget: &WidgetReference) -> Result<()> {
+    /// uninstallation, the widget is automatically removed.
+    pub async fn uninstall(&self, widget: &WidgetReference) -> Result<()> {
         let id = widget.local_id();
         let widget_dir = self.dir.join(&id);
         if !widget_dir.exists() {
@@ -244,9 +239,8 @@ impl<R: Runtime> WidgetsManager<R> {
     /// Upgrade a widget from the registry.
     ///
     /// If the widget does not exist locally, an error is returned. After
-    /// upgrading, the widget is automatically refreshed to update the catalog
-    /// and render it.
-    pub(crate) async fn upgrade(&self, widget: &WidgetReference) -> Result<()> {
+    /// upgrading, the widget is automatically refreshed.
+    pub async fn upgrade(&self, widget: &WidgetReference) -> Result<()> {
         let id = widget.local_id();
         let widget_dir = self.dir.join(&id);
         if !widget_dir.exists() {

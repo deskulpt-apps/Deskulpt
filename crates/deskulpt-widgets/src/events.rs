@@ -15,6 +15,6 @@ pub struct RenderEvent<'a> {
     pub report: Outcome<String>,
 }
 
-/// Event for notifying frontend windows of a widget catalog update.
+/// Event for notifying frontend windows of a widgets update.
 #[derive(Debug, Serialize, specta::Type, Event)]
 pub struct UpdateEvent<'a>(pub &'a Widgets);

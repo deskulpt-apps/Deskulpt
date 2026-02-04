@@ -51,7 +51,7 @@ impl<R: Runtime> SettingsManager<R> {
     /// The settings are loaded from disk. If loading fails (which means
     /// corrupted settings), default settings are used. A worker is started
     /// immediately.
-    pub(crate) fn new(app_handle: AppHandle<R>) -> Result<Self> {
+    pub fn new(app_handle: AppHandle<R>) -> Result<Self> {
         let persist_path = app_handle
             .path()
             .app_local_data_dir()?
@@ -100,7 +100,7 @@ impl<R: Runtime> SettingsManager<R> {
     }
 
     /// Persist the current settings to disk.
-    pub(crate) fn persist(&self) -> Result<()> {
+    pub fn persist(&self) -> Result<()> {
         let settings = self.settings.read();
         settings.dump(&self.persist_path, &self.schema_url)?;
         Ok(())
@@ -120,7 +120,7 @@ impl<R: Runtime> SettingsManager<R> {
     }
 
     /// Trigger all registered canvas interaction mode change hooks.
-    pub(crate) fn trigger_canvas_imode_hooks(&self, old: &CanvasImode, new: &CanvasImode) {
+    pub fn trigger_canvas_imode_hooks(&self, old: &CanvasImode, new: &CanvasImode) {
         let hooks = self.hooks.read();
         for hook in &hooks.on_canvas_imode_change {
             hook(old, new);
@@ -141,7 +141,7 @@ impl<R: Runtime> SettingsManager<R> {
     }
 
     /// Trigger all registered shortcut change hooks.
-    pub(crate) fn trigger_shortcut_hooks(
+    pub fn trigger_shortcut_hooks(
         &self,
         action: &ShortcutAction,
         old: Option<&String>,

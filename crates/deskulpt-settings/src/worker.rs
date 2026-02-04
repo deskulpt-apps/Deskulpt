@@ -17,7 +17,7 @@ const PERSIST_DEBOUNCE: Duration = Duration::from_millis(500);
 
 /// Tasks that the worker can process.
 #[derive(Debug)]
-pub(crate) enum WorkerTask {
+pub enum WorkerTask {
     /// Persist settings to disk.
     ///
     /// The worker will debounce frequent persist requests within the duration
@@ -113,7 +113,7 @@ impl<R: Runtime> Worker<R> {
 }
 
 /// Handle for communicating with the worker.
-pub(crate) struct WorkerHandle(mpsc::UnboundedSender<WorkerTask>);
+pub struct WorkerHandle(mpsc::UnboundedSender<WorkerTask>);
 
 impl WorkerHandle {
     /// Create a new [`WorkerHandle`] instance.
@@ -121,7 +121,7 @@ impl WorkerHandle {
     /// This immediately spawns a dedicated worker on Tauri's singleton async
     /// runtime that listens for incoming [`WorkerTask`]s and processes them
     /// asynchronously in order.
-    pub(crate) fn new<R: Runtime>(app_handle: AppHandle<R>) -> Self {
+    pub fn new<R: Runtime>(app_handle: AppHandle<R>) -> Self {
         let (tx, rx) = mpsc::unbounded_channel();
         tauri::async_runtime::spawn(async move {
             Worker::new(app_handle, rx).run().await;
@@ -134,7 +134,7 @@ impl WorkerHandle {
     /// This does not block. The task is sent to the worker for asynchronous
     /// processing and does not wait for completion. An error is returned only
     /// if task submission fails, but not if task processing fails.
-    pub(crate) fn process(&self, task: WorkerTask) -> Result<()> {
+    pub fn process(&self, task: WorkerTask) -> Result<()> {
         Ok(self.0.send(task)?)
     }
 }
