@@ -9,8 +9,8 @@ use tokio::sync::mpsc;
 use tokio::time::{Instant, Sleep};
 use tracing::error;
 
-use crate::settings::{ShortcutAction, Theme};
-use crate::{CanvasImode, SettingsExt};
+use crate::SettingsExt;
+use crate::model::{CanvasImode, ShortcutAction, Theme};
 
 /// Debounce duration for [`WorkerTask::Persist`].
 const PERSIST_DEBOUNCE: Duration = Duration::from_millis(500);

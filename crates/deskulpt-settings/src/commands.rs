@@ -5,7 +5,7 @@ use deskulpt_common::SerResult;
 use tauri::{AppHandle, Runtime};
 
 use crate::SettingsExt;
-use crate::settings::SettingsPatch;
+use crate::model::SettingsPatch;
 
 /// Update the settings with a patch.
 ///
