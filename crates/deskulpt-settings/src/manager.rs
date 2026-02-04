@@ -120,7 +120,7 @@ impl<R: Runtime> SettingsManager<R> {
     }
 
     /// Trigger all registered canvas interaction mode change hooks.
-    pub fn trigger_canvas_imode_hooks(&self, old: &CanvasImode, new: &CanvasImode) {
+    pub(crate) fn trigger_canvas_imode_hooks(&self, old: &CanvasImode, new: &CanvasImode) {
         let hooks = self.hooks.read();
         for hook in &hooks.on_canvas_imode_change {
             hook(old, new);
@@ -141,7 +141,7 @@ impl<R: Runtime> SettingsManager<R> {
     }
 
     /// Trigger all registered shortcut change hooks.
-    pub fn trigger_shortcut_hooks(
+    pub(crate) fn trigger_shortcut_hooks(
         &self,
         action: &ShortcutAction,
         old: Option<&String>,

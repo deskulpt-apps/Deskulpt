@@ -18,7 +18,7 @@ pub struct EngineInterface {
 
 impl EngineInterface {
     /// Create a new engine interface instance.
-    pub fn new(widget_dir_fn: impl Fn(&str) -> PathBuf + 'static) -> Self {
+    pub(crate) fn new(widget_dir_fn: impl Fn(&str) -> PathBuf + 'static) -> Self {
         Self {
             widget_dir_fn: Box::new(widget_dir_fn),
         }

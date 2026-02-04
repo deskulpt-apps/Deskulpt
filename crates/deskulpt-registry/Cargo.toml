@@ -13,20 +13,15 @@ version    = { workspace = true }
 anyhow            = { workspace = true }
 astral-tokio-tar  = { workspace = true }
 async-compression = { workspace = true, features = ["tokio", "gzip"] }
-deskulpt-common   = { workspace = true }
 deskulpt-manifest = { workspace = true }
 oci-client        = { workspace = true }
 reqwest           = { workspace = true, features = ["json", "gzip"] }
 serde             = { workspace = true, features = ["derive"] }
 serde_json        = { workspace = true }
 specta            = { workspace = true, features = ["function"] }
-tauri             = { workspace = true, features = ["specta"] }
 tokio             = { workspace = true }
 tokio-util        = { workspace = true }
 tracing           = { workspace = true }
-
-[build-dependencies]
-deskulpt-build = { workspace = true }
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--document-private-items"]
