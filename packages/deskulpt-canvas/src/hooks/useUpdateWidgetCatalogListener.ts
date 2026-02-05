@@ -5,7 +5,7 @@ import { useEffect } from "react";
 
 export const useUpdateWidgetCatalogListener = () => {
   useEffect(() => {
-    const unlisten = DeskulptWidgets.Events.update.listen(async (event) => {
+    const unlisten = DeskulptWidgets.Events.update.listen((event) => {
       const widgets = useWidgetsStore.getState();
 
       const newWidgets = Object.fromEntries(
