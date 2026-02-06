@@ -93,17 +93,19 @@ impl<R: Runtime> WidgetsManager<R> {
             .0
             .get_mut(id)
             .ok_or_else(|| anyhow!("Widget not found: {id}"))?;
-        widget.settings.apply_patch(patch);
 
-        UpdateEvent(&catalog).emit(&self.app_handle)?;
-        self.persist_worker.notify()?;
+        let changed = widget.settings.apply_patch(patch);
+        if changed {
+            UpdateEvent(&catalog).emit(&self.app_handle)?;
+            self.persist_worker.notify()?;
+        }
         Ok(())
     }
 
     /// Try to check if a point is covered by any widget geometrically.
     ///
     /// This method is non-blocking and might return `None` if the widget
-    /// catalaog is currently locked for writing.
+    /// catalog is currently locked for writing.
     pub fn try_covers_point(&self, x: f64, y: f64) -> Option<bool> {
         let catalog = self.catalog.try_read()?;
         let covers = catalog

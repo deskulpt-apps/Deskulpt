@@ -235,6 +235,8 @@ impl WidgetSettings {
     }
 
     /// Check if the widget covers the given point geometrically.
+    ///
+    /// Note that all edges are inclusive.
     pub fn covers_point(&self, x: f64, y: f64) -> bool {
         let sx = self.x as f64;
         let sy = self.y as f64;

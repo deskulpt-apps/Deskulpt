@@ -268,7 +268,7 @@ homepage?: string } |
 string
 
 /**
- * Per-widget settings.
+ * Deskulpt widget settings.
  */
 export type WidgetSettings = { 
 /**
