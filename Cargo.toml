@@ -54,16 +54,16 @@ tracing-subscriber             = "0.3.21"
 url                            = "2.5.8"
 
 # Deskulpt crates
-deskulpt-build         = { version = "0.3.0", path = "crates/deskulpt-build" }
-deskulpt-common        = { version = "0.3.0", path = "crates/deskulpt-common" }
-deskulpt-core          = { version = "0.3.0", path = "crates/deskulpt-core" }
-deskulpt-logs          = { version = "0.3.0", path = "crates/deskulpt-logs" }
-deskulpt-macros        = { version = "0.3.0", path = "crates/deskulpt-macros" }
-deskulpt-plugin        = { version = "0.3.0", path = "crates/deskulpt-plugin" }
-deskulpt-plugin-macros = { version = "0.3.0", path = "crates/deskulpt-plugin-macros" }
-deskulpt-settings      = { version = "0.3.0", path = "crates/deskulpt-settings" }
-deskulpt-widgets       = { version = "0.3.0", path = "crates/deskulpt-widgets" }
-deskulpt-workspace     = { version = "0.3.0", path = "crates/deskulpt-workspace" }
+deskulpt-common                = { version = "0.3.0", path = "crates/deskulpt-common" }
+deskulpt-macros                = { version = "0.3.0", path = "crates/deskulpt-macros" }
+deskulpt-plugin                = { version = "0.3.0", path = "crates/deskulpt-plugin" }
+deskulpt-plugin-macros         = { version = "0.3.0", path = "crates/deskulpt-plugin-macros" }
+deskulpt-workspace             = { version = "0.3.0", path = "crates/deskulpt-workspace" }
+tauri-deskulpt-build           = { version = "0.3.0", path = "crates/tauri-deskulpt-build" }
+tauri-plugin-deskulpt-core     = { version = "0.3.0", path = "crates/tauri-plugin-deskulpt-core" }
+tauri-plugin-deskulpt-logs     = { version = "0.3.0", path = "crates/tauri-plugin-deskulpt-logs" }
+tauri-plugin-deskulpt-settings = { version = "0.3.0", path = "crates/tauri-plugin-deskulpt-settings" }
+tauri-plugin-deskulpt-widgets  = { version = "0.3.0", path = "crates/tauri-plugin-deskulpt-widgets" }
 
 # TODO: Remove these since they will not be dependencies of other crates when finalized
 deskulpt-plugin-fs  = { version = "0.3.0", path = "crates/deskulpt-plugin-fs" }

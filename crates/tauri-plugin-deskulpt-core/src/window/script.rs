@@ -1,8 +1,8 @@
 //! Window initialization scripts.
 
 use anyhow::Result;
-use deskulpt_settings::model::Settings;
 use serialize_to_javascript::{DefaultTemplate, Template, default_template};
+use tauri_plugin_deskulpt_settings::model::Settings;
 
 /// Template for Deskulpt portal initialization script.
 #[derive(Template)]

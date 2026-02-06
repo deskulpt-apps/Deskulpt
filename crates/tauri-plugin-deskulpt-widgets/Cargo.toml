@@ -1,0 +1,40 @@
+[package]
+description = "Deskulpt widgets management."
+links       = "tauri-plugin-deskulpt-widgets"
+name        = "tauri-plugin-deskulpt-widgets"
+
+authors    = { workspace = true }
+edition    = { workspace = true }
+homepage   = { workspace = true }
+license    = { workspace = true }
+repository = { workspace = true }
+version    = { workspace = true }
+
+[dependencies]
+anyhow                         = { workspace = true }
+astral-tokio-tar               = { workspace = true }
+async-compression              = { workspace = true, features = ["tokio", "gzip"] }
+copy_dir                       = { workspace = true }
+deskulpt-common                = { workspace = true }
+dunce                          = { workspace = true }
+either                         = { workspace = true }
+oci-client                     = { workspace = true }
+parking_lot                    = { workspace = true }
+reqwest                        = { workspace = true, features = ["json", "gzip"] }
+rolldown                       = { workspace = true }
+rolldown_common                = { workspace = true }
+serde                          = { workspace = true, features = ["derive"] }
+serde_json                     = { workspace = true }
+serde_with                     = { workspace = true }
+specta                         = { workspace = true, features = ["derive", "function", "serde_json"] }
+tauri                          = { workspace = true, features = ["specta"] }
+tauri-plugin-deskulpt-settings = { workspace = true }
+tokio                          = { workspace = true }
+tokio-util                     = { workspace = true }
+tracing                        = { workspace = true }
+
+[build-dependencies]
+tauri-deskulpt-build = { workspace = true }
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--document-private-items"]

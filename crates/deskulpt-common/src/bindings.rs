@@ -95,6 +95,6 @@ macro_rules! __build_bindings {
 /// Create a function that builds [`Bindings`] for this crate.
 ///
 /// The internals of the function are generated at build time, so one must
-/// configure the build script correctly with `deskulpt-build`.
+/// configure the build script correctly with `tauri-deskulpt-build`.
 #[doc(inline)]
 pub use __build_bindings as build_bindings;

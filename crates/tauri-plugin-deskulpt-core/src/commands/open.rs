@@ -1,9 +1,9 @@
 use deskulpt_common::SerResult;
-use deskulpt_logs::LogsExt;
-use deskulpt_settings::SettingsExt;
-use deskulpt_widgets::WidgetsExt;
 use serde::Deserialize;
 use tauri::{AppHandle, Runtime, command};
+use tauri_plugin_deskulpt_logs::LogsExt;
+use tauri_plugin_deskulpt_settings::SettingsExt;
+use tauri_plugin_deskulpt_widgets::WidgetsExt;
 
 /// The target to open.
 #[derive(Debug, Deserialize, specta::Type)]

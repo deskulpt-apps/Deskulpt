@@ -6,12 +6,12 @@ use std::time::Duration;
 use anyhow::Result;
 use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
-use deskulpt_settings::SettingsExt;
-use deskulpt_settings::model::{CanvasImode, SettingsPatch};
-use deskulpt_widgets::WidgetsExt;
 use parking_lot::RwLock;
 use seqlock::SeqLock;
 use tauri::{App, AppHandle, Manager, PhysicalPosition, Runtime, WebviewWindow};
+use tauri_plugin_deskulpt_settings::SettingsExt;
+use tauri_plugin_deskulpt_settings::model::{CanvasImode, SettingsPatch};
+use tauri_plugin_deskulpt_widgets::WidgetsExt;
 use tracing::error;
 
 use crate::events::ShowToastEvent;

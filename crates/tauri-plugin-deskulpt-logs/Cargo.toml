@@ -1,7 +1,7 @@
 [package]
 description = "Deskulpt logs management."
-links       = "deskulpt-logs"
-name        = "deskulpt-logs"
+links       = "tauri-plugin-deskulpt-logs"
+name        = "tauri-plugin-deskulpt-logs"
 
 authors    = { workspace = true }
 edition    = { workspace = true }
@@ -23,7 +23,7 @@ tracing-panic      = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["time", "json"] }
 
 [build-dependencies]
-deskulpt-build = { workspace = true }
+tauri-deskulpt-build = { workspace = true }
 
 [package.metadata.docs.rs]
 rustdoc-args = ["--extend-css", "../rustdoc.css"]

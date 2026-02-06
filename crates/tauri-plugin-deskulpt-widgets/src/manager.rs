@@ -5,10 +5,10 @@ use std::path::{Path, PathBuf};
 use anyhow::{Context, Result, anyhow, bail};
 use deskulpt_common::event::Event;
 use deskulpt_common::outcome::Outcome;
-use deskulpt_settings::SettingsExt;
-use deskulpt_settings::model::SettingsPatch;
 use parking_lot::RwLock;
 use tauri::{AppHandle, Manager, Runtime};
+use tauri_plugin_deskulpt_settings::SettingsExt;
+use tauri_plugin_deskulpt_settings::model::SettingsPatch;
 use tracing::{debug, error, info};
 
 use crate::catalog::{WidgetCatalog, WidgetSettingsPatch};

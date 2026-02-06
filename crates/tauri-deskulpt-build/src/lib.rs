@@ -38,8 +38,10 @@ impl Builder {
 
     /// Run the build process, returning an error if it fails.
     pub fn try_build(&self) -> Result<()> {
-        let name = env!("CARGO_PKG_NAME");
-        if !name.starts_with("deskulpt-") {
+        let name = std::env::var("CARGO_PKG_NAME").unwrap();
+        if let Some(plugin_name) = name.strip_prefix("tauri-plugin-") {
+            println!("cargo:rustc-env=DESKULPT_TAURI_PLUGIN_NAME={plugin_name}");
+        } else {
             bail!("Plugin crate names must start with 'deskulpt-'; got '{name}'");
         }
 
@@ -57,7 +59,7 @@ impl Builder {
         let build_bindings = quote! {
             #[doc(hidden)]
             pub fn build_bindings() -> ::deskulpt_common::bindings::Bindings {
-                ::deskulpt_common::bindings::BindingsBuilder::new(env!("CARGO_PKG_NAME"))
+                ::deskulpt_common::bindings::BindingsBuilder::new(env!("DESKULPT_TAURI_PLUGIN_NAME"))
                     .commands(::deskulpt_common::bindings::collect_commands![
                         #( crate::commands::#commands::<::tauri::Wry> ),*
                     ])
@@ -68,7 +70,7 @@ impl Builder {
         };
 
         let init_builder = quote! {
-            ::tauri::plugin::Builder::new(env!("CARGO_PKG_NAME"))
+            ::tauri::plugin::Builder::new(env!("DESKULPT_TAURI_PLUGIN_NAME"))
                 .invoke_handler(::tauri::generate_handler![
                     #( crate::commands::#commands ),*
                 ])
@@ -102,7 +104,7 @@ impl Builder {
     /// Same as [`Self::try_build`], but exits automatically on error.
     pub fn build(&self) {
         if let Err(error) = self.try_build() {
-            println!("{}: {error:?}", env!("CARGO_PKG_NAME"));
+            println!("{error:?}");
             std::process::exit(1);
         }
     }

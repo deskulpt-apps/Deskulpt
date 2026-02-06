@@ -4,10 +4,10 @@ mod script;
 
 use anyhow::Result;
 use deskulpt_common::window::DeskulptWindow;
-use deskulpt_settings::SettingsExt;
-use deskulpt_settings::model::{CanvasImode, Theme};
 use script::{CanvasInitJS, PortalInitJS};
 use tauri::{App, AppHandle, Manager, Runtime, WebviewUrl, WebviewWindowBuilder, WindowEvent};
+use tauri_plugin_deskulpt_settings::SettingsExt;
+use tauri_plugin_deskulpt_settings::model::{CanvasImode, Theme};
 
 use crate::states::CanvasImodeStateExt;
 

@@ -1,11 +1,6 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "ignorePatterns": [
-    "**/dist/**",
-    "crates/deskulpt-core/gen/**",
-    "gen/**",
-    "packages/deskulpt-bindings/src/**"
-  ],
+  "ignorePatterns": ["**/gen/**", "packages/deskulpt-bindings/src/**"],
   "plugins": ["import", "oxc", "react", "typescript", "unicorn"],
   "categories": {
     "correctness": "error",

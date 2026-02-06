@@ -1,5 +1,5 @@
 fn main() {
-    deskulpt_build::Builder::default()
+    tauri_deskulpt_build::Builder::default()
         .commands(&["clear", "read", "log"])
         .build();
 }

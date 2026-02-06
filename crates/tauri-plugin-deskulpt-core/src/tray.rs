@@ -1,11 +1,11 @@
 //! Deskulpt system tray.
 
 use anyhow::Result;
-use deskulpt_settings::SettingsExt;
-use deskulpt_widgets::WidgetsExt;
 use tauri::menu::{MenuBuilder, MenuEvent, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use tauri::{App, AppHandle, Manager, Runtime};
+use tauri_plugin_deskulpt_settings::SettingsExt;
+use tauri_plugin_deskulpt_widgets::WidgetsExt;
 use tracing::error;
 
 use crate::window::WindowExt;

@@ -1,0 +1,46 @@
+[package]
+description = "Deskulpt backend core."
+links       = "tauri-plugin-deskulpt-core"
+name        = "tauri-plugin-deskulpt-core"
+
+authors    = { workspace = true }
+edition    = { workspace = true }
+homepage   = { workspace = true }
+license    = { workspace = true }
+repository = { workspace = true }
+version    = { workspace = true }
+
+[dependencies]
+anyhow                         = { workspace = true }
+deskulpt-common                = { workspace = true }
+global-mousemove               = { workspace = true }
+once_cell                      = { workspace = true }
+open                           = { workspace = true, features = ["shellexecute-on-windows"] }
+parking_lot                    = { workspace = true }
+seqlock                        = { workspace = true }
+serde                          = { workspace = true, features = ["derive"] }
+serde_json                     = { workspace = true }
+serialize-to-javascript        = { workspace = true }
+specta                         = { workspace = true, features = ["derive", "function", "serde_json"] }
+tauri-plugin-deskulpt-logs     = { workspace = true }
+tauri-plugin-deskulpt-settings = { workspace = true }
+tauri-plugin-deskulpt-widgets  = { workspace = true }
+tauri-plugin-global-shortcut   = { workspace = true }
+tracing                        = { workspace = true }
+
+tauri = { workspace = true, features = [
+  "specta",
+  "tray-icon",
+  "macos-private-api",
+] }
+
+# TODO: Remove these when finalized
+deskulpt-plugin     = { workspace = true } # maybe remove
+deskulpt-plugin-fs  = { workspace = true }
+deskulpt-plugin-sys = { workspace = true }
+
+[build-dependencies]
+tauri-deskulpt-build = { workspace = true }
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--document-private-items"]

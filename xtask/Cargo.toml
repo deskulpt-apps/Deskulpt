@@ -10,19 +10,19 @@ repository = { workspace = true }
 version    = { workspace = true }
 
 [dependencies]
-anyhow             = { workspace = true }
-clap               = { workspace = true, features = ["derive"] }
-deskulpt-common    = { workspace = true }
-deskulpt-core      = { workspace = true }
-deskulpt-logs      = { workspace = true }
-deskulpt-settings  = { workspace = true }
-deskulpt-widgets   = { workspace = true }
-deskulpt-workspace = { workspace = true }
-handlebars         = { workspace = true }
-heck               = { workspace = true }
-regex              = { workspace = true }
-schemars           = { workspace = true }
-serde              = { workspace = true, features = ["derive"] }
-serde_json         = { workspace = true }
-specta             = { workspace = true }
-specta-typescript  = { workspace = true }
+anyhow                         = { workspace = true }
+clap                           = { workspace = true, features = ["derive"] }
+deskulpt-common                = { workspace = true }
+deskulpt-workspace             = { workspace = true }
+handlebars                     = { workspace = true }
+heck                           = { workspace = true }
+regex                          = { workspace = true }
+schemars                       = { workspace = true }
+serde                          = { workspace = true, features = ["derive"] }
+serde_json                     = { workspace = true }
+specta                         = { workspace = true }
+specta-typescript              = { workspace = true }
+tauri-plugin-deskulpt-core     = { workspace = true }
+tauri-plugin-deskulpt-logs     = { workspace = true }
+tauri-plugin-deskulpt-settings = { workspace = true }
+tauri-plugin-deskulpt-widgets  = { workspace = true }

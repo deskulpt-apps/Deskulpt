@@ -10,12 +10,12 @@ repository = { workspace = true }
 version    = { workspace = true }
 
 [dependencies]
-deskulpt-core                  = { workspace = true }
-deskulpt-logs                  = { workspace = true }
-deskulpt-settings              = { workspace = true }
-deskulpt-widgets               = { workspace = true }
 tauri                          = { workspace = true, features = ["macos-private-api"] }
 tauri-plugin-clipboard-manager = { workspace = true }
+tauri-plugin-deskulpt-core     = { workspace = true }
+tauri-plugin-deskulpt-logs     = { workspace = true }
+tauri-plugin-deskulpt-settings = { workspace = true }
+tauri-plugin-deskulpt-widgets  = { workspace = true }
 tauri-plugin-global-shortcut   = { workspace = true }
 tauri-plugin-opener            = { workspace = true }
 

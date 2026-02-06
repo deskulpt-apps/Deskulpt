@@ -1,8 +1,8 @@
 use deskulpt_common::{SerResult, ser_bail};
-use deskulpt_widgets::WidgetsExt;
 use once_cell::sync::Lazy;
 use parking_lot::Mutex;
 use tauri::{AppHandle, Runtime, command};
+use tauri_plugin_deskulpt_widgets::WidgetsExt;
 
 // TODO: Remove this temporary implementation
 static FS_PLUGIN: Lazy<Mutex<deskulpt_plugin_fs::FsPlugin>> =

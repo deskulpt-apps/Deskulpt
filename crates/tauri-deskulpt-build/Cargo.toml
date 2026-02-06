@@ -1,6 +1,6 @@
 [package]
 description = "Build-time utilities for Deskulpt."
-name        = "deskulpt-build"
+name        = "tauri-deskulpt-build"
 
 authors    = { workspace = true }
 edition    = { workspace = true }
