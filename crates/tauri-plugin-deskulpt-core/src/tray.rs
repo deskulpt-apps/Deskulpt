@@ -6,7 +6,6 @@ use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, Tray
 use tauri::{App, AppHandle, Manager, Runtime};
 use tauri_plugin_deskulpt_settings::SettingsExt;
 use tauri_plugin_deskulpt_widgets::WidgetsExt;
-use tracing::error;
 
 use crate::window::WindowExt;
 
@@ -54,17 +53,17 @@ fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
     match event.id().as_ref() {
         "tray-open-portal" => {
             if let Err(e) = app_handle.open_portal() {
-                error!("Failed to open Deskulpt portal: {e}");
+                tracing::error!("Failed to open Deskulpt portal: {e}");
             }
         },
         "tray-exit" => {
             if let Err(e) = app_handle.settings().persist() {
-                error!("Failed to persist settings before exit: {e}");
+                tracing::error!("Failed to persist settings before exit: {e}");
                 app_handle.exit(1);
                 return;
             }
             if let Err(e) = app_handle.widgets().persist() {
-                error!("Failed to persist widgets before exit: {e}");
+                tracing::error!("Failed to persist widgets before exit: {e}");
                 app_handle.exit(1);
                 return;
             }
@@ -85,6 +84,6 @@ fn on_tray_icon_event<R: Runtime>(tray: &TrayIcon<R>, event: TrayIconEvent) {
         && button_state == MouseButtonState::Down
         && let Err(e) = tray.app_handle().open_portal()
     {
-        error!("Failed to open Deskulpt portal: {e}");
+        tracing::error!("Failed to open Deskulpt portal: {e}");
     }
 }

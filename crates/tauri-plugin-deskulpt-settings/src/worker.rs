@@ -7,7 +7,6 @@ use anyhow::Result;
 use tauri::{AppHandle, Runtime};
 use tokio::sync::mpsc;
 use tokio::time::{Instant, Sleep};
-use tracing::error;
 
 use crate::SettingsExt;
 use crate::model::{CanvasImode, ShortcutAction, Theme};
@@ -87,7 +86,7 @@ impl<R: Runtime> Worker<R> {
     fn on_persist_deadline(&mut self) {
         self.persist_pending = false;
         if let Err(e) = self.app_handle.settings().persist() {
-            error!("Failed to persist settings: {e:?}");
+            tracing::error!("Failed to persist settings: {e:?}");
         }
     }
 

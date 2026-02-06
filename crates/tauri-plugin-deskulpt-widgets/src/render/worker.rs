@@ -5,7 +5,6 @@ use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
 use tauri::{AppHandle, Runtime};
 use tokio::sync::mpsc;
-use tracing::error;
 
 use crate::WidgetsExt;
 use crate::events::RenderEvent;
@@ -49,7 +48,7 @@ async fn render_worker<R: Runtime>(
                     report: &report,
                 };
                 if let Err(e) = event.emit_to(&app_handle, DeskulptWindow::Canvas) {
-                    error!("Failed to emit RenderEvent for widget {id}: {e:?}");
+                    tracing::error!("Failed to emit RenderEvent for widget {id}: {e:?}");
                 };
             },
         }
