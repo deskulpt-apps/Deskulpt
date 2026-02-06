@@ -8,6 +8,7 @@ use deskulpt_common::event::Event;
 use deskulpt_common::window::DeskulptWindow;
 use deskulpt_settings::SettingsExt;
 use deskulpt_settings::model::{CanvasImode, SettingsPatch};
+use deskulpt_widgets::WidgetsExt;
 use parking_lot::RwLock;
 use seqlock::SeqLock;
 use tauri::{App, AppHandle, Manager, PhysicalPosition, Runtime, WebviewWindow};
@@ -191,16 +192,9 @@ fn listen_to_mousemove<R: Runtime>(canvas: WebviewWindow<R>) -> Result<()> {
         #[cfg(not(target_os = "macos"))]
         let scaled_y = (y - canvas_layout.y) * canvas_layout.inv_scale;
 
-        let settings = match canvas.settings().try_read() {
-            Some(settings) => settings,
-            None => return, // Avoid blocking
+        let Some(mouse_over_widget) = canvas.widgets().try_covers_point(scaled_x, scaled_y) else {
+            return; // Avoid blocking
         };
-        let mouse_over_widget = settings.widgets.values().any(|widget| {
-            scaled_x >= widget.x as f64
-                && scaled_x < widget.x as f64 + widget.width as f64
-                && scaled_y >= widget.y as f64
-                && scaled_y < widget.y as f64 + widget.height as f64
-        });
 
         // Avoid redundant calls by checking if the state has really changed
         let should_ignore_cursor = !mouse_over_widget;

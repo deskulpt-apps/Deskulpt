@@ -14,7 +14,13 @@ import {
 
 const App = () => {
   const theme = useSettingsStore((state) => state.theme);
-  const ids = useWidgetsStore(useShallow((state) => Object.keys(state)));
+  const ids = useWidgetsStore(
+    useShallow((state) =>
+      Object.entries(state)
+        .filter(([_, { settings }]) => settings !== undefined)
+        .map(([id]) => id),
+    ),
+  );
 
   useRenderWidgetListener();
   useShowToastListener();

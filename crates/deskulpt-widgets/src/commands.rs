@@ -5,7 +5,22 @@ use deskulpt_common::SerResult;
 use tauri::{AppHandle, Runtime};
 
 use crate::WidgetsExt;
+use crate::catalog::WidgetSettingsPatch;
 use crate::registry::{RegistryIndex, RegistryWidgetPreview, RegistryWidgetReference};
+
+/// Update the settings of a widget with a patch.
+///
+/// This command is a wrapper of [`crate::WidgetsManager::update_settings`].
+#[tauri::command]
+#[specta::specta]
+pub async fn update_settings<R: Runtime>(
+    app_handle: AppHandle<R>,
+    id: String,
+    patch: WidgetSettingsPatch,
+) -> SerResult<()> {
+    app_handle.widgets().update_settings(&id, patch)?;
+    Ok(())
+}
 
 /// Refresh a specific widget by its ID.
 ///

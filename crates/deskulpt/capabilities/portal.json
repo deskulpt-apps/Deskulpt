@@ -15,6 +15,7 @@
     "deskulpt-widgets:allow-refresh",
     "deskulpt-widgets:allow-refresh-all",
     "deskulpt-widgets:allow-uninstall",
+    "deskulpt-widgets:allow-update-settings",
     "deskulpt-widgets:allow-upgrade",
     "core:event:default",
     "clipboard-manager:allow-write-text",

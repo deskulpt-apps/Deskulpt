@@ -29,7 +29,7 @@ interface TriggerProps {
 }
 
 const Trigger = ({ id, value }: TriggerProps) => {
-  const config = useWidgetsStore((state) => state[id]);
+  const type = useWidgetsStore((state) => state[id]?.manifest.type);
 
   return (
     <Tabs.Trigger value={value} css={styles.trigger}>
@@ -37,10 +37,7 @@ const Trigger = ({ id, value }: TriggerProps) => {
         <Box
           width="6px"
           height="6px"
-          css={[
-            styles.indicator,
-            config?.type !== "ok" && styles.indicatorInvalid,
-          ]}
+          css={[styles.indicator, type !== "ok" && styles.indicatorInvalid]}
         />
         <Text>{id}</Text>
       </Flex>

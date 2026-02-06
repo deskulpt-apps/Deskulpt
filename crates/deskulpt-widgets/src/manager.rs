@@ -11,8 +11,9 @@ use parking_lot::RwLock;
 use tauri::{AppHandle, Manager, Runtime};
 use tracing::{debug, error, info};
 
-use crate::catalog::{WidgetCatalog, WidgetManifest};
+use crate::catalog::{WidgetCatalog, WidgetSettingsPatch};
 use crate::events::UpdateEvent;
+use crate::persist::{PersistWorkerHandle, PersistedWidgetCatalog, PersistedWidgetCatalogView};
 use crate::registry::{
     RegistryIndex, RegistryIndexFetcher, RegistryWidgetFetcher, RegistryWidgetPreview,
     RegistryWidgetReference,
@@ -27,15 +28,20 @@ pub struct WidgetsManager<R: Runtime> {
     dir: PathBuf,
     /// The widget catalog.
     catalog: RwLock<WidgetCatalog>,
+    /// The path where widgets are persisted.
+    persist_path: PathBuf,
     /// The handle for the render worker.
     render_worker: RenderWorkerHandle,
+    /// The handle for the persist worker.
+    persist_worker: PersistWorkerHandle,
 }
 
 impl<R: Runtime> WidgetsManager<R> {
     /// Initialize the [`WidgetsManager`].
     ///
-    /// The catalog is initialized as empty. A render worker is started
-    /// immediately.
+    /// The catalog will be populated with widgets in the widgets directory and
+    /// the persisted settings file. A render worker and a persist worker will
+    /// be started immediately.
     pub fn new(app_handle: AppHandle<R>) -> Result<Self> {
         let dir = if cfg!(debug_assertions) {
             app_handle.path().resource_dir()?
@@ -45,19 +51,75 @@ impl<R: Runtime> WidgetsManager<R> {
         let dir = dunce::simplified(&dir).join("widgets");
         std::fs::create_dir_all(&dir)?;
 
+        let mut catalog = WidgetCatalog::default();
+        catalog.reload_all(&dir)?;
+
+        let persist_path = app_handle.path().app_local_data_dir()?.join("widgets.json");
+        let mut persisted_catalog =
+            PersistedWidgetCatalog::load(&persist_path).unwrap_or_else(|e| {
+                error!("Failed to load persisted widgets: {e:?}");
+                Default::default()
+            });
+        catalog.0.iter_mut().for_each(|(k, v)| {
+            if let Some(persisted) = persisted_catalog.0.remove(k) {
+                v.settings = persisted.settings;
+            }
+        });
+
         let render_worker = RenderWorkerHandle::new(app_handle.clone());
+        let persist_worker = PersistWorkerHandle::new(app_handle.clone())?;
 
         Ok(Self {
             app_handle,
             dir,
-            catalog: Default::default(),
+            catalog: RwLock::new(catalog),
+            persist_path,
             render_worker,
+            persist_worker,
         })
     }
 
     /// Get the widgets directory.
     pub fn dir(&self) -> &Path {
         &self.dir
+    }
+
+    /// Update the settings of a widget with a patch.
+    ///
+    /// An error is returned if the widget does not exist.
+    pub fn update_settings(&self, id: &str, patch: WidgetSettingsPatch) -> Result<()> {
+        let mut catalog = self.catalog.write();
+        let widget = catalog
+            .0
+            .get_mut(id)
+            .ok_or_else(|| anyhow!("Widget not found: {id}"))?;
+
+        let changed = widget.settings.apply_patch(patch);
+        if changed {
+            UpdateEvent(&catalog).emit(&self.app_handle)?;
+            self.persist_worker.notify()?;
+        }
+        Ok(())
+    }
+
+    /// Try to check if a point is covered by any widget geometrically.
+    ///
+    /// This method is non-blocking and might return `None` if the widget
+    /// catalog is currently locked for writing.
+    pub fn try_covers_point(&self, x: f64, y: f64) -> Option<bool> {
+        let catalog = self.catalog.try_read()?;
+        let covers = catalog
+            .0
+            .values()
+            .any(|widget| widget.settings.covers_point(x, y));
+        Some(covers)
+    }
+
+    /// Persist the current widgets to disk.
+    pub fn persist(&self) -> Result<()> {
+        let catalog = self.catalog.read();
+        PersistedWidgetCatalogView(&catalog).persist(&self.persist_path)?;
+        Ok(())
     }
 
     /// Reload a specific widget by its ID.
@@ -68,19 +130,12 @@ impl<R: Runtime> WidgetsManager<R> {
     /// the updated catalog. If any step fails, an error is returned.
     pub fn reload(&self, id: &str) -> Result<()> {
         let widget_dir = self.dir.join(id);
-        let manifest = WidgetManifest::load(&widget_dir);
 
         let mut catalog = self.catalog.write();
-        if let Some(manifest) = manifest.transpose() {
-            catalog.0.insert(id.to_string(), manifest.into());
-        } else {
-            catalog.0.remove(id);
-        }
-        UpdateEvent(&catalog).emit(&self.app_handle)?;
+        catalog.reload(&widget_dir, id)?;
 
-        self.app_handle
-            .settings()
-            .update_with(|settings| catalog.compute_settings_patch(settings))?;
+        UpdateEvent(&catalog).emit(&self.app_handle)?;
+        self.persist_worker.notify()?;
         Ok(())
     }
 
@@ -90,15 +145,11 @@ impl<R: Runtime> WidgetsManager<R> {
     /// replaces the existing catalog. It then syncs the settings with the
     /// updated catalog. If any step fails, an error is returned.
     pub fn reload_all(&self) -> Result<()> {
-        let new_catalog = WidgetCatalog::load(&self.dir)?;
-
         let mut catalog = self.catalog.write();
-        *catalog = new_catalog;
-        UpdateEvent(&catalog).emit(&self.app_handle)?;
+        catalog.reload_all(&self.dir)?;
 
-        self.app_handle
-            .settings()
-            .update_with(|settings| catalog.compute_settings_patch(settings))?;
+        UpdateEvent(&catalog).emit(&self.app_handle)?;
+        self.persist_worker.notify()?;
         Ok(())
     }
 
@@ -110,15 +161,15 @@ impl<R: Runtime> WidgetsManager<R> {
     /// does not wait for the task to complete.
     pub fn render(&self, id: &str) -> Result<()> {
         let catalog = self.catalog.read();
-        let config = catalog
+        let widget = catalog
             .0
             .get(id)
             .ok_or_else(|| anyhow!("Widget {id} does not exist in the catalog"))?;
 
-        if let Outcome::Ok(config) = config {
+        if let Outcome::Ok(manifest) = &widget.manifest {
             self.render_worker.process(RenderWorkerTask::Render {
                 id: id.to_string(),
-                entry: config.entry.clone(),
+                entry: manifest.entry.clone(),
             })?;
         }
         Ok(())
@@ -134,11 +185,11 @@ impl<R: Runtime> WidgetsManager<R> {
         let catalog = self.catalog.read();
 
         let mut errors = vec![];
-        for (id, config) in catalog.0.iter() {
-            if let Outcome::Ok(config) = config
+        for (id, widget) in catalog.0.iter() {
+            if let Outcome::Ok(manifest) = &widget.manifest
                 && let Err(e) = self.render_worker.process(RenderWorkerTask::Render {
                     id: id.clone(),
-                    entry: config.entry.clone(),
+                    entry: manifest.entry.clone(),
                 })
             {
                 errors.push(e.context(format!("Failed to send render task for widget {id}")));

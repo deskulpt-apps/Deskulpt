@@ -11,40 +11,19 @@ export const useRenderWidgetListener = () => {
   useEffect(() => {
     const unlisten = DeskulptWidgets.Events.render.listen(async (event) => {
       const { id, report } = event.payload;
-      const widgets = useWidgetsStore.getState();
-
-      let apisBlobUrl: string;
-      if (id in widgets) {
-        // APIs blob URL can be reused because the contents are dependent only
-        // on widget ID; the code blob URL will definitely change on re-render
-        // so we revoke it here
-        const widget = widgets[id]!;
-        apisBlobUrl = widget.apisBlobUrl;
-        if (widget.moduleBlobUrl !== undefined) {
-          URL.revokeObjectURL(widget.moduleBlobUrl);
-        }
-      } else {
-        const apisCode = window.__DESKULPT_INTERNALS__.apisWrapper
-          .replaceAll("__DESKULPT_WIDGET_ID__", id)
-          .replaceAll("__RAW_APIS_URL__", RAW_APIS_URL);
-        const apisBlob = new Blob([apisCode], {
-          type: "application/javascript",
-        });
-        apisBlobUrl = URL.createObjectURL(apisBlob);
-      }
 
       if (report.type === "err") {
         useWidgetsStore.setState(
           (state) => ({
             ...state,
             [id]: {
+              ...state[id],
               component: () =>
                 createElement(ErrorDisplay, {
                   id,
                   error: "Error bundling the widget",
                   message: report.content,
                 }),
-              apisBlobUrl,
             },
           }),
           true,
@@ -52,6 +31,28 @@ export const useRenderWidgetListener = () => {
         return;
       }
 
+      const widget = useWidgetsStore.getState()[id];
+
+      // APIs blob URL can be reused if it already exists because the contents
+      // are dependent only on widget ID
+      let apisBlobUrl: string;
+      if (widget?.apisBlobUrl === undefined) {
+        const apisCode = window.__DESKULPT_INTERNALS__.apisWrapper
+          .replaceAll("__DESKULPT_WIDGET_ID__", id)
+          .replaceAll("__RAW_APIS_URL__", RAW_APIS_URL);
+        const apisBlob = new Blob([apisCode], {
+          type: "application/javascript",
+        });
+        apisBlobUrl = URL.createObjectURL(apisBlob);
+      } else {
+        apisBlobUrl = widget.apisBlobUrl;
+      }
+
+      // Module blob URL must be recreated every time and old one must be
+      // revoked if exists
+      if (widget?.moduleBlobUrl !== undefined) {
+        URL.revokeObjectURL(widget.moduleBlobUrl);
+      }
       let moduleCode = report.content
         .replaceAll("__DESKULPT_BASE_URL__", BASE_URL)
         .replaceAll("__DESKULPT_APIS_BLOB_URL__", apisBlobUrl);
@@ -59,6 +60,7 @@ export const useRenderWidgetListener = () => {
         type: "application/javascript",
       });
       const moduleBlobUrl = URL.createObjectURL(moduleBlob);
+
       let module: any;
       try {
         module = await import(/* @vite-ignore */ moduleBlobUrl);
@@ -71,6 +73,7 @@ export const useRenderWidgetListener = () => {
           (state) => ({
             ...state,
             [id]: {
+              ...state[id],
               component: () =>
                 createElement(ErrorDisplay, {
                   id,
@@ -89,6 +92,7 @@ export const useRenderWidgetListener = () => {
         (state) => ({
           ...state,
           [id]: {
+            ...state[id],
             component: module.default,
             apisBlobUrl,
             moduleBlobUrl,

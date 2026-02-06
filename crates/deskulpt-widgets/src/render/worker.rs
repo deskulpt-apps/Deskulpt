@@ -43,7 +43,11 @@ async fn render_worker<R: Runtime>(
                 }
                 .await
                 .into();
-                let event = RenderEvent { id: &id, report };
+
+                let event = RenderEvent {
+                    id: &id,
+                    report: &report,
+                };
                 if let Err(e) = event.emit_to(&app_handle, DeskulptWindow::Canvas) {
                     error!("Failed to emit RenderEvent for widget {id}: {e:?}");
                 };
