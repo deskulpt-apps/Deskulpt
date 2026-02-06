@@ -7,9 +7,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use deskulpt_common::outcome::Outcome;
-use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize};
-use serde_with::{DefaultOnError, serde_as};
 
 /// An author of a Deskulpt widget.
 #[derive(Debug, Deserialize, Serialize, specta::Type)]
@@ -109,36 +107,27 @@ impl WidgetManifest {
 }
 
 /// Deskulpt widget settings.
-#[serde_as]
-#[derive(Debug, Deserialize, Serialize, JsonSchema, specta::Type)]
+#[derive(Debug, Deserialize, Serialize, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
 pub struct WidgetSettings {
     /// The leftmost x-coordinate in pixels.
-    #[serde_as(deserialize_as = "DefaultOnError")]
     pub x: i32,
     /// The topmost y-coordinate in pixels.
-    #[serde_as(deserialize_as = "DefaultOnError")]
     pub y: i32,
     /// The width in pixels.
-    #[serde_as(deserialize_as = "DefaultOnError")]
     pub width: u32,
     /// The height in pixels.
-    #[serde_as(deserialize_as = "DefaultOnError")]
     pub height: u32,
     /// The opacity in percentage.
     #[serde(deserialize_with = "WidgetSettings::deserialize_opacity")]
-    #[schemars(range(min = 1, max = 100))]
     pub opacity: u8,
     /// The z-index.
     ///
     /// Higher z-index means the widget will be rendered above those with lower
     /// z-index. Widgets with the same z-index can have arbitrary rendering
     /// order. The allowed range is from -999 to 999.
-    #[serde_as(deserialize_as = "DefaultOnError")]
-    #[schemars(range(min = -999, max = 999))]
     pub z_index: i16,
     /// Whether the widget should be loaded on the canvas or not.
-    #[serde_as(deserialize_as = "DefaultOnError")]
     pub is_loaded: bool,
 }
 

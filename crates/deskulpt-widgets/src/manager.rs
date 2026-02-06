@@ -118,8 +118,7 @@ impl<R: Runtime> WidgetsManager<R> {
     /// Persist the current widgets to disk.
     pub fn persist(&self) -> Result<()> {
         let catalog = self.catalog.read();
-        let view: PersistedWidgetCatalogView = (&*catalog).into();
-        view.persist(&self.persist_path)?;
+        PersistedWidgetCatalogView(&catalog).persist(&self.persist_path)?;
         Ok(())
     }
 

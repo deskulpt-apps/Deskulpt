@@ -5,8 +5,8 @@ use std::path::Path;
 use std::pin::Pin;
 
 use anyhow::Result;
-use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use serde_with::{MapSkipError, serde_as};
 use tauri::{AppHandle, Runtime};
 use tokio::sync::mpsc;
 use tokio::time::{Duration, Instant, Sleep};
@@ -16,17 +16,18 @@ use crate::WidgetsExt;
 use crate::catalog::{WidgetCatalog, WidgetSettings};
 
 /// Persisted representation of a widget.
-#[derive(Debug, Serialize, Deserialize, JsonSchema)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
-#[schemars(rename = "Widget")]
 pub struct PersistedWidget {
     pub settings: WidgetSettings,
 }
 
 /// Persisted representation of the widget catalog.
-#[derive(Debug, Default, Serialize, Deserialize, JsonSchema)]
-#[schemars(rename = "WidgetCatalog")]
-pub struct PersistedWidgetCatalog(pub BTreeMap<String, PersistedWidget>);
+#[serde_as]
+#[derive(Debug, Default, Deserialize)]
+pub struct PersistedWidgetCatalog(
+    #[serde_as(deserialize_as = "MapSkipError<_, _>")] pub BTreeMap<String, PersistedWidget>,
+);
 
 impl PersistedWidgetCatalog {
     /// Load the persisted widget catalog from disk.
@@ -49,7 +50,7 @@ impl PersistedWidgetCatalog {
 /// The serialization format will follow the representation of
 /// [`PersistedWidgetCatalog`].
 #[derive(Debug)]
-pub struct PersistedWidgetCatalogView<'a>(&'a WidgetCatalog);
+pub struct PersistedWidgetCatalogView<'a>(pub &'a WidgetCatalog);
 
 impl<'a> PersistedWidgetCatalogView<'a> {
     /// Persist the widget catalog to disk.
@@ -58,12 +59,6 @@ impl<'a> PersistedWidgetCatalogView<'a> {
         let writer = BufWriter::new(file);
         serde_json::to_writer(writer, self)?;
         Ok(())
-    }
-}
-
-impl<'a> From<&'a WidgetCatalog> for PersistedWidgetCatalogView<'a> {
-    fn from(catalog: &'a WidgetCatalog) -> Self {
-        Self(catalog)
     }
 }
 

@@ -1428,7 +1428,6 @@ dependencies = [
  "reqwest 0.13.1",
  "rolldown",
  "rolldown_common",
- "schemars 1.2.1",
  "serde",
  "serde_json",
  "serde_with",
