@@ -113,6 +113,7 @@ impl<R: Runtime> WidgetsManager<R> {
         Some(covers)
     }
 
+    /// Persist the current widgets to disk.
     pub fn persist(&self) -> Result<()> {
         let catalog = self.catalog.read();
         let view: PersistedWidgetCatalogView = (&*catalog).into();

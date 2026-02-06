@@ -108,7 +108,7 @@ impl WidgetManifest {
     }
 }
 
-/// Per-widget settings.
+/// Deskulpt widget settings.
 #[serde_as]
 #[derive(Debug, Deserialize, Serialize, JsonSchema, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
@@ -198,8 +198,12 @@ impl WidgetSettings {
         }
     }
 
+    /// Derive widget settings from a widget manifest.
+    ///
+    /// NOTE: Currently this just returns default settings, but in the future
+    /// when the manifest have fields that can imply default settings, this
+    /// method should derive settings from those fields.
     fn from_manifest(_manifest: &WidgetManifest) -> Self {
-        // TODO: derive when manifest can imply default settings
         Self::default()
     }
 
@@ -230,6 +234,7 @@ impl WidgetSettings {
         dirty
     }
 
+    /// Check if the widget covers the given point geometrically.
     pub fn covers_point(&self, x: f64, y: f64) -> bool {
         let sx = self.x as f64;
         let sy = self.y as f64;
@@ -251,6 +256,10 @@ pub struct Widget {
 }
 
 impl Widget {
+    /// Create a new [`Widget`] instance.
+    ///
+    /// If settings are not provided, they will be derived from the manifest or
+    /// set to default.
     fn new(manifest: Outcome<WidgetManifest>, settings: Option<WidgetSettings>) -> Self {
         let settings = settings.unwrap_or_else(|| match &manifest {
             Outcome::Ok(manifest) => WidgetSettings::from_manifest(manifest),
@@ -265,6 +274,12 @@ impl Widget {
 pub struct WidgetCatalog(pub BTreeMap<String, Widget>);
 
 impl WidgetCatalog {
+    /// Reload a widget in the catalog from its directory.
+    ///
+    /// If the widget is gone, it will be removed from the catalog. If the
+    /// widget is new, it will be added to the catalog with default settings. If
+    /// the widget already exists, its manifest will be updated while keeping
+    /// its settings.
     pub fn reload(&mut self, dir: &Path, id: &str) -> Result<()> {
         let Some(manifest) = WidgetManifest::load(dir).transpose() else {
             self.0.remove(id);
@@ -281,6 +296,11 @@ impl WidgetCatalog {
         Ok(())
     }
 
+    /// Reload all widgets from the given directory.
+    ///
+    /// This will completely replace the current catalog with the widgets
+    /// discovered in the given directory. Existing widgets will keep their
+    /// settings if they are still present.
     pub fn reload_all(&mut self, dir: &Path) -> Result<()> {
         let mut new_catalog = Self::default();
 
