@@ -12,7 +12,6 @@ use tauri::{App, AppHandle, Manager, PhysicalPosition, Runtime, WebviewWindow};
 use tauri_plugin_deskulpt_settings::SettingsExt;
 use tauri_plugin_deskulpt_settings::model::{CanvasImode, SettingsPatch};
 use tauri_plugin_deskulpt_widgets::WidgetsExt;
-use tracing::error;
 
 use crate::events::ShowToastEvent;
 
@@ -83,7 +82,7 @@ pub trait CanvasImodeStateExt<R: Runtime>: Manager<R> + SettingsExt<R> {
 
         self.settings().on_canvas_imode_change(move |_, new| {
             if let Err(e) = on_new_canvas_imode(&canvas, new) {
-                error!("Failed to update canvas interaction mode: {}", e);
+                tracing::error!("Failed to update canvas interaction mode: {}", e);
             }
         });
 
@@ -153,7 +152,7 @@ fn on_new_canvas_imode<R: Runtime>(canvas: &WebviewWindow<R>, mode: &CanvasImode
     if let Err(e) = ShowToastEvent::Success(format!("Canvas interaction mode: {mode:?}"))
         .emit_to(canvas, DeskulptWindow::Canvas)
     {
-        error!("Failed to emit ShowToastEvent to canvas: {}", e);
+        tracing::error!("Failed to emit ShowToastEvent to canvas: {}", e);
     }
 
     Ok(())

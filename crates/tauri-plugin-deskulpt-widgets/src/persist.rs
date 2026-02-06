@@ -10,7 +10,6 @@ use serde_with::{MapSkipError, serde_as};
 use tauri::{AppHandle, Runtime};
 use tokio::sync::mpsc;
 use tokio::time::{Duration, Instant, Sleep};
-use tracing::error;
 
 use crate::WidgetsExt;
 use crate::catalog::{WidgetCatalog, WidgetSettings};
@@ -135,7 +134,7 @@ impl<R: Runtime> PersistWorker<R> {
     fn on_deadline(&mut self) {
         self.pending = false;
         if let Err(e) = self.app_handle.widgets().persist() {
-            error!("Failed to persist widgets: {e:?}");
+            tracing::error!("Failed to persist widgets: {e:?}");
         }
     }
 

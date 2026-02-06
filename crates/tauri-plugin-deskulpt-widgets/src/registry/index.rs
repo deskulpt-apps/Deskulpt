@@ -6,7 +6,6 @@ use anyhow::{Context, Result, bail};
 use reqwest::header::{ETAG, IF_NONE_MATCH};
 use reqwest::{Client, Response, StatusCode};
 use serde::{Deserialize, Serialize};
-use tracing::{debug, instrument, warn};
 
 use crate::catalog::WidgetManifestAuthor;
 
@@ -92,14 +91,14 @@ impl RegistryIndexFetcher {
     /// registry index has not changed since the last fetch, the cached version
     /// will be used if available and valid. Otherwise, a fresh copy will be
     /// fetched and cached.
-    #[instrument(skip_all, level = "debug")]
+    #[tracing::instrument(skip_all, level = "debug")]
     pub async fn fetch(&self) -> Result<RegistryIndex> {
         tokio::fs::create_dir_all(&self.cache_dir)
             .await
             .context("Failed to create cache directory")?;
 
         let cached_etag = self.read_etag().await.unwrap_or_else(|e| {
-            warn!(
+            tracing::warn!(
                 error = ?e,
                 path = %self.etag_path.display(),
                 "Failed to read cached etag; proceeding without it",
@@ -109,7 +108,7 @@ impl RegistryIndexFetcher {
 
         let mut request = self.client.get(Self::URL);
         if let Some(etag) = cached_etag {
-            debug!(%etag, "Using cached etag");
+            tracing::debug!(%etag, "Using cached etag");
             request = request.header(IF_NONE_MATCH, etag);
         }
 
@@ -167,8 +166,8 @@ impl RegistryIndexFetcher {
         let index = serde_json::from_slice(&body).context("Failed to deserialize response body")?;
 
         match tokio::fs::write(&self.cache_path, &body).await {
-            Ok(_) => debug!(path = %self.cache_path.display(), "Cached registry index"),
-            Err(e) => warn!(
+            Ok(_) => tracing::debug!(path = %self.cache_path.display(), "Cached registry index"),
+            Err(e) => tracing::warn!(
                 error = ?e,
                 path = %self.cache_path.display(),
                 "Failed to cache registry index",
@@ -177,8 +176,8 @@ impl RegistryIndexFetcher {
 
         if let Some(etag) = etag {
             match tokio::fs::write(&self.etag_path, &etag).await {
-                Ok(_) => debug!(path = %self.etag_path.display(), "Cached etag"),
-                Err(e) => warn!(
+                Ok(_) => tracing::debug!(path = %self.etag_path.display(), "Cached etag"),
+                Err(e) => tracing::warn!(
                     error = ?e,
                     path = %self.etag_path.display(),
                     "Failed to cache etag",
@@ -196,10 +195,10 @@ impl RegistryIndexFetcher {
     async fn handle_not_modified(&self) -> Result<RegistryIndex> {
         match self.read_cache().await {
             Ok(index) => {
-                debug!("Widgets registry index not modified; using cache");
+                tracing::debug!("Widgets registry index not modified; using cache");
                 return Ok(index);
             },
-            Err(e) => warn!(
+            Err(e) => tracing::warn!(
                 error = ?e,
                 path = %self.cache_path.display(),
                 "Received 304 Not Modified but failed to read from cache; retrying fresh fetch",

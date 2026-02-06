@@ -5,7 +5,6 @@ use tauri::{App, AppHandle, Manager, Runtime};
 use tauri_plugin_deskulpt_settings::SettingsExt;
 use tauri_plugin_deskulpt_settings::model::ShortcutAction;
 use tauri_plugin_global_shortcut::{GlobalShortcut, GlobalShortcutExt, ShortcutState};
-use tracing::error;
 
 use crate::states::CanvasImodeStateExt;
 use crate::window::WindowExt;
@@ -27,12 +26,12 @@ fn reregister_shortcut<R: Runtime>(
     let handler: fn(&AppHandle<R>) = match action {
         ShortcutAction::ToggleCanvasImode => |app_handle| {
             if let Err(e) = app_handle.toggle_canvas_imode() {
-                error!("Failed to toggle canvas interaction mode: {e}");
+                tracing::error!("Failed to toggle canvas interaction mode: {e}");
             }
         },
         ShortcutAction::OpenPortal => |app_handle| {
             if let Err(e) = app_handle.open_portal() {
-                error!("Failed to open Deskulpt portal: {e}");
+                tracing::error!("Failed to open Deskulpt portal: {e}");
             }
         },
     };
@@ -61,7 +60,9 @@ pub trait ShortcutsExt<R: Runtime>: Manager<R> + SettingsExt<R> + GlobalShortcut
             let settings = self.settings().read();
             for (action, shortcut) in &settings.shortcuts {
                 if let Err(e) = reregister_shortcut(gs, action, None, Some(shortcut)) {
-                    error!("Failed to register shortcut {shortcut:?} for {action:?}: {e:?}");
+                    tracing::error!(
+                        "Failed to register shortcut {shortcut:?} for {action:?}: {e:?}"
+                    );
                 }
             }
         }
@@ -70,7 +71,7 @@ pub trait ShortcutsExt<R: Runtime>: Manager<R> + SettingsExt<R> + GlobalShortcut
         self.settings().on_shortcut_change(move |action, old, new| {
             let gs = app_handle.global_shortcut();
             if let Err(e) = reregister_shortcut(gs, action, old, new) {
-                error!(
+                tracing::error!(
                     "Failed to re-register shortcut from {old:?} to {new:?} for {action:?}: {e:?}"
                 );
             }

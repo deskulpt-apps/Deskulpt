@@ -4,7 +4,6 @@
 use deskulpt_common::SerResult;
 use serde::Deserialize;
 use tauri::{AppHandle, Runtime, WebviewWindow};
-use tracing::{debug, error, info, trace, warn};
 
 use crate::LogsExt;
 use crate::reader::{Cursor, Page};
@@ -54,18 +53,18 @@ pub async fn log<R: Runtime>(
 ) -> SerResult<()> {
     match window.label() {
         "canvas" => match level {
-            Level::Trace => trace!(target: "frontend::canvas", %meta, message),
-            Level::Debug => debug!(target: "frontend::canvas", %meta, message),
-            Level::Info => info!(target: "frontend::canvas", %meta, message),
-            Level::Warn => warn!(target: "frontend::canvas", %meta, message),
-            Level::Error => error!(target: "frontend::canvas", %meta, message),
+            Level::Trace => tracing::trace!(target: "frontend::canvas", %meta, message),
+            Level::Debug => tracing::debug!(target: "frontend::canvas", %meta, message),
+            Level::Info => tracing::info!(target: "frontend::canvas", %meta, message),
+            Level::Warn => tracing::warn!(target: "frontend::canvas", %meta, message),
+            Level::Error => tracing::error!(target: "frontend::canvas", %meta, message),
         },
         "portal" => match level {
-            Level::Trace => trace!(target: "frontend::portal", %meta, message),
-            Level::Debug => debug!(target: "frontend::portal", %meta, message),
-            Level::Info => info!(target: "frontend::portal", %meta, message),
-            Level::Warn => warn!(target: "frontend::portal", %meta, message),
-            Level::Error => error!(target: "frontend::portal", %meta, message),
+            Level::Trace => tracing::trace!(target: "frontend::portal", %meta, message),
+            Level::Debug => tracing::debug!(target: "frontend::portal", %meta, message),
+            Level::Info => tracing::info!(target: "frontend::portal", %meta, message),
+            Level::Warn => tracing::warn!(target: "frontend::portal", %meta, message),
+            Level::Error => tracing::error!(target: "frontend::portal", %meta, message),
         },
         _ => {},
     }

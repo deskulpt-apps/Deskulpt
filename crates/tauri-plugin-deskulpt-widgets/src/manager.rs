@@ -9,7 +9,6 @@ use parking_lot::RwLock;
 use tauri::{AppHandle, Manager, Runtime};
 use tauri_plugin_deskulpt_settings::SettingsExt;
 use tauri_plugin_deskulpt_settings::model::SettingsPatch;
-use tracing::{debug, error, info};
 
 use crate::catalog::{WidgetCatalog, WidgetSettingsPatch};
 use crate::events::UpdateEvent;
@@ -57,7 +56,7 @@ impl<R: Runtime> WidgetsManager<R> {
         let persist_path = app_handle.path().app_local_data_dir()?.join("widgets.json");
         let mut persisted_catalog =
             PersistedWidgetCatalog::load(&persist_path).unwrap_or_else(|e| {
-                error!("Failed to load persisted widgets: {e:?}");
+                tracing::error!("Failed to load persisted widgets: {e:?}");
                 Default::default()
             });
         catalog.0.iter_mut().for_each(|(k, v)| {
@@ -262,7 +261,7 @@ impl<R: Runtime> WidgetsManager<R> {
                 .join(widget);
             let dst = self.dir.join(&widget_id);
             if dst.exists() {
-                debug!(%widget_id, "Starter widget already exists, skipping");
+                tracing::debug!(%widget_id, "Starter widget already exists, skipping");
                 continue;
             }
 
@@ -270,11 +269,11 @@ impl<R: Runtime> WidgetsManager<R> {
                 .with_context(|| format!("Failed to add starter widget {widget_id}"))
             {
                 Ok(_) => {
-                    info!(%widget_id, "Added starter widget");
+                    tracing::info!(%widget_id, "Added starter widget");
                 },
                 Err(e) => {
                     has_error = true;
-                    error!(
+                    tracing::error!(
                         error = ?e,
                         %widget_id,
                         src = %src.display(),
