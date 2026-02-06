@@ -4,12 +4,12 @@
     html_favicon_url = "https://github.com/deskulpt-apps/Deskulpt/raw/main/public/deskulpt.svg"
 )]
 
-use deskulpt_core::shortcuts::ShortcutsExt;
-use deskulpt_core::states::CanvasImodeStateExt;
-use deskulpt_core::tray::TrayExt;
-use deskulpt_core::window::WindowExt;
-use deskulpt_widgets::WidgetsExt;
 use tauri::{Builder, generate_context};
+use tauri_plugin_deskulpt_core::shortcuts::ShortcutsExt;
+use tauri_plugin_deskulpt_core::states::CanvasImodeStateExt;
+use tauri_plugin_deskulpt_core::tray::TrayExt;
+use tauri_plugin_deskulpt_core::window::WindowExt;
+use tauri_plugin_deskulpt_widgets::WidgetsExt;
 
 /// Entry point for the Deskulpt backend.
 pub fn run() {
@@ -39,10 +39,10 @@ pub fn run() {
                 .open_js_links_on_click(false)
                 .build(),
         )
-        .plugin(deskulpt_core::init())
-        .plugin(deskulpt_settings::init())
-        .plugin(deskulpt_widgets::init())
-        .plugin(deskulpt_logs::init())
+        .plugin(tauri_plugin_deskulpt_core::init())
+        .plugin(tauri_plugin_deskulpt_settings::init())
+        .plugin(tauri_plugin_deskulpt_widgets::init())
+        .plugin(tauri_plugin_deskulpt_logs::init())
         .run(generate_context!())
         .expect("Error running the Deskulpt application");
 }

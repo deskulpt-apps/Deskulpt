@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+commands.allow = ["call_plugin"]
+description    = "Enables the call_plugin command without any pre-configured scope."
+identifier     = "allow-call-plugin"
+
+[[permission]]
+commands.deny = ["call_plugin"]
+description   = "Denies the call_plugin command without any pre-configured scope."
+identifier    = "deny-call-plugin"

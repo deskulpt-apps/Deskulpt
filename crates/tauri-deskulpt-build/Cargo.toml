@@ -1,0 +1,18 @@
+[package]
+description = "Build-time utilities for Deskulpt."
+name        = "tauri-deskulpt-build"
+
+authors    = { workspace = true }
+edition    = { workspace = true }
+homepage   = { workspace = true }
+license    = { workspace = true }
+repository = { workspace = true }
+version    = { workspace = true }
+
+[dependencies]
+anyhow       = { workspace = true }
+quote        = { workspace = true }
+tauri-plugin = { workspace = true, features = ["build"] }
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--document-private-items"]

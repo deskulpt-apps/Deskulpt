@@ -1,0 +1,13 @@
+# Automatically generated - DO NOT EDIT!
+
+"$schema" = "../../schemas/schema.json"
+
+[[permission]]
+commands.allow = ["fetch_registry_index"]
+description    = "Enables the fetch_registry_index command without any pre-configured scope."
+identifier     = "allow-fetch-registry-index"
+
+[[permission]]
+commands.deny = ["fetch_registry_index"]
+description   = "Denies the fetch_registry_index command without any pre-configured scope."
+identifier    = "deny-fetch-registry-index"

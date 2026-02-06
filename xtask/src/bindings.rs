@@ -5,10 +5,10 @@ mod module;
 
 pub fn run() -> Result<()> {
     let all_bindings = vec![
-        deskulpt_core::build_bindings(),
-        deskulpt_settings::build_bindings(),
-        deskulpt_widgets::build_bindings(),
-        deskulpt_logs::build_bindings(),
+        tauri_plugin_deskulpt_core::build_bindings(),
+        tauri_plugin_deskulpt_settings::build_bindings(),
+        tauri_plugin_deskulpt_widgets::build_bindings(),
+        tauri_plugin_deskulpt_logs::build_bindings(),
     ];
 
     let mut index = index::Template::default();

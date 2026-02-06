@@ -1,0 +1,31 @@
+[package]
+description = "Deskulpt settings management."
+links       = "tauri-plugin-deskulpt-settings"
+name        = "tauri-plugin-deskulpt-settings"
+
+authors    = { workspace = true }
+edition    = { workspace = true }
+homepage   = { workspace = true }
+license    = { workspace = true }
+repository = { workspace = true }
+version    = { workspace = true }
+
+[dependencies]
+anyhow          = { workspace = true }
+deskulpt-common = { workspace = true }
+parking_lot     = { workspace = true }
+schemars        = { workspace = true }
+serde           = { workspace = true, features = ["derive"] }
+serde_json      = { workspace = true }
+serde_with      = { workspace = true }
+specta          = { workspace = true, features = ["derive", "function", "serde_json"] }
+tauri           = { workspace = true, features = ["specta"] }
+tokio           = { workspace = true }
+tracing         = { workspace = true }
+url             = { workspace = true }
+
+[build-dependencies]
+tauri-deskulpt-build = { workspace = true }
+
+[package.metadata.docs.rs]
+rustdoc-args = ["--extend-css", "../rustdoc.css"]

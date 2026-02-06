@@ -1270,24 +1270,15 @@ dependencies = [
 name = "deskulpt"
 version = "0.3.0"
 dependencies = [
- "deskulpt-core",
- "deskulpt-logs",
- "deskulpt-settings",
- "deskulpt-widgets",
  "tauri",
  "tauri-build",
  "tauri-plugin-clipboard-manager",
+ "tauri-plugin-deskulpt-core",
+ "tauri-plugin-deskulpt-logs",
+ "tauri-plugin-deskulpt-settings",
+ "tauri-plugin-deskulpt-widgets",
  "tauri-plugin-global-shortcut",
  "tauri-plugin-opener",
-]
-
-[[package]]
-name = "deskulpt-build"
-version = "0.3.0"
-dependencies = [
- "anyhow",
- "quote",
- "tauri-plugin",
 ]
 
 [[package]]
@@ -1299,50 +1290,6 @@ dependencies = [
  "serde",
  "specta",
  "tauri",
-]
-
-[[package]]
-name = "deskulpt-core"
-version = "0.3.0"
-dependencies = [
- "anyhow",
- "deskulpt-build",
- "deskulpt-common",
- "deskulpt-logs",
- "deskulpt-plugin",
- "deskulpt-plugin-fs",
- "deskulpt-plugin-sys",
- "deskulpt-settings",
- "deskulpt-widgets",
- "global-mousemove",
- "once_cell",
- "open",
- "parking_lot",
- "seqlock",
- "serde",
- "serde_json",
- "serialize-to-javascript",
- "specta",
- "tauri",
- "tauri-plugin-global-shortcut",
- "tracing",
-]
-
-[[package]]
-name = "deskulpt-logs"
-version = "0.3.0"
-dependencies = [
- "anyhow",
- "deskulpt-build",
- "deskulpt-common",
- "serde",
- "serde_json",
- "specta",
- "tauri",
- "tracing",
- "tracing-appender",
- "tracing-panic",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -1389,53 +1336,6 @@ dependencies = [
  "deskulpt-plugin",
  "serde",
  "sysinfo",
-]
-
-[[package]]
-name = "deskulpt-settings"
-version = "0.3.0"
-dependencies = [
- "anyhow",
- "deskulpt-build",
- "deskulpt-common",
- "parking_lot",
- "schemars 1.2.1",
- "serde",
- "serde_json",
- "serde_with",
- "specta",
- "tauri",
- "tokio",
- "tracing",
- "url",
-]
-
-[[package]]
-name = "deskulpt-widgets"
-version = "0.3.0"
-dependencies = [
- "anyhow",
- "astral-tokio-tar",
- "async-compression",
- "copy_dir",
- "deskulpt-build",
- "deskulpt-common",
- "deskulpt-settings",
- "dunce",
- "either",
- "oci-client",
- "parking_lot",
- "reqwest 0.13.1",
- "rolldown",
- "rolldown_common",
- "serde",
- "serde_json",
- "serde_with",
- "specta",
- "tauri",
- "tokio",
- "tokio-util",
- "tracing",
 ]
 
 [[package]]
@@ -6709,6 +6609,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "tauri-deskulpt-build"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "quote",
+ "tauri-plugin",
+]
+
+[[package]]
 name = "tauri-macros"
 version = "2.5.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6752,6 +6661,97 @@ dependencies = [
  "tauri",
  "tauri-plugin",
  "thiserror 2.0.17",
+]
+
+[[package]]
+name = "tauri-plugin-deskulpt-core"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "deskulpt-common",
+ "deskulpt-plugin",
+ "deskulpt-plugin-fs",
+ "deskulpt-plugin-sys",
+ "global-mousemove",
+ "once_cell",
+ "open",
+ "parking_lot",
+ "seqlock",
+ "serde",
+ "serde_json",
+ "serialize-to-javascript",
+ "specta",
+ "tauri",
+ "tauri-deskulpt-build",
+ "tauri-plugin-deskulpt-logs",
+ "tauri-plugin-deskulpt-settings",
+ "tauri-plugin-deskulpt-widgets",
+ "tauri-plugin-global-shortcut",
+ "tracing",
+]
+
+[[package]]
+name = "tauri-plugin-deskulpt-logs"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "deskulpt-common",
+ "serde",
+ "serde_json",
+ "specta",
+ "tauri",
+ "tauri-deskulpt-build",
+ "tracing",
+ "tracing-appender",
+ "tracing-panic",
+ "tracing-subscriber",
+]
+
+[[package]]
+name = "tauri-plugin-deskulpt-settings"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "deskulpt-common",
+ "parking_lot",
+ "schemars 1.2.1",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "specta",
+ "tauri",
+ "tauri-deskulpt-build",
+ "tokio",
+ "tracing",
+ "url",
+]
+
+[[package]]
+name = "tauri-plugin-deskulpt-widgets"
+version = "0.3.0"
+dependencies = [
+ "anyhow",
+ "astral-tokio-tar",
+ "async-compression",
+ "copy_dir",
+ "deskulpt-common",
+ "dunce",
+ "either",
+ "oci-client",
+ "parking_lot",
+ "reqwest 0.13.1",
+ "rolldown",
+ "rolldown_common",
+ "serde",
+ "serde_json",
+ "serde_with",
+ "specta",
+ "tauri",
+ "tauri-deskulpt-build",
+ "tauri-plugin-deskulpt-settings",
+ "tokio",
+ "tokio-util",
+ "tracing",
 ]
 
 [[package]]
@@ -8777,10 +8777,6 @@ dependencies = [
  "anyhow",
  "clap",
  "deskulpt-common",
- "deskulpt-core",
- "deskulpt-logs",
- "deskulpt-settings",
- "deskulpt-widgets",
  "deskulpt-workspace",
  "handlebars",
  "heck 0.5.0",
@@ -8790,6 +8786,10 @@ dependencies = [
  "serde_json",
  "specta",
  "specta-typescript",
+ "tauri-plugin-deskulpt-core",
+ "tauri-plugin-deskulpt-logs",
+ "tauri-plugin-deskulpt-settings",
+ "tauri-plugin-deskulpt-widgets",
 ]
 
 [[package]]
