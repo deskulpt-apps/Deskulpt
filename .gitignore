@@ -33,4 +33,4 @@ dist-ssr
 # Generated files
 target/
 crates/deskulpt/gen/
-crates/deskulpt-*/permissions/
+crates/tauri-plugin-deskulpt-*/permissions/
