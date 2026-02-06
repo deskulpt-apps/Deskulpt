@@ -1,36 +1,11 @@
-# Logs
-/logs
-*.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
-pnpm-debug.log*
-lerna-debug.log*
-
-node_modules
-dist
-dist-ssr
-*.local
-
-# Editor directories and files
-.vscode/*
-.zed/*
-!.vscode/extensions.json
 .idea
 .DS_Store
-*.suo
-*.ntvs*
-*.njsproj
-*.sln
-*.sw?
+*.local
 
-# Misc
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
+node_modules/
+target/
+dist/
 
 # Generated files
-target/
 crates/deskulpt/gen/
 crates/tauri-plugin-deskulpt-*/permissions/
