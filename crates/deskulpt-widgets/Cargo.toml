@@ -24,6 +24,7 @@ parking_lot       = { workspace = true }
 reqwest           = { workspace = true, features = ["json", "gzip"] }
 rolldown          = { workspace = true }
 rolldown_common   = { workspace = true }
+schemars          = { workspace = true }
 serde             = { workspace = true, features = ["derive"] }
 serde_json        = { workspace = true }
 serde_with        = { workspace = true }

@@ -13,6 +13,7 @@ use tracing::{debug, error, info};
 
 use crate::catalog::{WidgetCatalog, WidgetSettingsPatch};
 use crate::events::UpdateEvent;
+use crate::persist::{PersistWorkerHandle, PersistedWidgetCatalog, PersistedWidgetCatalogView};
 use crate::registry::{
     RegistryIndex, RegistryIndexFetcher, RegistryWidgetFetcher, RegistryWidgetPreview,
     RegistryWidgetReference,
@@ -27,15 +28,20 @@ pub struct WidgetsManager<R: Runtime> {
     dir: PathBuf,
     /// The widget catalog.
     catalog: RwLock<WidgetCatalog>,
+    /// The path where widgets are persisted.
+    persist_path: PathBuf,
     /// The handle for the render worker.
     render_worker: RenderWorkerHandle,
+    /// The handle for the persist worker.
+    persist_worker: PersistWorkerHandle,
 }
 
 impl<R: Runtime> WidgetsManager<R> {
     /// Initialize the [`WidgetsManager`].
     ///
-    /// The catalog is initialized as empty. A render worker is started
-    /// immediately.
+    /// The catalog will be populated with widgets in the widgets directory and
+    /// the persisted settings file. A render worker and a persist worker will
+    /// be started immediately.
     pub fn new(app_handle: AppHandle<R>) -> Result<Self> {
         let dir = if cfg!(debug_assertions) {
             app_handle.path().resource_dir()?
@@ -45,13 +51,31 @@ impl<R: Runtime> WidgetsManager<R> {
         let dir = dunce::simplified(&dir).join("widgets");
         std::fs::create_dir_all(&dir)?;
 
+        let mut catalog = WidgetCatalog::default();
+        catalog.reload_all(&dir)?;
+
+        let persist_path = app_handle.path().app_local_data_dir()?.join("widgets.json");
+        let mut persisted_catalog =
+            PersistedWidgetCatalog::load(&persist_path).unwrap_or_else(|e| {
+                error!("Failed to load persisted widgets: {e:?}");
+                Default::default()
+            });
+        catalog.0.iter_mut().for_each(|(k, v)| {
+            if let Some(persisted) = persisted_catalog.0.remove(k) {
+                v.settings = persisted.settings;
+            }
+        });
+
         let render_worker = RenderWorkerHandle::new(app_handle.clone());
+        let persist_worker = PersistWorkerHandle::new(app_handle.clone())?;
 
         Ok(Self {
             app_handle,
             dir,
-            catalog: Default::default(),
+            catalog: RwLock::new(catalog),
+            persist_path,
             render_worker,
+            persist_worker,
         })
     }
 
@@ -72,6 +96,7 @@ impl<R: Runtime> WidgetsManager<R> {
         widget.settings.apply_patch(patch);
 
         UpdateEvent(&catalog).emit(&self.app_handle)?;
+        self.persist_worker.notify()?;
         Ok(())
     }
 
@@ -88,6 +113,13 @@ impl<R: Runtime> WidgetsManager<R> {
         Some(covers)
     }
 
+    pub fn persist(&self) -> Result<()> {
+        let catalog = self.catalog.read();
+        let view: PersistedWidgetCatalogView = (&*catalog).into();
+        view.persist(&self.persist_path)?;
+        Ok(())
+    }
+
     /// Reload a specific widget by its ID.
     ///
     /// This method loads the widget manifest from the corresponding widget
@@ -101,6 +133,7 @@ impl<R: Runtime> WidgetsManager<R> {
         catalog.reload(&widget_dir, id)?;
 
         UpdateEvent(&catalog).emit(&self.app_handle)?;
+        self.persist_worker.notify()?;
         Ok(())
     }
 
@@ -114,6 +147,7 @@ impl<R: Runtime> WidgetsManager<R> {
         catalog.reload_all(&self.dir)?;
 
         UpdateEvent(&catalog).emit(&self.app_handle)?;
+        self.persist_worker.notify()?;
         Ok(())
     }
 

@@ -2,6 +2,7 @@
 
 use anyhow::Result;
 use deskulpt_settings::SettingsExt;
+use deskulpt_widgets::WidgetsExt;
 use tauri::menu::{MenuBuilder, MenuEvent, MenuItemBuilder};
 use tauri::tray::{MouseButton, MouseButtonState, TrayIcon, TrayIconBuilder, TrayIconEvent};
 use tauri::{App, AppHandle, Manager, Runtime};
@@ -59,6 +60,11 @@ fn on_menu_event<R: Runtime>(app_handle: &AppHandle<R>, event: MenuEvent) {
         "tray-exit" => {
             if let Err(e) = app_handle.settings().persist() {
                 error!("Failed to persist settings before exit: {e}");
+                app_handle.exit(1);
+                return;
+            }
+            if let Err(e) = app_handle.widgets().persist() {
+                error!("Failed to persist widgets before exit: {e}");
                 app_handle.exit(1);
                 return;
             }

@@ -7,6 +7,7 @@ use std::path::Path;
 
 use anyhow::{Context, Result};
 use deskulpt_common::outcome::Outcome;
+use schemars::JsonSchema;
 use serde::{Deserialize, Deserializer, Serialize};
 use serde_with::{DefaultOnError, serde_as};
 
@@ -109,7 +110,7 @@ impl WidgetManifest {
 
 /// Per-widget settings.
 #[serde_as]
-#[derive(Debug, Deserialize, Serialize, specta::Type)]
+#[derive(Debug, Deserialize, Serialize, JsonSchema, specta::Type)]
 #[serde(rename_all = "camelCase", default)]
 pub struct WidgetSettings {
     /// The leftmost x-coordinate in pixels.
@@ -126,6 +127,7 @@ pub struct WidgetSettings {
     pub height: u32,
     /// The opacity in percentage.
     #[serde(deserialize_with = "WidgetSettings::deserialize_opacity")]
+    #[schemars(range(min = 1, max = 100))]
     pub opacity: u8,
     /// The z-index.
     ///
@@ -133,6 +135,7 @@ pub struct WidgetSettings {
     /// z-index. Widgets with the same z-index can have arbitrary rendering
     /// order. The allowed range is from -999 to 999.
     #[serde_as(deserialize_as = "DefaultOnError")]
+    #[schemars(range(min = -999, max = 999))]
     pub z_index: i16,
     /// Whether the widget should be loaded on the canvas or not.
     #[serde_as(deserialize_as = "DefaultOnError")]
@@ -239,11 +242,22 @@ impl WidgetSettings {
 
 /// A Deskulpt widget.
 #[derive(Debug, Serialize, specta::Type)]
+#[serde(rename_all = "camelCase")]
 pub struct Widget {
     /// The manifest of the widget or an error message loading it.
     pub manifest: Outcome<WidgetManifest>,
     /// The settings of the widget.
     pub settings: WidgetSettings,
+}
+
+impl Widget {
+    fn new(manifest: Outcome<WidgetManifest>, settings: Option<WidgetSettings>) -> Self {
+        let settings = settings.unwrap_or_else(|| match &manifest {
+            Outcome::Ok(manifest) => WidgetSettings::from_manifest(manifest),
+            Outcome::Err(_) => WidgetSettings::default(),
+        });
+        Self { manifest, settings }
+    }
 }
 
 /// The catalog of Deskulpt widgets.
@@ -257,23 +271,11 @@ impl WidgetCatalog {
             return Ok(());
         };
 
-        match self.0.get_mut(id) {
-            Some(widget) => {
-                widget.manifest = manifest.into();
-            },
-            None => {
-                let settings = match &manifest {
-                    Ok(manifest) => WidgetSettings::from_manifest(manifest),
-                    Err(_) => WidgetSettings::default(),
-                };
-                self.0.insert(
-                    id.to_string(),
-                    Widget {
-                        manifest: manifest.into(),
-                        settings,
-                    },
-                );
-            },
+        if let Some(widget) = self.0.get_mut(id) {
+            widget.manifest = manifest.into();
+        } else {
+            let widget = Widget::new(manifest.into(), None);
+            self.0.insert(id.to_string(), widget);
         }
 
         Ok(())
@@ -300,21 +302,9 @@ impl WidgetCatalog {
             // as widget IDs
             let id = entry.file_name().to_string_lossy().to_string();
 
-            let settings = match self.0.remove(&id) {
-                Some(old_widget) => old_widget.settings,
-                None => match &manifest {
-                    Ok(manifest) => WidgetSettings::from_manifest(manifest),
-                    Err(_) => WidgetSettings::default(),
-                },
-            };
-
-            new_catalog.0.insert(
-                id,
-                Widget {
-                    manifest: manifest.into(),
-                    settings,
-                },
-            );
+            let settings = self.0.remove(&id).map(|w| w.settings);
+            let widget = Widget::new(manifest.into(), settings);
+            new_catalog.0.insert(id, widget);
         }
 
         *self = new_catalog;

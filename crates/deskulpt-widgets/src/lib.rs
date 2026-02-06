@@ -8,6 +8,7 @@ mod catalog;
 mod commands;
 mod events;
 mod manager;
+pub mod persist;
 mod registry;
 mod render;
 
