@@ -30,7 +30,7 @@ export default defineConfig([
     input: "src/index.ts",
     output: {
       format: "esm",
-      file: "../../crates/deskulpt-core/gen/apis.wrapper.js",
+      file: "../../crates/tauri-plugin-deskulpt-core/gen/apis.wrapper.js",
       banner: "/*! Auto-generated from packages/apis. DO NOT EDIT! */",
     },
     external: ["@tauri-apps/api/core", "__RAW_APIS_URL__"],
