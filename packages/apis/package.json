@@ -10,7 +10,7 @@
   "scripts": {
     "preinstall": "npx only-allow pnpm",
     "prepublishOnly": "pnpm build",
-    "build": "rollup -c --configPlugin typescript"
+    "build": "tsdown"
   },
   "repository": {
     "type": "git",
@@ -26,12 +26,7 @@
     "@tauri-apps/api": "catalog:"
   },
   "devDependencies": {
-    "@rollup/plugin-replace": "catalog:",
-    "@rollup/plugin-terser": "catalog:",
-    "@rollup/plugin-typescript": "catalog:",
-    "@types/node": "catalog:",
-    "rollup": "catalog:",
-    "tslib": "catalog:",
-    "typescript": "catalog:"
+    "rolldown": "catalog:",
+    "tsdown": "catalog:"
   }
 }
