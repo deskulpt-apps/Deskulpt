@@ -9,10 +9,11 @@ mod interface;
 
 use std::path::PathBuf;
 
+pub use anyhow;
 use anyhow::{Result, bail};
 pub use command::PluginCommand;
 pub use interface::EngineInterface;
-pub use {anyhow, serde_json};
+pub use serde_json;
 
 /// The API for a Deskulpt plugin.
 pub trait Plugin {
