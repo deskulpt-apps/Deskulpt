@@ -1,13 +1,10 @@
 import { RollupLog, defineConfig } from "rollup";
 import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
-import { fileURLToPath } from "url";
-import { join } from "path";
-import { Dir, opendirSync, rmSync } from "fs";
+import { join } from "node:path";
+import { Dir, opendirSync, rmSync } from "node:fs";
 
-// Cleanup `dist/` directory
-const __dirname = fileURLToPath(new URL(".", import.meta.url));
-cleanDir(join(__dirname, "./dist"));
+cleanDir(join(import.meta.dirname, "./dist"));
 
 export default defineConfig([
   // ESM build to be used internally
