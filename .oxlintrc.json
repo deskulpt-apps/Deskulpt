@@ -13,6 +13,7 @@
     "max-lines-per-function": "off",
     "max-nested-callbacks": "off",
     "no-inline-comments": "off",
+    "no-shadow": "off",
     "sort-imports": ["error", { "ignoreDeclarationSort": true }],
     "import/max-dependencies": "off",
     "import/no-absolute-path": "off",
