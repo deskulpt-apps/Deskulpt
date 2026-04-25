@@ -1,11 +1,13 @@
 import { RollupLog, defineConfig } from "rollup";
 import typescript from "@rollup/plugin-typescript";
 import terser from "@rollup/plugin-terser";
-import { fileURLToPath } from "url";
-import { join } from "path";
-import { Dir, opendirSync, rmSync } from "fs";
+import { fileURLToPath } from "node:url";
+import { join } from "node:path";
+import { Dir, opendirSync, rmSync } from "node:fs";
 
-// Cleanup `dist/` directory
+// `import.meta.dirname` on Windows will contain "\ui" where "\u" is recognized
+// as a unicode escape sequence, so we have to use the following workaround
+// oxlint-disable-next-line unicorn/prefer-import-meta-properties
 const __dirname = fileURLToPath(new URL(".", import.meta.url));
 cleanDir(join(__dirname, "./dist"));
 
