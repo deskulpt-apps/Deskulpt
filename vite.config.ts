@@ -7,21 +7,14 @@ export default defineConfig({
   define: {
     __VERSION__: JSON.stringify(version),
   },
-  plugins: [
-    react({
-      jsxImportSource: "@emotion/react",
-      babel: {
-        plugins: ["babel-plugin-react-compiler", "@emotion/babel-plugin"],
-      },
-    }),
-  ],
+  plugins: [react({ jsxImportSource: "@emotion/react" })],
   clearScreen: false,
   server: {
     port: 1420,
     strictPort: true,
   },
   build: {
-    rollupOptions: {
+    rolldownOptions: {
       input: {
         portal: resolve(__dirname, "packages/deskulpt-portal/index.html"),
         canvas: resolve(__dirname, "packages/deskulpt-canvas/index.html"),
