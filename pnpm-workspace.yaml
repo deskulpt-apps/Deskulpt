@@ -4,7 +4,7 @@ packages:
 catalog:
   "@emotion/react": ^11.14.0
   "@radix-ui/themes": ^3.3.0
-  "@tanstack/react-virtual": ^3.13.23
+  "@tanstack/react-virtual": ^3.13.24
   "@tauri-apps/api": ^2.10.1
   "@tauri-apps/cli": ^2.10.1
   "@tauri-apps/plugin-clipboard-manager": ^2.3.2
@@ -14,10 +14,10 @@ catalog:
   "@vitejs/plugin-react": ^6.0.1
   babel-plugin-react-compiler: ^1.0.0
   husky: ^9.1.6
-  knip: ^6.4.1
+  knip: ^6.7.0
   lint-staged: ^16.4.0
-  oxlint: ^1.59.0
-  prettier: ^3.8.2
+  oxlint: ^1.61.0
+  prettier: ^3.8.3
   prettier-plugin-toml: ^2.0.6
   re-resizable: ^6.11.2
   react: ^19.2.5
@@ -29,6 +29,6 @@ catalog:
   sonner: ^2.0.7
   superjson: ^2.2.6
   tsdown: ^0.21.10
-  typescript: ^6.0.2
+  typescript: ^6.0.3
   vite: ^8.0.10
   zustand: ^5.0.12
