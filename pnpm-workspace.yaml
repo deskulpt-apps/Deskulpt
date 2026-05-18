@@ -5,30 +5,30 @@ catalog:
   "@emotion/react": ^11.14.0
   "@radix-ui/themes": ^3.3.0
   "@tanstack/react-virtual": ^3.13.24
-  "@tauri-apps/api": ^2.10.1
-  "@tauri-apps/cli": ^2.10.1
+  "@tauri-apps/api": ^2.11.0
+  "@tauri-apps/cli": ^2.11.2
   "@tauri-apps/plugin-clipboard-manager": ^2.3.2
-  "@tauri-apps/plugin-opener": ^2.5.3
+  "@tauri-apps/plugin-opener": ^2.5.4
   "@types/react": ^19.2.14
   "@types/react-dom": ^19.2.3
-  "@vitejs/plugin-react": ^6.0.1
+  "@vitejs/plugin-react": ^6.0.2
   babel-plugin-react-compiler: ^1.0.0
   husky: ^9.1.6
-  knip: ^6.7.0
-  lint-staged: ^16.4.0
-  oxlint: ^1.61.0
+  knip: ^6.14.1
+  lint-staged: ^17.0.5
+  oxlint: ^1.65.0
   prettier: ^3.8.3
   prettier-plugin-toml: ^2.0.6
   re-resizable: ^6.11.2
-  react: ^19.2.5
-  react-dom: ^19.2.5
+  react: ^19.2.6
+  react-dom: ^19.2.6
   react-draggable: ^4.5.0
   react-error-boundary: ^6.1.1
   react-icons: ^5.6.0
-  rolldown: ^1.0.0-rc.17
+  rolldown: ^1.0.1
   sonner: ^2.0.7
   superjson: ^2.2.6
-  tsdown: ^0.21.10
+  tsdown: ^0.22.0
   typescript: ^6.0.3
-  vite: ^8.0.10
-  zustand: ^5.0.12
+  vite: ^8.0.13
+  zustand: ^5.0.13
