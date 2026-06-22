@@ -15,7 +15,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
 
       - uses: ./.github/actions/setup-rust
         with:
@@ -38,7 +38,7 @@ jobs:
           repositories: rustdoc
 
       - name: Checkout rustdoc repo
-        uses: actions/checkout@v6
+        uses: actions/checkout@v7
         with:
           token: ${{ steps.token.outputs.token }}
           repository: deskulpt-apps/rustdoc
